@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/row_card"
+    app:cardBackgroundColor="@android:color/transparent"
+    app:cardElevation="0dp">
+    <RelativeLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/rows_border"
+        android:layout_alignParentTop="true"
+        android:layout_marginBottom="20dp"
+        android:id="@+id/divider"/>
+
+    <RelativeLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/leftContent"
+        android:layout_centerVertical="true"
+        android:layout_marginStart="24dp"
+        android:layout_marginBottom="20dp"
+        android:layout_below="@id/divider">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Nombre del gasto"
+            android:id="@+id/txtNombreGasto"
+            style="@style/RowTitle"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Fecha del gasto"
+            android:id="@+id/txtFechaGasto"
+            android:layout_below="@id/txtNombreGasto" />
+    </RelativeLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Nombre Persona"
+        android:layout_alignParentRight="true"
+        android:layout_marginRight="140dp"
+        android:layout_centerVertical="true"
+        android:id="@+id/txtPersona"
+        style="@style/Row_Rest"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="$5.000"
+        android:layout_alignParentRight="true"
+        android:id="@+id/txtPrecio"
+        android:layout_centerVertical="true"
+        android:layout_marginEnd="24dp"
+        android:textAlignment="textEnd"
+        style="@style/RowTitle"/>
+
+    </RelativeLayout>
+</com.google.android.material.card.MaterialCardView>

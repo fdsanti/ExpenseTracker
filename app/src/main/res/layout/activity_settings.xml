@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <include layout="@layout/toolbar_back" android:id="@+id/toolbar_back"></include>
+
+    <RelativeLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="90dp"
+        android:paddingStart="24dp"
+        android:paddingEnd="24dp"
+        android:id="@+id/RL1erIntegrante">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="1er integrante"
+            android:id="@+id/txtIntegrante1"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            style="@style/Title"/>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/txtFieldNombre1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Nombre del 1er integrante"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:layout_below="@id/txtIntegrante1"
+            app:helperTextEnabled="true"
+            app:helperText="Campo obligatorio"
+            android:layout_marginTop="20dp">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/txtEditNombre1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="text"
+                />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/txtFieldSueldo1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Sueldo del 1er integrante"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:layout_below="@id/txtFieldNombre1"
+            android:layout_marginTop="32dp"
+            app:helperTextEnabled="true"
+            app:helperText="Campo obligatorio">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/txtEditSueldo1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="number"
+                />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="40dp"
+        android:paddingStart="24dp"
+        android:paddingEnd="24dp"
+        android:layout_below="@id/RL1erIntegrante">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="2do integrante"
+            android:id="@+id/txtIntegrante2"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            style="@style/Title" />
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/txtFieldNombre2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Nombre del 2do integrante"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:layout_below="@id/txtIntegrante2"
+            app:helperTextEnabled="true"
+            app:helperText="Campo obligatorio"
+            android:layout_marginTop="20dp">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/txtEditNombre2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="text"
+                />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/txtFieldSueldo2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Sueldo del 2do integrante"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:layout_below="@id/txtFieldNombre2"
+            android:layout_marginTop="32dp"
+            app:helperTextEnabled="true"
+            app:helperText="Campo obligatorio">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/txtEditSueldo2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="number"
+                />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:layout_width="wrap_content"
+        android:layout_height="46dp"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:paddingEnd="24dp"
+        android:paddingStart="24dp"
+        android:layout_marginBottom="30dp">
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnContinuar"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:text="Continuar"
+            android:textAllCaps="false"
+            android:insetBottom="0dp"
+            android:insetTop="0dp"
+            app:cornerRadius="8dp"
+            android:textSize="16sp"
+            />
+    </RelativeLayout>
+</RelativeLayout>

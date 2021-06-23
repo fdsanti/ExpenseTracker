@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <attr name="colorBackgroundCards" format="color" />
+    <attr name="colorBorderCards" format="color" />
+    <attr name="greyBackground" format="color" />
+    <attr name="onGreyBackground" format="color" />
+    <attr name="filtrarPorBg" format="color" />
+    <attr name="fabBgCircle" format="color" />
+</resources>

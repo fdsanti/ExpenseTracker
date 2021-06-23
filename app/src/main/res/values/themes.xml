@@ -1,0 +1,86 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Theme.ExpenseTracker" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="android:forceDarkAllowed" tools:targetApi="q">true</item>
+        <!-- Primary brand color. -->
+        <item name="colorPrimary">@color/purple_500</item>
+        <item name="colorPrimaryVariant">@color/purple_700</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <!-- Secondary brand color. -->
+        <item name="colorSecondary">@color/colorPrimary</item>
+        <item name="colorSecondaryVariant">@color/colorPrimary</item>
+        <item name="colorOnSecondary">@color/black</item>
+
+        <!-- Status bar color. -->
+        <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimaryVariant</item>
+        <!-- Customize your theme here. -->
+
+        <item name="colorBackgroundCards">@color/white</item>
+        <item name="colorBorderCards">@color/colorPrimary</item>
+
+        <item name="greyBackground">@color/purple_500</item>
+        <item name="onGreyBackground">@color/white</item>
+        <item name="filtrarPorBg">@color/white</item>
+        <item name="fabBgCircle">@color/white</item>
+
+    </style>
+
+    <style name="CustomChipStyle" parent="Widget.MaterialComponents.Chip.Filter">
+        <item name="chipBackgroundColor">@color/chip_background_color</item>
+        <item name="chipStrokeColor">@color/primary_blue</item>
+        <item name="chipSurfaceColor">@color/chip_background_color</item>
+        <item name="android:textColor">@color/colorSurface</item>
+        <item name="checkedIconTint">@color/primary_blue</item>
+    </style>
+
+    <style name="Title" parent="@android:style/TextAppearance.Medium">
+        <item name="android:textSize">24sp</item>
+        <item name="android:textColor">@color/colorSurface</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:typeface">sans</item>
+    </style>
+
+    <style name="Subtitle" parent="@android:style/TextAppearance.Medium">
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">@color/colorSurface</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:typeface">sans</item>
+    </style>
+
+    <style name="Normal" parent="@android:style/TextAppearance.Medium">
+        <item name="android:textSize">16sp</item>
+
+        <item name="android:textStyle">normal</item>
+        <item name="android:typeface">sans</item>
+    </style>
+
+    <style name="RowTitle" parent="@android:style/TextAppearance.Medium">
+        <item name="android:textSize">16sp</item>
+
+        <item name="android:textStyle">bold</item>
+        <item name="android:typeface">sans</item>
+    </style>
+
+    <style name="RowTitleDarkGrey" parent="@android:style/TextAppearance.Medium">
+        <item name="android:textSize">16sp</item>
+
+        <item name="android:textStyle">bold</item>
+        <item name="android:typeface">sans</item>
+    </style>
+
+    <style name="Row_Rest" parent="@android:style/TextAppearance.Medium">
+        <item name="android:textSize">16sp</item>
+
+        <item name="android:textStyle">normal</item>
+        <item name="android:typeface">sans</item>
+    </style>
+
+    <style name="ExpenseNames" parent="@android:style/TextAppearance.Medium">
+        <item name="android:textSize">12sp</item>
+
+        <item name="android:textStyle">normal</item>
+        <item name="android:typeface">sans</item>
+        <item name="textAllCaps">true</item>
+        <item name="android:letterSpacing" tools:targetApi="lollipop">0.25</item>
+    </style>
+</resources>
