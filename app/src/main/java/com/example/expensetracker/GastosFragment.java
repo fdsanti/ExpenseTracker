@@ -45,6 +45,7 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
@@ -311,11 +312,14 @@ public class GastosFragment extends Fragment implements SwipeRefreshLayout.OnRef
                                         //just need to add the new row to the arraylists in this class
                                         if (dropdown_nombres.getText().toString().equals(SettingsDB.getSetting(HCardDB.getSelected()).getName1())) {
                                             rows1.add(newRow);
+                                            Collections.sort(rows1, new RowSortDate());
                                         }
                                         else {
                                             rows2.add(newRow);
+                                            Collections.sort(rows2, new RowSortDate());
                                         }
                                         rowsBoth.add(newRow);
+                                        Collections.sort(rowsBoth, new RowSortDate());
                                         adapter.notifyDataSetChanged();
                                         loadTotals();
                                         saldosFragment.calculate();
@@ -457,6 +461,15 @@ public class GastosFragment extends Fragment implements SwipeRefreshLayout.OnRef
             connection.close();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
+        }
+
+        Collections.sort(rows, new RowSortDate());
+        Collections.sort(rowsBoth, new RowSortDate());
+        if (!rows1.isEmpty()) {
+            Collections.sort(rows1, new RowSortDate());
+        }
+        if (!rows2.isEmpty()) {
+            Collections.sort(rows2, new RowSortDate());
         }
 
     }

@@ -58,66 +58,6 @@ public class HCardsViewAdapter extends RecyclerView.Adapter<HCardsViewAdapter.Vi
         String formattedDate = today.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL));
         holder.date.setText(formattedDate);
 
-        //Crear popup al tappear en el boton de Eliminar
-        holder.btn.setOnClickListener(v -> {
-            MaterialAlertDialogBuilder dialog = new MaterialAlertDialogBuilder(context);
-            dialog.setTitle("¿Eliminar reporte?");
-            dialog.setMessage("¿Estás seguro que querés eliminar el reporte " + holder.name.getText().toString() + "?");
-            dialog.setIcon(R.drawable.ic_delete);
-
-
-            dialog.setNegativeButton("Cancelar", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-
-                }
-            });
-            //OnClickListener para el boton de Eliminar (dentro del popup)
-            dialog.setPositiveButton("Eliminar", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    ProgressDialog progressDialog = new ProgressDialog(context);
-                    progressDialog.show();
-                    progressDialog.setContentView(R.layout.progress_dialog);
-                    progressDialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
-
-                    Handler handlerUI = new Handler();
-                    Runnable runnable = new Runnable() {
-                        @Override
-                        public void run() {
-                            synchronized (this) {
-                                DBHandler handler = new DBHandler();
-                                Connection connection = handler.getConnection(context);
-                                HCardDB.removeReport(connection, hCards.get(position).getId());
-                                SettingsDB.removeSettings(hCards.get(position), context);
-                                try {
-                                    connection.close();
-                                } catch (SQLException throwables) {
-                                    throwables.printStackTrace();
-                                }
-                            }
-
-                            handlerUI.post(new Runnable() {
-                                @Override
-                                public void run() {
-                                    hCards.remove(position);
-                                    notifyDataSetChanged();
-                                    progressDialog.dismiss();
-                                    Toast.makeText(context, "El reporte se ha eliminado", Toast.LENGTH_SHORT).show();
-                                }
-                            });
-                        }
-                    };
-                    Thread thread = new Thread(runnable);
-                    thread.start();
-                }
-            });
-
-            dialog.show();
-
-
-        });
-
         //Cuando haces click en la card, ir al expense report
         holder.mCardView.setOnClickListener(v -> {
             HCardDB.setSelected(hCards.get(position));
@@ -153,7 +93,6 @@ public class HCardsViewAdapter extends RecyclerView.Adapter<HCardsViewAdapter.Vi
             super(itemView);
             name = itemView.findViewById(R.id.txtName);
             date = itemView.findViewById(R.id.txtDate);
-            btn = itemView.findViewById(R.id.btn_eliminar);
             mCardView = itemView.findViewById(R.id.trackerCard);
         }
     }

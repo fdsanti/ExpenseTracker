@@ -5,6 +5,7 @@ import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
@@ -28,6 +29,7 @@ import android.widget.Toast;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.dialog.MaterialDialogs;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
@@ -46,6 +48,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
     private ExtendedFloatingActionButton btnNewHomeCard;
     private HCardsViewAdapter adapter;
     private SwipeRefreshLayout mSwipeRefreshLayout;
+    private ArrayList<HomeCard> hCards;
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
@@ -154,7 +157,89 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
             });
         });
 
+        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(simpleCallback);
+        itemTouchHelper.attachToRecyclerView(homeRecycler);
+
     }
+
+    ItemTouchHelper.SimpleCallback simpleCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT) {
+        @Override
+        public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
+            return false;
+        }
+
+        @Override
+        public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
+
+            int position = viewHolder.getAdapterPosition();
+
+            switch (direction) {
+                case ItemTouchHelper.LEFT:
+
+
+                    MaterialAlertDialogBuilder dialog = new MaterialAlertDialogBuilder(MainActivity.this);
+                    dialog.setTitle("¿Eliminar reporte?");
+                    dialog.setMessage("¿Estás seguro que querés eliminar el reporte " + hCards.get(position).getName() + "?");
+                    dialog.setIcon(R.drawable.ic_delete);
+
+
+                    dialog.setNegativeButton("Cancelar", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            adapter.notifyDataSetChanged();
+                        }
+                    });
+                    //OnClickListener para el boton de Eliminar (dentro del popup)
+                    dialog.setPositiveButton("Eliminar", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            ProgressDialog progressDialog = new ProgressDialog(MainActivity.this);
+                            progressDialog.show();
+                            progressDialog.setContentView(R.layout.progress_dialog);
+                            progressDialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+
+                            Handler handlerUI = new Handler();
+                            Runnable runnable = new Runnable() {
+                                @Override
+                                public void run() {
+                                    synchronized (this) {
+                                        DBHandler handler = new DBHandler();
+                                        Connection connection = handler.getConnection(MainActivity.this);
+                                        HCardDB.removeReport(connection, hCards.get(position).getId());
+                                        SettingsDB.removeSettings(hCards.get(position), MainActivity.this);
+                                        try {
+                                            connection.close();
+                                        } catch (SQLException throwables) {
+                                            throwables.printStackTrace();
+                                        }
+                                    }
+
+                                    handlerUI.post(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            hCards.remove(position);
+                                            adapter.notifyItemRemoved(position);
+                                            adapter.notifyDataSetChanged();
+                                            progressDialog.dismiss();
+                                            Toast.makeText(MainActivity.this, "El reporte se ha eliminado", Toast.LENGTH_SHORT).show();
+                                        }
+                                    });
+                                }
+                            };
+                            Thread thread = new Thread(runnable);
+                            thread.start();
+                        }
+                    });
+
+                    dialog.show();
+
+                    break;
+
+                case ItemTouchHelper.RIGHT:
+                    break;
+            }
+        }
+    };
 
     /*@Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -195,18 +280,8 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
                 handlerUI.post(new Runnable() {
                     @Override
                     public void run() {
-                        if(!HCardDB.isEmpty()) {
-                            ArrayList<HomeCard> hCards = HCardDB.getReports();
-                            adapter = new HCardsViewAdapter(MainActivity.this);
-                            adapter.setCards(hCards);
-                            homeRecycler.setAdapter(adapter);
-                            homeRecycler.setLayoutManager(new LinearLayoutManager(MainActivity.this));
-                            progressDialog.dismiss();
-                        }
-                        else {
-                            TextView txtEmpty = new TextView(MainActivity.this);
-                            txtEmpty.setText("There are no reports yet!");
-                        }
+                        progressDialog.dismiss();
+                        loadReportsFromArrayList();
                     }
                 });
             }
@@ -217,7 +292,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
 
     private void loadReportsFromArrayList() {
         if(!HCardDB.isEmpty()) {
-            ArrayList<HomeCard> hCards = HCardDB.getReports();
+            hCards = HCardDB.getReports();
             adapter = new HCardsViewAdapter(MainActivity.this);
             adapter.setCards(hCards);
             homeRecycler.setAdapter(adapter);

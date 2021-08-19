@@ -20,7 +20,7 @@
         android:paddingTop="24dp"
         android:paddingStart="24dp"
         android:paddingEnd="24dp"
-        android:paddingBottom="16dp">
+        android:paddingBottom="32dp">
 
         <RelativeLayout
             android:layout_width="wrap_content"
@@ -43,16 +43,6 @@
                 android:layout_marginTop="8dp"
                 android:text="Creado el 23 de Mayo del 2021" />
 
-            <Button
-                style="@style/Widget.MaterialComponents.Button.TextButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_below="@id/txtDate"
-                android:layout_marginTop="8dp"
-                android:layout_marginLeft="-8dp"
-                android:padding="0dp"
-                android:text="ELIMINAR"
-                android:id="@+id/btn_eliminar"/>
         </RelativeLayout>
 
         <ImageView
