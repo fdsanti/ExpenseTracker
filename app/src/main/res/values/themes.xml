@@ -22,6 +22,7 @@
         <item name="onGreyBackground">@color/white</item>
         <item name="filtrarPorBg">@color/white</item>
         <item name="fabBgCircle">@color/white</item>
+        <item name="deleteRed">@color/delete_red</item>
 
     </style>
 

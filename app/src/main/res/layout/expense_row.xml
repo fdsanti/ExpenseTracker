@@ -26,12 +26,13 @@
         android:layout_marginStart="24dp"
         android:layout_marginBottom="20dp"
         android:layout_below="@id/divider">
+
         <TextView
+            android:id="@+id/txtNombreGasto"
+            style="@style/RowTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Nombre del gasto"
-            android:id="@+id/txtNombreGasto"
-            style="@style/RowTitle"/>
+            android:text="Nombre del gasto" />
 
         <TextView
             android:layout_width="wrap_content"

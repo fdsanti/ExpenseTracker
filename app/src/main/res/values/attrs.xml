@@ -6,4 +6,5 @@
     <attr name="onGreyBackground" format="color" />
     <attr name="filtrarPorBg" format="color" />
     <attr name="fabBgCircle" format="color" />
+    <attr name="deleteRed" format="color" />
 </resources>

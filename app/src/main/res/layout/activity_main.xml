@@ -9,7 +9,9 @@
     android:orientation="vertical"
     android:clipToPadding="false">
 
-    <include layout="@layout/toolbar" android:id="@+id/toolbar"></include>
+    <include
+        android:id="@+id/toolbar"
+        layout="@layout/toolbar"></include>
 
     <RelativeLayout
         android:layout_width="wrap_content"
@@ -17,23 +19,23 @@
         android:layout_below="@id/toolbar"
         android:layout_marginTop="-8dp">
 
-        <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-            xmlns:android="http://schemas.android.com/apk/res/android"
+        <androidx.swiperefreshlayout.widget.SwipeRefreshLayout xmlns:android="http://schemas.android.com/apk/res/android"
             android:id="@+id/swipe_containerMain"
             android:layout_width="match_parent"
             android:layout_height="match_parent">
+
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/homeRecycler"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
+                android:clipToPadding="false"
                 android:paddingLeft="20dp"
-                android:paddingRight="20dp"
                 android:paddingTop="28dp"
-                android:paddingBottom="80dp"
-                android:clipToPadding="false"/>
+                android:paddingRight="20dp"
+                android:paddingBottom="24dp" />
         </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
-        <RelativeLayout
+        <!--<RelativeLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:clipChildren="false"
@@ -46,23 +48,23 @@
             >
 
             <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+                android:id="@+id/btnNewHomeCard"
                 style="@style/Widget.MaterialComponents.ExtendedFloatingActionButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:elevation="8dp"
-                app:elevation="8dp"
                 android:text="CREAR NUEVO EXPENSE"
+                app:elevation="8dp"
                 app:icon="@drawable/ic_add"
-                app:iconPadding="4dp"
-                android:id="@+id/btnNewHomeCard"/>
+                app:iconPadding="4dp" />
 
         </RelativeLayout>
+
         <com.google.android.material.imageview.ShapeableImageView
             android:layout_width="match_parent"
             android:layout_height="115dp"
-            android:background="@drawable/gradient"
             android:layout_alignParentBottom="true"
-            />
+            android:background="@drawable/gradient" />-->
     </RelativeLayout>
 
 

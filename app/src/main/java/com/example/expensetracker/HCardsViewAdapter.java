@@ -87,13 +87,15 @@ public class HCardsViewAdapter extends RecyclerView.Adapter<HCardsViewAdapter.Vi
         private TextView name;
         private TextView date;
         private Button btn;
-        private MaterialCardView mCardView;
+        MaterialCardView mCardView,viewB;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             name = itemView.findViewById(R.id.txtName);
             date = itemView.findViewById(R.id.txtDate);
             mCardView = itemView.findViewById(R.id.trackerCard);
+            viewB = itemView.findViewById(R.id.hc_delete);
+
         }
     }
 
