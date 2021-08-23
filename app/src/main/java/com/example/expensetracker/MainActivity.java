@@ -162,7 +162,10 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
                                 @Override
                                 public void run() {
                                     HCardDB.addExpense(String.valueOf(newID), hc);
-                                    adapter.addHCard(hc);
+                                    hCards.add(0,hc);
+                                    adapter.notifyItemInserted(0);
+                                    adapter.notifyItemRangeChanged(0,hCards.size());
+                                    homeRecycler.smoothScrollToPosition(0);
                                     progressDialog.dismiss();
                                     Toast.makeText(MainActivity.this, "¡El expense ha sido creado con éxito!", Toast.LENGTH_SHORT).show();
                                 }
@@ -176,89 +179,6 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
         });
         return super.onOptionsItemSelected(item);
     }
-
-
-    //al swipear, eliminar el expense
-    /*private ItemTouchHelper.Callback createHelperCallback() {
-        return new ItemDragSwipeCallback(this, R.color.delete_red, R.drawable.ic_delete,
-                0, ItemTouchHelper.LEFT, new ItemDragSwipeCallback.OnTouchListener() {
-            @Override
-            public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
-                return false;
-            }
-
-            @Override
-            public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
-
-                int position = viewHolder.getAdapterPosition();
-
-                switch (direction) {
-                    case ItemTouchHelper.LEFT:
-
-
-                        MaterialAlertDialogBuilder dialog = new MaterialAlertDialogBuilder(MainActivity.this);
-                        dialog.setTitle("¿Eliminar reporte?");
-                        dialog.setMessage("¿Estás seguro que querés eliminar el reporte " + hCards.get(position).getName() + "?");
-                        dialog.setIcon(R.drawable.ic_delete);
-
-
-                        dialog.setNegativeButton("Cancelar", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                adapter.notifyDataSetChanged();
-                            }
-                        });
-                        //OnClickListener para el boton de Eliminar (dentro del popup)
-                        dialog.setPositiveButton("Eliminar", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                ProgressDialog progressDialog = new ProgressDialog(MainActivity.this);
-                                progressDialog.show();
-                                progressDialog.setContentView(R.layout.progress_dialog);
-                                progressDialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
-
-                                Handler handlerUI = new Handler();
-                                Runnable runnable = new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        synchronized (this) {
-                                            DBHandler handler = new DBHandler();
-                                            Connection connection = handler.getConnection(MainActivity.this);
-                                            HCardDB.removeReport(connection, hCards.get(position).getId());
-                                            SettingsDB.removeSettings(hCards.get(position), MainActivity.this);
-                                            try {
-                                                connection.close();
-                                            } catch (SQLException throwables) {
-                                                throwables.printStackTrace();
-                                            }
-                                        }
-
-                                        handlerUI.post(new Runnable() {
-                                            @Override
-                                            public void run() {
-                                                hCards.remove(position);
-                                                adapter.notifyItemRemoved(position);
-                                                adapter.notifyDataSetChanged();
-                                                progressDialog.dismiss();
-                                                Toast.makeText(MainActivity.this, "El reporte se ha eliminado", Toast.LENGTH_SHORT).show();
-                                            }
-                                        });
-                                    }
-                                };
-                                Thread thread = new Thread(runnable);
-                                thread.start();
-                            }
-                        });
-
-                        dialog.show();
-                        break;
-
-                    case ItemTouchHelper.RIGHT:
-                        break;
-                }
-            }
-        });
-    }*/
 
 
 

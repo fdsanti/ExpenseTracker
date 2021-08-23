@@ -78,10 +78,6 @@ public class HCardsViewAdapter extends RecyclerView.Adapter<HCardsViewAdapter.Vi
         return hCards.size();
     }
 
-    public void addHCard(HomeCard hc) {
-        hCards.add(0,hc);
-        notifyDataSetChanged();
-    }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
         private TextView name;
