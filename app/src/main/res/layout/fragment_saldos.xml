@@ -71,7 +71,7 @@
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
-            android:background="@color/rows_border"
+            android:background="?attr/rowsBorder"
             android:layout_marginBottom="8dp"
             android:layout_marginTop="20dp"
             android:layout_below="@id/txt_Saldos_GastosProporcionalesPersona1"
@@ -136,7 +136,7 @@
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
-            android:background="@color/rows_border"
+            android:background="?attr/rowsBorder"
             android:layout_marginBottom="8dp"
             android:layout_marginTop="20dp"
             android:layout_below="@id/txt_Saldos_GastosProporcionalesPersona2"
@@ -163,7 +163,7 @@
     <View
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:background="@color/rows_border"
+        android:background="?attr/rowsBorder"
         android:layout_marginBottom="32dp"
         android:layout_marginTop="32dp"
         android:layout_below="@id/txt_Saldos_GastosProporcionalesPersona2"

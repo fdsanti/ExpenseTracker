@@ -4,10 +4,13 @@ package com.example.expensetracker;
 import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.text.InputType;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -22,7 +25,11 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.content.res.AppCompatResources;
+import androidx.core.content.ContextCompat;
+import androidx.core.graphics.drawable.DrawableCompat;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
@@ -47,10 +54,11 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.Locale;
 import java.util.TimeZone;
 
-public class GastosFragment extends Fragment implements SwipeRefreshLayout.OnRefreshListener {
+public class GastosFragment extends Fragment implements CallBackItemTouch, SwipeRefreshLayout.OnRefreshListener {
 
     private Context context;
     private RecyclerView recyclerView;
@@ -130,17 +138,21 @@ public class GastosFragment extends Fragment implements SwipeRefreshLayout.OnRef
         chip_1.setOnClickListener(v -> {
             if (chip_1.isChecked()) {
                 adapter.changeToName1();
+                rows = rows1;
             }
             if (!chip_1.isChecked()) {
                 adapter.changeToBoth();
+                rows = rowsBoth;
             }
         });
         chip_2.setOnClickListener(v -> {
             if (chip_2.isChecked()) {
                 adapter.changeToName2();
+                rows = rows2;
             }
             if (!chip_2.isChecked()) {
                 adapter.changeToBoth();
+                rows = rowsBoth;
             }
         });
 
@@ -239,7 +251,7 @@ public class GastosFragment extends Fragment implements SwipeRefreshLayout.OnRef
                 }
             });
 
-            //cuando haces click en el FAB, abrir modal
+            //cuando haces click en "crear" subir a base de datos si...
             alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -320,7 +332,41 @@ public class GastosFragment extends Fragment implements SwipeRefreshLayout.OnRef
                                         }
                                         rowsBoth.add(newRow);
                                         Collections.sort(rowsBoth, new RowSortDate());
-                                        adapter.notifyDataSetChanged();
+
+                                        int currPos = 0;
+
+                                        //Find position of the item added
+                                        if (!chip_1.isChecked() && !chip_2.isChecked()) {
+                                            for (ExpenseRow currRow : rowsBoth) {
+                                                if (currRow.getId() == newRow.getId()) {
+                                                    break;
+                                                }
+                                                currPos += 1;
+                                            }
+                                        }
+                                        if (chip_1.isChecked()) {
+                                            for (ExpenseRow currRow : rows1) {
+                                                if (currRow.getId() == newRow.getId()) {
+                                                    break;
+                                                }
+                                                currPos += 1;
+                                            }
+                                        }
+                                        if (chip_2.isChecked()){
+                                            for (ExpenseRow currRow : rows2) {
+                                                if (currRow.getId() == newRow.getId()) {
+                                                    break;
+                                                }
+                                                currPos += 1;
+                                            }
+                                        }
+
+                                        adapter.notifyItemInserted(currPos);
+                                        adapter.notifyItemRangeChanged(currPos,rows.size());
+                                        if (currPos == 0) {
+                                            recyclerView.smoothScrollToPosition(0);
+                                        }
+
                                         loadTotals();
                                         saldosFragment.calculate();
                                         progressDialog.dismiss();
@@ -408,8 +454,12 @@ public class GastosFragment extends Fragment implements SwipeRefreshLayout.OnRef
                         adapter.setRows(rows, rows1, rows2, rowsBoth);
                         adapter.changeToBoth();
                         recyclerView = view.findViewById(R.id.expenseRecycler);
+
                         recyclerView.setAdapter(adapter);
                         recyclerView.setLayoutManager(new LinearLayoutManager(context));
+                        ItemTouchHelper.Callback callback = new ExpenseItemSwipeCallback(GastosFragment.this);
+                        ItemTouchHelper touchHelper = new ItemTouchHelper(callback);
+                        touchHelper.attachToRecyclerView(recyclerView);
                         loadTotals();
                         saldosFragment.calculate();
                         progressDialog.dismiss();
@@ -445,7 +495,6 @@ public class GastosFragment extends Fragment implements SwipeRefreshLayout.OnRef
                 row.setValue(set.getDouble("Value"));
                 row.setWho(set.getString("Who"));
                 rowsBoth.add(row);
-                rows.add(row);
                 if (set.getString("Who").equals(SettingsDB.getSetting(HCardDB.getSelected()).getName1())) {
                     rows1.add(row);
                 }
@@ -462,8 +511,7 @@ public class GastosFragment extends Fragment implements SwipeRefreshLayout.OnRef
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
-
-        Collections.sort(rows, new RowSortDate());
+        rows = rowsBoth;
         Collections.sort(rowsBoth, new RowSortDate());
         if (!rows1.isEmpty()) {
             Collections.sort(rows1, new RowSortDate());
@@ -486,5 +534,116 @@ public class GastosFragment extends Fragment implements SwipeRefreshLayout.OnRef
         loadRows(getView());
         chip_1.setChecked(false);
         chip_2.setChecked(false);
+    }
+
+    @Override
+    public void itemTuchOnMove(int oldPosition, int newPosition) {
+    }
+
+    @Override
+    public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
+
+        int position = viewHolder.getAdapterPosition();
+
+
+        System.out.println(position);
+
+        MaterialAlertDialogBuilder dialog = new MaterialAlertDialogBuilder(context);
+        dialog.setTitle("¿Eliminar " + rows.get(position).getDescription() + "?");
+        dialog.setMessage("¿Estás seguro que querés eliminar esta línea del expense?");
+
+
+        dialog.setNegativeButton("Cancelar", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                adapter.notifyDataSetChanged();
+            }
+        });
+        //OnClickListener para el boton de Eliminar (dentro del popup)
+        dialog.setPositiveButton("Eliminar", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                ProgressDialog progressDialog = new ProgressDialog(context);
+                progressDialog.show();
+                progressDialog.setContentView(R.layout.progress_dialog);
+                progressDialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+
+                Handler handlerUI = new Handler();
+                Runnable runnable = new Runnable() {
+                    @Override
+                    public void run() {
+                        synchronized (this) {
+                            DBHandler handler = new DBHandler();
+                            Connection connection = handler.getConnection(context);
+                            //remove line from report from db
+                            String ql = "DELETE FROM " + HCardDB.getSelected().getTableID() + " WHERE id = ?";
+                            PreparedStatement pst = null;
+                            try {
+                                pst = connection.prepareStatement(ql);
+                                pst.setInt(1,rows.get(position).getId());
+                                pst.executeUpdate();
+                            } catch (SQLException throwables) {
+                                throwables.printStackTrace();
+                            }
+                            try {
+                                connection.close();
+                            } catch (SQLException throwables) {
+                                throwables.printStackTrace();
+                            }
+                        }
+
+                        handlerUI.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                //como voy a estar eliminando items de las rows, voy a clonar la lista
+                                //para poder tener buscar el ID de la row swipeada
+                                ArrayList<ExpenseRow> copyRows = new ArrayList<ExpenseRow>();
+                                copyRows = (ArrayList<ExpenseRow>) rows.clone();
+
+                                //si la row es de Name1, entonces eliminar la row de la rows1
+                                if (rows.get(position).getWho().equals(SettingsDB.getSetting(HCardDB.getSelected()).getName1())) {
+                                    for (ExpenseRow currRow : rows1) {
+                                        //encontrar la row con la misma id que la row seleccionada
+                                        if (currRow.getId() == copyRows.get(position).getId()) {
+                                            rows1.remove(currRow);
+                                            break;
+                                        }
+                                    }
+                                }
+                                //si la row es de Name2, entonces eliminar la row de la rows2
+                                if (rows.get(position).getWho().equals(SettingsDB.getSetting(HCardDB.getSelected()).getName2())) {
+                                    for (ExpenseRow currRow : rows2) {
+                                        //encontrar la row con la misma id que la row seleccionada
+                                        if (currRow.getId() == copyRows.get(position).getId()) {
+                                            rows2.remove(currRow);
+                                            break;
+                                        }
+                                    }
+                                }
+                                //eliminar de la rowsBoth
+                                for (ExpenseRow currRow : rowsBoth) {
+                                    if (currRow.getId() == copyRows.get(position).getId()) {
+                                        rowsBoth.remove(currRow);
+                                        break;
+                                    }
+                                }
+
+                                adapter.notifyItemRemoved(position);
+                                adapter.notifyItemRangeChanged(position,rows.size());
+
+
+                                //adapter.notifyDataSetChanged();
+                                progressDialog.dismiss();
+                                Toast.makeText(context, "El gasto se ha eliminado", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                    }
+                };
+                Thread thread = new Thread(runnable);
+                thread.start();
+            }
+        });
+
+        dialog.show();
     }
 }

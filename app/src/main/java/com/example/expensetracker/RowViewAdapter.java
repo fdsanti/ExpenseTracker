@@ -64,7 +64,6 @@ public class RowViewAdapter extends RecyclerView.Adapter<RowViewAdapter.ViewHold
     private GastosFragment fragment;
     private ArrayList<ExpenseRow> rows = new ArrayList<ExpenseRow>(), rows1 = new ArrayList<ExpenseRow>(), rows2 = new ArrayList<ExpenseRow>(), rowsBoth = new ArrayList<ExpenseRow>();
 
-
     public RowViewAdapter(Context context) {
         this.context = context;
     }
@@ -80,6 +79,17 @@ public class RowViewAdapter extends RecyclerView.Adapter<RowViewAdapter.ViewHold
         this.rowsBoth = rowsBoth;
         notifyDataSetChanged();
     }
+
+    public int whichRow() {
+        if (rows == rowsBoth) {
+            return 0;
+        }
+        else if (rows == rows1) {
+            return 1;
+        }
+        return 2;
+    }
+
 
     public void changeToName1() {
         rows = rows1;
@@ -118,7 +128,7 @@ public class RowViewAdapter extends RecyclerView.Adapter<RowViewAdapter.ViewHold
 
     @SuppressLint({"ClickableViewAccessibility", "ResourceType"})
     @Override
-    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull ViewHolder holder, @SuppressLint("RecyclerView") int position) {
         holder.txtNombreGasto.setText(rows.get(position).getDescription());
         holder.txtFechaGasto.setText(rows.get(position).getDate());
         holder.txtPersona.setText(rows.get(position).getWho());
@@ -128,7 +138,7 @@ public class RowViewAdapter extends RecyclerView.Adapter<RowViewAdapter.ViewHold
         holder.txtPrecio.setText(str);
 
         //al hacer click en la card, abrir el dialog para editar la info
-        holder.row_card.setOnClickListener(v -> {
+        holder.row_fg.setOnClickListener(v -> {
 
             MaterialAlertDialogBuilder dialog = new MaterialAlertDialogBuilder(context);
             dialog.setCancelable(false);
@@ -361,7 +371,8 @@ public class RowViewAdapter extends RecyclerView.Adapter<RowViewAdapter.ViewHold
             });
         });
 
-        holder.row_card.setOnLongClickListener(v -> {
+        //al hacer longpress en la card, abrir el dialog para eliminar la row
+        holder.row_fg.setOnLongClickListener(v -> {
             MaterialAlertDialogBuilder dialog = new MaterialAlertDialogBuilder(context);
             dialog.setTitle("¿Eliminar " + rows.get(position).getDescription() + "?");
             dialog.setMessage("¿Estás seguro que querés eliminar esta línea del expense?");
@@ -455,8 +466,9 @@ public class RowViewAdapter extends RecyclerView.Adapter<RowViewAdapter.ViewHold
             dialog.show();
             return false;
         });
-
     }
+
+
 
     @Override
     public int getItemCount() {
@@ -474,7 +486,8 @@ public class RowViewAdapter extends RecyclerView.Adapter<RowViewAdapter.ViewHold
         private TextView txtFechaGasto;
         private TextView txtPersona;
         private TextView txtPrecio;
-        private CardView row_card;
+        MaterialCardView row_fg, row_bg;
+
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -482,7 +495,8 @@ public class RowViewAdapter extends RecyclerView.Adapter<RowViewAdapter.ViewHold
             txtFechaGasto = itemView.findViewById(R.id.txtFechaGasto);
             txtPersona = itemView.findViewById(R.id.txtPersona);
             txtPrecio = itemView.findViewById(R.id.txtPrecio);
-            row_card = itemView.findViewById(R.id.row_card);
+            row_fg = itemView.findViewById(R.id.row_card);
+            row_bg = itemView.findViewById(R.id.row_delete);
         }
     }
 

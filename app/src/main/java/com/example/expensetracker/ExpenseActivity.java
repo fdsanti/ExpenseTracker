@@ -1,10 +1,13 @@
 package com.example.expensetracker;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.AttributeSet;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.RelativeLayout;
 
@@ -26,7 +29,7 @@ import java.util.List;
 
 public class ExpenseActivity extends AppCompatActivity {
     private MaterialToolbar toolbar;
-    private ViewPager viewPager;
+    private LockableViewPager viewPager;
     private TabLayout tabLayout;
     private GastosFragment gastosFragment;
     private SaldosFragment saldosFragment;
@@ -71,8 +74,11 @@ public class ExpenseActivity extends AppCompatActivity {
         viewPagerAdapter.addFragment(gastosFragment, "Gastos");
         viewPagerAdapter.addFragment(saldosFragment, "Saldos");
         viewPager.setAdapter(viewPagerAdapter);
+        viewPager.setSwipeable(false);
 
     }
+
+
 
 
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -123,5 +129,9 @@ public class ExpenseActivity extends AppCompatActivity {
         public CharSequence getPageTitle(int position) {
             return fragmentTitle.get(position);
         }
+
     }
+
+
 }
+

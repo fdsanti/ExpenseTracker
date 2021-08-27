@@ -20,7 +20,9 @@
     <color name="gray_bg">#292929</color>
     <color name="transparent">#80000000</color>
     <color name="primary_blue">#005DBD</color>
-    <color name="rows_border">#969696</color>
     <color name="delete_red">#841402</color>
+    <color name="rowsBorderDark">#3e3e3e</color>
+    <color name="rowsBorderLight">#969696</color>
+
 
 </resources>

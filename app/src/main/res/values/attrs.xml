@@ -7,4 +7,6 @@
     <attr name="filtrarPorBg" format="color" />
     <attr name="fabBgCircle" format="color" />
     <attr name="deleteRed" format="color" />
+    <attr name="rowsBorder" format="color" />
+    <attr name="bgwhitegrey" format="color" />
 </resources>
