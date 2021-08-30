@@ -251,7 +251,7 @@ public class GastosFragment extends Fragment implements CallBackItemTouch, Swipe
                 }
             });
 
-            //cuando haces click en "crear" subir a base de datos si...
+            //cuando haces click en "crear" subir la base de datos si...
             alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {

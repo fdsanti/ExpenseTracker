@@ -22,6 +22,7 @@ import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
@@ -39,6 +40,7 @@ public class SettingsActivity extends AppCompatActivity {
     private TextInputEditText txtEditNombre2;
     private TextInputEditText txtEditSueldo2;
     private MaterialButton btnContinuar;
+    private Boolean comingFromExpense;
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
@@ -46,6 +48,13 @@ public class SettingsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
 
+        Bundle b = getIntent().getExtras();
+        if(b != null) {
+            comingFromExpense = true;
+        }
+        else {
+            comingFromExpense = false;
+        }
         toolbar = findViewById(R.id.toolbarBack_widget);
         //Al hacer click en back button
         toolbar.getChildAt(1).setOnClickListener(new View.OnClickListener() {
@@ -102,6 +111,7 @@ public class SettingsActivity extends AppCompatActivity {
         });
 
         btnContinuar.setOnClickListener(v -> {
+            //si todos los fields estan completos, entonces guardar setting en la base de datos
             if (!txtEditNombre1.getText().toString().isEmpty()
             & !txtEditSueldo1.getText().toString().isEmpty()
             & !txtEditNombre2.getText().toString().isEmpty()
@@ -121,6 +131,14 @@ public class SettingsActivity extends AppCompatActivity {
                             handler = new DBHandler();
                             connection = handler.getConnection(SettingsActivity.this);
                             Settings newSet = new Settings(HCardDB.getSelected().getTableID(), txtEditNombre1.getText().toString(), Integer.parseInt(txtEditSueldo1.getText().toString()), txtEditNombre2.getText().toString(), Integer.parseInt(txtEditSueldo2.getText().toString()));
+                            if (comingFromExpense) {
+                                if (!txtEditNombre1.getText().toString().equals(SettingsDB.getSetting(HCardDB.getSelected()).getName1())) {
+                                    updateNamesOnRows(SettingsDB.getSetting(HCardDB.getSelected()).getName1(), txtEditNombre1.getText().toString(), connection);
+                                }
+                                if (!txtEditNombre2.getText().toString().equals(SettingsDB.getSetting(HCardDB.getSelected()).getName2())) {
+                                    updateNamesOnRows(SettingsDB.getSetting(HCardDB.getSelected()).getName2(), txtEditNombre2.getText().toString(), connection);
+                                }
+                            }
                             SettingsDB.save(connection,newSet);
                             SettingsDB.addToDB(newSet);
                             try {
@@ -143,6 +161,7 @@ public class SettingsActivity extends AppCompatActivity {
                 Thread thread = new Thread(runnable);
                 thread.start();
             }
+            //si falta algun dato, pedir de completar los input fields
             else {
                 txtEditNombre1.clearFocus();
                 txtEditNombre2.clearFocus();
@@ -171,6 +190,25 @@ public class SettingsActivity extends AppCompatActivity {
             }
         });
 
+    }
+
+    private void updateNamesOnRows(String oldName, String newName, Connection connection) {
+        String update = "UPDATE " + SettingsDB.getSetting(HCardDB.getSelected()).getTableID() + " SET Who=? WHERE Who=?";
+
+        try {
+            PreparedStatement pst = connection.prepareStatement(update);
+            pst.setString(1,newName);
+            pst.setString(2,oldName);
+            pst.executeUpdate();
+        }
+        catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+        try {
+            connection.close();
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
     }
 
     private void loadIDs() {

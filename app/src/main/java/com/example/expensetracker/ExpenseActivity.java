@@ -78,9 +78,6 @@ public class ExpenseActivity extends AppCompatActivity {
 
     }
 
-
-
-
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.settings,menu);
         return true;
@@ -89,6 +86,9 @@ public class ExpenseActivity extends AppCompatActivity {
 
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         Intent intent = new Intent(this, SettingsActivity.class);
+        Bundle b = new Bundle();
+        b.putInt("existingSetting", 1); //Your id
+        intent.putExtras(b);
         this.startActivity(intent);
         return super.onOptionsItemSelected(item);
     }

@@ -247,7 +247,7 @@ public class RowViewAdapter extends RecyclerView.Adapter<RowViewAdapter.ViewHold
                 }
             });
 
-            //cuando haces click en el FAB, abrir modal
+            //cuando haces click en guardar
             alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
