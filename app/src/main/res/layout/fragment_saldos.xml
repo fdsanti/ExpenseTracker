@@ -1,218 +1,234 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:paddingTop="32dp"
     android:paddingStart="24dp"
+    android:paddingTop="32dp"
     android:paddingEnd="24dp">
 
     <RelativeLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:paddingTop="24dp"
-        android:paddingBottom="24dp"
+        android:background="@drawable/card_background"
         android:paddingStart="24dp"
+        android:paddingTop="24dp"
         android:paddingEnd="24dp"
-        android:background="@drawable/card_background">
+        android:paddingBottom="24dp">
+
         <TextView
+            style="@style/NormalBold"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Total Gastos" />
+
         <TextView
+            android:id="@+id/number_Gastos_GastosTotales"
+            style="@style/NormalBold"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="$383485"
-            android:id="@+id/number_Gastos_GastosTotales"
-            android:layout_alignParentRight="true" />
+            android:layout_alignParentRight="true"
+            android:text="$383485" />
 
     </RelativeLayout>
 
     <RelativeLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:paddingTop="24dp"
-        android:paddingBottom="24dp"
-        android:paddingStart="24dp"
-        android:paddingEnd="24dp"
+        android:layout_marginTop="10dp"
         android:background="@drawable/card_background"
-        android:layout_marginTop="10dp">
+        android:paddingStart="24dp"
+        android:paddingTop="24dp"
+        android:paddingEnd="24dp"
+        android:paddingBottom="24dp">
+
         <TextView
             android:id="@+id/txt_Saldos_TotalGastosPersona1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Total Gastos Persona 1"
-            />
+            android:text="Total Gastos Persona 1" />
+
         <TextView
             android:id="@+id/number_Saldos_TotalGastosPersona1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="$3423.32"
-            android:layout_alignParentRight="true" />
+            android:layout_alignParentRight="true"
+            android:text="$3423.32" />
 
         <TextView
             android:id="@+id/txt_Saldos_GastosProporcionalesPersona1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Proporcional Persona 1 (50%)"
             android:layout_below="@id/txt_Saldos_TotalGastosPersona1"
-            android:layout_marginTop="8dp"/>
+            android:layout_marginTop="8dp"
+            android:text="Proporcional Persona 1 (50%)" />
+
         <TextView
             android:id="@+id/number_Saldos_GastosProporcionalesPersona1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="$3423.32"
-            android:layout_alignParentRight="true"
             android:layout_below="@id/txt_Saldos_TotalGastosPersona1"
-            android:layout_marginTop="8dp"/>
+            android:layout_alignParentRight="true"
+            android:layout_marginTop="8dp"
+            android:text="$3423.32" />
 
         <View
+            android:id="@+id/saldos_divider"
             android:layout_width="match_parent"
             android:layout_height="1dp"
-            android:background="?attr/rowsBorder"
-            android:layout_marginBottom="8dp"
-            android:layout_marginTop="20dp"
             android:layout_below="@id/txt_Saldos_GastosProporcionalesPersona1"
-            android:id="@+id/saldos_divider"/>
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="8dp"
+            android:background="?attr/rowsBorder" />
 
         <TextView
             android:id="@+id/txt_Saldos_BalancePersona1"
+            style="@style/NormalBold"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Balance persona 1"
             android:layout_below="@id/saldos_divider"
-            android:layout_marginTop="8dp"/>
+            android:layout_marginTop="8dp"
+            android:text="Balance persona 1" />
+
         <TextView
             android:id="@+id/number_Saldos_BalancePersona1"
+            style="@style/NormalBold"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="$3423.32"
-            android:layout_alignParentRight="true"
             android:layout_below="@id/saldos_divider"
-            android:layout_marginTop="8dp"/>
+            android:layout_alignParentRight="true"
+            android:layout_marginTop="8dp"
+            android:text="$3423.32" />
 
     </RelativeLayout>
 
     <RelativeLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:paddingTop="24dp"
-        android:paddingBottom="24dp"
-        android:paddingStart="24dp"
-        android:paddingEnd="24dp"
+        android:layout_marginTop="10dp"
         android:background="@drawable/card_background"
-        android:layout_marginTop="10dp">
+        android:paddingStart="24dp"
+        android:paddingTop="24dp"
+        android:paddingEnd="24dp"
+        android:paddingBottom="24dp">
+
         <TextView
             android:id="@+id/txt_Saldos_TotalGastosPersona2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Total Gastos Persona 1"
-            />
+            android:text="Total Gastos Persona 1" />
+
         <TextView
             android:id="@+id/number_Saldos_TotalGastosPersona2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="$3423.32"
-            android:layout_alignParentRight="true" />
+            android:layout_alignParentRight="true"
+            android:text="$3423.32" />
 
         <TextView
             android:id="@+id/txt_Saldos_GastosProporcionalesPersona2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Proporcional Persona 1 (50%)"
             android:layout_below="@id/txt_Saldos_TotalGastosPersona2"
-            android:layout_marginTop="8dp"/>
+            android:layout_marginTop="8dp"
+            android:text="Proporcional Persona 1 (50%)" />
+
         <TextView
             android:id="@+id/number_Saldos_GastosProporcionalesPersona2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="$3423.32"
-            android:layout_alignParentRight="true"
             android:layout_below="@id/txt_Saldos_TotalGastosPersona2"
-            android:layout_marginTop="8dp"/>
+            android:layout_alignParentRight="true"
+            android:layout_marginTop="8dp"
+            android:text="$3423.32" />
 
         <View
+            android:id="@+id/saldos_divider2"
             android:layout_width="match_parent"
             android:layout_height="1dp"
-            android:background="?attr/rowsBorder"
-            android:layout_marginBottom="8dp"
-            android:layout_marginTop="20dp"
             android:layout_below="@id/txt_Saldos_GastosProporcionalesPersona2"
-            android:id="@+id/saldos_divider2"/>
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="8dp"
+            android:background="?attr/rowsBorder" />
 
         <TextView
             android:id="@+id/txt_Saldos_BalancePersona2"
+            style="@style/NormalBold"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Balance persona 2"
             android:layout_below="@id/saldos_divider2"
-            android:layout_marginTop="8dp"/>
+            android:layout_marginTop="8dp"
+            android:text="Balance persona 2" />
+
         <TextView
             android:id="@+id/number_Saldos_BalancePersona2"
+            style="@style/NormalBold"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="$3423.32"
-            android:layout_alignParentRight="true"
             android:layout_below="@id/saldos_divider2"
-            android:layout_marginTop="8dp"/>
+            android:layout_alignParentRight="true"
+            android:layout_marginTop="8dp"
+            android:text="$3423.32" />
 
     </RelativeLayout>
 
     <View
+        android:id="@+id/saldos_divider3"
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:background="?attr/rowsBorder"
-        android:layout_marginBottom="32dp"
-        android:layout_marginTop="32dp"
         android:layout_below="@id/txt_Saldos_GastosProporcionalesPersona2"
-        android:id="@+id/saldos_divider3"/>
+        android:layout_marginTop="32dp"
+        android:layout_marginBottom="32dp"
+        android:background="?attr/rowsBorder" />
 
     <RelativeLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:paddingTop="16dp"
-        android:paddingBottom="16dp"
+        android:background="@drawable/card_background2"
         android:paddingStart="24dp"
+        android:paddingTop="16dp"
         android:paddingEnd="24dp"
-        android:background="@drawable/card_background2">
+        android:paddingBottom="16dp">
+
         <TextView
+            style="@style/RowTitleDarkGrey"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Deduor"
-            style="@style/RowTitleDarkGrey"/>
+            android:text="Deduor" />
+
         <TextView
             android:id="@+id/txt_Saldos_Deudor"
+            style="@style/RowTitleDarkGrey"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Persona 1"
-            style="@style/RowTitleDarkGrey"
-            android:layout_alignParentRight="true" />
+            android:layout_alignParentRight="true"
+            android:text="Persona 1" />
 
     </RelativeLayout>
 
     <RelativeLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:paddingTop="16dp"
-        android:paddingBottom="16dp"
-        android:paddingStart="24dp"
-        android:paddingEnd="24dp"
+        android:layout_marginTop="12dp"
         android:background="@drawable/card_background2"
-        android:layout_marginTop="12dp">
+        android:paddingStart="24dp"
+        android:paddingTop="16dp"
+        android:paddingEnd="24dp"
+        android:paddingBottom="16dp">
+
         <TextView
+            style="@style/RowTitleDarkGrey"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Deuda"
-            style="@style/RowTitleDarkGrey"/>
+            android:text="Deuda" />
+
         <TextView
             android:id="@+id/number_Saldos_Deuda"
+            style="@style/RowTitleDarkGrey"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="$383485"
-            style="@style/RowTitleDarkGrey"
-            android:layout_alignParentRight="true" />
+            android:layout_alignParentRight="true"
+            android:text="$383485" />
 
     </RelativeLayout>
 

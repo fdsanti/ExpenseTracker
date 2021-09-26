@@ -34,7 +34,7 @@
                 android:layout_height="wrap_content"
                 android:paddingRight="40dp">
 
-                    <TextView
+                <TextView
                     android:id="@+id/txtName"
                     style="@style/Title"
                     android:layout_width="match_parent"

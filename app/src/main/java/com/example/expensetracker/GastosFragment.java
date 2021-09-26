@@ -596,7 +596,7 @@ public class GastosFragment extends Fragment implements CallBackItemTouch, Swipe
                             @Override
                             public void run() {
                                 //como voy a estar eliminando items de las rows, voy a clonar la lista
-                                //para poder tener buscar el ID de la row swipeada
+                                //para poder buscar el ID de la row swipeada
                                 ArrayList<ExpenseRow> copyRows = new ArrayList<ExpenseRow>();
                                 copyRows = (ArrayList<ExpenseRow>) rows.clone();
 
@@ -633,6 +633,8 @@ public class GastosFragment extends Fragment implements CallBackItemTouch, Swipe
 
 
                                 //adapter.notifyDataSetChanged();
+                                loadTotals();
+                                saldosFragment.calculate();
                                 progressDialog.dismiss();
                                 Toast.makeText(context, "El gasto se ha eliminado", Toast.LENGTH_SHORT).show();
                             }
