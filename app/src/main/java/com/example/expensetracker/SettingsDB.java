@@ -95,12 +95,6 @@ public class SettingsDB {
             throwables.printStackTrace();
         }
         System.out.println("Added data to settings");
-        try {
-            connection.close();
-            System.out.println("Connection closed");
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();
-        }
     }
 
     public static Boolean isInDB(HomeCard hc) {

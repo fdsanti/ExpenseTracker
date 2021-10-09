@@ -49,10 +49,9 @@ public class SettingsActivity extends AppCompatActivity {
         setContentView(R.layout.activity_settings);
 
         Bundle b = getIntent().getExtras();
-        if(b != null) {
+        if (b != null) {
             comingFromExpense = true;
-        }
-        else {
+        } else {
             comingFromExpense = false;
         }
         toolbar = findViewById(R.id.toolbarBack_widget);
@@ -113,9 +112,9 @@ public class SettingsActivity extends AppCompatActivity {
         btnContinuar.setOnClickListener(v -> {
             //si todos los fields estan completos, entonces guardar setting en la base de datos
             if (!txtEditNombre1.getText().toString().isEmpty()
-            & !txtEditSueldo1.getText().toString().isEmpty()
-            & !txtEditNombre2.getText().toString().isEmpty()
-            & !txtEditSueldo2.getText().toString().isEmpty()) {
+                    & !txtEditSueldo1.getText().toString().isEmpty()
+                    & !txtEditNombre2.getText().toString().isEmpty()
+                    & !txtEditSueldo2.getText().toString().isEmpty()) {
 
                 progressDialog = new ProgressDialog(SettingsActivity.this);
                 progressDialog.show();
@@ -139,7 +138,7 @@ public class SettingsActivity extends AppCompatActivity {
                                     updateNamesOnRows(SettingsDB.getSetting(HCardDB.getSelected()).getName2(), txtEditNombre2.getText().toString(), connection);
                                 }
                             }
-                            SettingsDB.save(connection,newSet);
+                            SettingsDB.save(connection, newSet);
                             SettingsDB.addToDB(newSet);
                             try {
                                 connection.close();
@@ -204,11 +203,10 @@ public class SettingsActivity extends AppCompatActivity {
         catch (SQLException throwables) {
             throwables.printStackTrace();
         }
-        try {
-            connection.close();
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();
-        }
+
+    }
+
+    private void updateNameOnSettings(String name1, String toString, Connection connection) {
     }
 
     private void loadIDs() {

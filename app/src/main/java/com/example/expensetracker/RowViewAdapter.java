@@ -50,6 +50,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Currency;
 import java.util.Date;
 import java.util.Locale;
@@ -331,6 +332,7 @@ public class RowViewAdapter extends RecyclerView.Adapter<RowViewAdapter.ViewHold
                                                     currRow.setWho(dropdown_nombres.getText().toString());
                                                 }
                                             }
+                                            Collections.sort(rows1, new RowSortDate());
                                         }
                                         //si el nombre del dropdown es igual a nombre2, entonces editar la row del arraylist rows2
                                         else {
@@ -343,6 +345,7 @@ public class RowViewAdapter extends RecyclerView.Adapter<RowViewAdapter.ViewHold
                                                     currRow.setWho(dropdown_nombres.getText().toString());
                                                 }
                                             }
+                                            Collections.sort(rows2, new RowSortDate());
                                         }
 
                                         //editar la row de rowsBoth
@@ -354,6 +357,7 @@ public class RowViewAdapter extends RecyclerView.Adapter<RowViewAdapter.ViewHold
                                                 rowsBoth.get(position).setWho(dropdown_nombres.getText().toString());
                                             }
                                         }
+                                        Collections.sort(rowsBoth, new RowSortDate());
 
                                         notifyDataSetChanged();
                                         fragment.loadTotals();

@@ -8,7 +8,7 @@
     app:cardElevation="0dp">
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="82dp"
+        android:layout_height="81dp"
         android:background="?attr/deleteRed">
 
         <ImageView
