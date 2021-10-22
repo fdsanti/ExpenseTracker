@@ -25,6 +25,8 @@
         <item name="deleteRed">@color/delete_red</item>
         <item name="rowsBorder">@color/rowsBorderLight</item>
         <item name="bgwhitegrey">@color/white</item>
+        <item name="whiteBlack">@color/background</item>
+        <item name="popupbg">@color/white</item>
 
     </style>
 

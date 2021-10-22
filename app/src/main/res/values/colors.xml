@@ -23,6 +23,8 @@
     <color name="delete_red">#841402</color>
     <color name="rowsBorderDark">#3e3e3e</color>
     <color name="rowsBorderLight">#969696</color>
+    <color name="darkPopUpBg">#2C2C2C</color>
+    <color name="transparent_100">#00000000</color>
 
 
 </resources>

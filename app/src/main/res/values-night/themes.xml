@@ -31,6 +31,8 @@
         <item name="deleteRed">@color/delete_red</item>
         <item name="rowsBorder">@color/rowsBorderDark</item>
         <item name="bgwhitegrey">@color/background</item>
+        <item name="whiteBlack">@color/white</item>
+        <item name="popupbg">@color/darkPopUpBg</item>
 
     </style>
 

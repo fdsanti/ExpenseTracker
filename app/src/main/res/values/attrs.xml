@@ -9,4 +9,6 @@
     <attr name="deleteRed" format="color" />
     <attr name="rowsBorder" format="color" />
     <attr name="bgwhitegrey" format="color" />
+    <attr name="whiteBlack" format="color" />
+    <attr name="popupbg" format="color" />
 </resources>

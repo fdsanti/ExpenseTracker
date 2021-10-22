@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/sort_item_one"
+        android:title="Fecha"
+        android:icon="@drawable/rectangle_2"
+        />
+
+    <item
+        android:id="@+id/sort_item_two"
+        android:title="Precio: Mayor a menor"
+        android:icon="@drawable/rectangle_2"
+        />
+    <item
+        android:id="@+id/sort_item_three"
+        android:title="Precio: Menor a mayor"
+        android:icon="@drawable/rectangle_2"
+        />
+
+
+</menu>

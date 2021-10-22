@@ -11,13 +11,18 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.text.InputType;
 import android.util.TypedValue;
+import android.view.Gravity;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
-import android.widget.ListView;
+import android.widget.ImageView;
+import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -25,7 +30,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.content.res.AppCompatResources;
+import androidx.appcompat.view.menu.MenuBuilder;
+import androidx.appcompat.view.menu.MenuPopupHelper;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.drawable.DrawableCompat;
 import androidx.fragment.app.Fragment;
@@ -49,12 +55,10 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
-import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.Locale;
 import java.util.TimeZone;
 
@@ -79,6 +83,9 @@ public class GastosFragment extends Fragment implements CallBackItemTouch, Swipe
     private TextView txt_abajo_nombre2;
     private TextView txt_abajo_total2;
     private SwipeRefreshLayout mSwipeRefreshLayout;
+    private ImageView icon_sort;
+    private int sort_menu_selected = 1;
+    private MenuBuilder menuBuilder;
 
     private SaldosFragment saldosFragment;
 
@@ -124,7 +131,7 @@ public class GastosFragment extends Fragment implements CallBackItemTouch, Swipe
         return rootView;
     }
 
-    @SuppressLint("ClickableViewAccessibility")
+    @SuppressLint({"ClickableViewAccessibility", "RestrictedApi", "ResourceType"})
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
@@ -383,7 +390,78 @@ public class GastosFragment extends Fragment implements CallBackItemTouch, Swipe
 
         });
 
+
+        //Sorting happening here
+        menuBuilder = new MenuBuilder(context);
+        MenuInflater inflater = new MenuInflater(context);
+        inflater.inflate(R.menu.sort_popupmenu,menuBuilder);
+        icon_sort.setOnClickListener(v -> {
+
+            MenuPopupHelper popupHelper = new MenuPopupHelper(context, menuBuilder, v);
+            popupHelper.setForceShowIcon(true);
+            popupHelper.setGravity(Gravity.END);
+
+            TypedValue typedValue = new TypedValue();
+            getContext().getTheme().resolveAttribute(R.attr.whiteBlack, typedValue, true);
+            TypedValue typedValueTransparent = new TypedValue();
+            getContext().getTheme().resolveAttribute(R.color.transparent_100, typedValueTransparent, true);
+
+            //setting 1st icon as checked and color
+
+            for (int i = 1; i<4; i++) {
+                if (sort_menu_selected == i) {
+                    menuBuilder.getItem(i-1).setIcon(R.drawable.ic_check);
+                    menuBuilder.getItem(i-1).getIcon().setTint(typedValue.data);
+                }
+                if (sort_menu_selected != i) {
+                    menuBuilder.getItem(i-1).setIcon(R.drawable.rectangle_2);
+                    menuBuilder.getItem(i-1).getIcon().setTint(typedValueTransparent.data);
+                }
+            }
+
+            menuBuilder.setCallback(new MenuBuilder.Callback() {
+                @Override
+                public boolean onMenuItemSelected(@NonNull MenuBuilder menu, @NonNull MenuItem item) {
+                    switch (item.getItemId()) {
+                        case R.id.sort_item_one:
+                            sort_menu_selected = 1;
+                            Collections.sort(rows1, new RowSortDate());
+                            Collections.sort(rows2, new RowSortDate());
+                            Collections.sort(rowsBoth, new RowSortDate());
+                            adapter.notifyDataSetChanged();
+                            return true;
+
+                        case R.id.sort_item_two:
+                            sort_menu_selected = 2;
+                            Collections.sort(rows1, new RowSortPrice().reversed());
+                            Collections.sort(rows2, new RowSortPrice().reversed());
+                            Collections.sort(rowsBoth, new RowSortPrice().reversed());
+                            adapter.notifyDataSetChanged();
+                            return true;
+
+                        case R.id.sort_item_three:
+                            sort_menu_selected = 3;
+                            Collections.sort(rows1, new RowSortPrice());
+                            Collections.sort(rows2, new RowSortPrice());
+                            Collections.sort(rowsBoth, new RowSortPrice());
+                            adapter.notifyDataSetChanged();
+                            return true;
+                    }
+
+                    return false;
+                }
+
+                @Override
+                public void onMenuModeChange(@NonNull MenuBuilder menu) {
+
+                }
+            });
+
+            popupHelper.show();
+
+        });
     }
+
 
     private void loadNames() {
         txt_abajo_nombre1.setText(SettingsDB.getSetting(HCardDB.getSelected()).getName1());
@@ -429,6 +507,7 @@ public class GastosFragment extends Fragment implements CallBackItemTouch, Swipe
         chip_2 = view.findViewById(R.id.chip_2);
         chip_1.setText(SettingsDB.getSetting(HCardDB.getSelected()).getName1());
         chip_2.setText(SettingsDB.getSetting(HCardDB.getSelected()).getName2());
+        icon_sort = view.findViewById(R.id.icon_sort);
     }
 
     private void loadRows(View view) {

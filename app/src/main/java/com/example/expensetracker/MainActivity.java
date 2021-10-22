@@ -321,6 +321,8 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
 
     };*/
 
+
+
     private void loadReportsFromDB() {
         progressDialog = new ProgressDialog(MainActivity.this);
         progressDialog.show();
