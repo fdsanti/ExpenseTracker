@@ -328,17 +328,42 @@ public class GastosFragment extends Fragment implements CallBackItemTouch, Swipe
                                     @Override
                                     public void run() {
                                         //since the array list within the adapter is referencing the arraylist in this class, we
-                                        //just need to add the new row to the arraylists in this class
+                                        //just need to add the new row to the array lists in this class and sort the array lists
                                         if (dropdown_nombres.getText().toString().equals(SettingsDB.getSetting(HCardDB.getSelected()).getName1())) {
                                             rows1.add(newRow);
-                                            Collections.sort(rows1, new RowSortDate());
+                                            if (sort_menu_selected == 1) {
+                                                Collections.sort(rows1, new RowSortDate());
+                                            }
+                                            else if (sort_menu_selected == 2) {
+                                                Collections.sort(rows1, new RowSortPrice().reversed());
+                                            }
+                                            else {
+                                                Collections.sort(rows1, new RowSortPrice());
+                                            }
+
                                         }
                                         else {
                                             rows2.add(newRow);
-                                            Collections.sort(rows2, new RowSortDate());
+                                            if (sort_menu_selected == 1) {
+                                                Collections.sort(rows2, new RowSortDate());
+                                            }
+                                            else if (sort_menu_selected == 2) {
+                                                Collections.sort(rows2, new RowSortPrice().reversed());
+                                            }
+                                            else {
+                                                Collections.sort(rows2, new RowSortPrice());
+                                            }
                                         }
                                         rowsBoth.add(newRow);
-                                        Collections.sort(rowsBoth, new RowSortDate());
+                                        if (sort_menu_selected == 1) {
+                                            Collections.sort(rowsBoth, new RowSortDate());
+                                        }
+                                        else if (sort_menu_selected == 2) {
+                                            Collections.sort(rowsBoth, new RowSortPrice().reversed());
+                                        }
+                                        else {
+                                            Collections.sort(rowsBoth, new RowSortPrice());
+                                        }
 
                                         int currPos = 0;
 
