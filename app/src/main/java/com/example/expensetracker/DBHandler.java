@@ -21,17 +21,15 @@ public class DBHandler extends Configs{
 
             try {
                 Class.forName("com.mysql.jdbc.Driver");
+                System.out.println("Trying to connect");
                 dbconnection = DriverManager.getConnection(urlConexionMySQL, Configs.dbuser, Configs.dbpass);
+                System.out.println("Connected");
             }
             catch (ClassNotFoundException e) {
-                Toast.makeText(context,
-                        "Error: " + e.getMessage(),
-                        Toast.LENGTH_SHORT).show();
+                System.out.println("Error");
             }
             catch (SQLException e) {
-                Toast.makeText(context,
-                        "Error: " + e.getMessage(),
-                        Toast.LENGTH_SHORT).show();
+                System.out.println("Error");
             }
 
         }
