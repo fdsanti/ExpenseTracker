@@ -67,5 +67,25 @@
             android:background="@drawable/gradient" />-->
     </RelativeLayout>
 
+    <!--<RelativeLayout
+        android:layout_width="wrap_content"
+        android:layout_height="46dp"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:paddingEnd="24dp"
+        android:paddingStart="24dp"
+        android:layout_marginBottom="30dp">
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSync"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:text="Sync"
+            android:textAllCaps="false"
+            android:insetBottom="0dp"
+            android:insetTop="0dp"
+            app:cornerRadius="8dp"
+            android:textSize="16sp"
+            />
+    </RelativeLayout>-->
 
 </RelativeLayout>

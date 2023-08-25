@@ -187,6 +187,8 @@ public class GastosFragment extends Fragment implements CallBackItemTouch, Swipe
             AutoCompleteTextView dropdown_nombres = dialogView.findViewById(R.id.dropdown_nombres);
             TextInputEditText txt_NombreGasto = dialogView.findViewById(R.id.editText_NombreGasto);
             TextInputEditText txt_FechaGasto = dialogView.findViewById(R.id.editText_FechaGasto);
+            SimpleDateFormat simpleFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.US);
+            txt_FechaGasto.setText(simpleFormat.format(new Date()));
             TextInputEditText txt_Gasto = dialogView.findViewById(R.id.editText_Gasto);
 
 

@@ -12,10 +12,12 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -23,15 +25,28 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
+import java.sql.Array;
 import java.sql.Connection;
+import java.sql.Date;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 public class MainActivity extends AppCompatActivity implements CallBackItemTouch, SwipeRefreshLayout.OnRefreshListener{
 
@@ -45,7 +60,8 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
     private SwipeRefreshLayout mSwipeRefreshLayout;
     private ArrayList<HomeCard> hCards;
     private Drawable mIcon;
-
+    private MaterialButton btnSync;
+    private static final String TAG = "MainActivity";
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,6 +80,7 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
 
 
         toolbar = findViewById(R.id.toolbar_widget);
+        btnSync = findViewById(R.id.btnSync);
         setSupportActionBar(toolbar);
         homeRecycler = findViewById(R.id.homeRecycler);
         //btnNewHomeCard = findViewById(R.id.btnNewHomeCard);
@@ -71,6 +88,8 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
 
         if (HCardDB.isNull()) {
             loadReportsFromDB();
+            //RowsDB.loadRows(this, HCardDB.getReports());
+            //HashMap<String, ArrayList<ExpenseRow>> mapTablesAndRows = RowsDB.getRowsMap();
         }
         if (!HCardDB.isNull()) {
             loadReportsFromArrayList();
@@ -81,6 +100,67 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
         ItemTouchHelper.Callback callback = new MainItemDragSwipeCallback(this);
         ItemTouchHelper touchHelper = new ItemTouchHelper(callback);
         touchHelper.attachToRecyclerView(homeRecycler);
+
+        //migrate DB from SQL to Firebase Code. Created a new button to do this. Will remove it once finalized
+        /*btnSync.setOnClickListener(v -> {
+            System.out.println(HCardDB.getReports().get(1).getTableID());
+            System.out.println(HCardDB.getReports().get(1).getId());
+            System.out.println(HCardDB.getReports().get(1).getCreationDate());
+            System.out.println(HCardDB.getReports().get(1).getName());
+
+            FirebaseDatabase database = FirebaseDatabase.getInstance();
+            DatabaseReference myRef = database.getReference();
+            myRef.addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    // This method is called once with the initial value and again
+                    // whenever data at this location is updated.
+
+                    //load allTables (home cards)
+                    if(!HCardDB.isEmpty()) {
+                        ArrayList<HomeCard> homeCards = HCardDB.getReports();
+                        for (HomeCard entry : homeCards) {
+                            myRef.child("allTables").child(entry.getTableID()).child("creationDate").setValue(String.valueOf(entry.getCreationDate()));
+                            myRef.child("allTables").child(entry.getTableID()).child("tableDescription").setValue(entry.getName());
+                            myRef.child("allTables").child(entry.getTableID()).child("tableName").setValue(entry.getTableID());
+                        }
+                    }
+                    //load all tables with rows
+                    if (!RowsDB.isEmpty()) {
+                        HashMap<String, ArrayList<ExpenseRow>> map = RowsDB.getRowsMap();
+                        for (Map.Entry<String, ArrayList<ExpenseRow>> entry : map.entrySet()) {
+                            String key = entry.getKey();
+                            ArrayList<ExpenseRow> value = entry.getValue();
+                            for(ExpenseRow tempRow : value) {
+                                myRef.child(key).child(String.valueOf(tempRow.getId())).child("Description").setValue(tempRow.getDescription());
+                                myRef.child(key).child(String.valueOf(tempRow.getId())).child("Date").setValue(tempRow.getLocalDate().toString());
+                                myRef.child(key).child(String.valueOf(tempRow.getId())).child("Value").setValue(tempRow.getValue());
+                                myRef.child(key).child(String.valueOf(tempRow.getId())).child("Who").setValue(tempRow.getWho());
+                            }
+
+                        }
+                    }
+                    //load settings
+                    if(!SettingsDB.isNull()) {
+                        HashMap<String, Settings> settingsMap = SettingsDB.getHashMap();
+                        for (Map.Entry<String, Settings> entry : settingsMap.entrySet()) {
+                            String key = entry.getKey();
+                            Settings value = entry.getValue();
+                            myRef.child("settings").child(key).child("name1").setValue(value.getName1());
+                            myRef.child("settings").child(key).child("sueldo1").setValue(value.getIncome1());
+                            myRef.child("settings").child(key).child("name2").setValue(value.getName2());
+                            myRef.child("settings").child(key).child("sueldo2").setValue(value.getIncome2());
+                        }
+                    }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+                    // Failed to read value
+                    Log.w(TAG, "Failed to read value.", error.toException());
+                }
+            });
+        });*/
 
     }
 
@@ -350,6 +430,9 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
                 handlerUI.post(new Runnable() {
                     @Override
                     public void run() {
+                        handler = new DBHandler();
+                        connection = handler.getConnection(MainActivity.this);
+                        RowsDB.loadRows(MainActivity.this, connection, HCardDB.getReports());
                         progressDialog.dismiss();
                         loadReportsFromArrayList();
                     }
