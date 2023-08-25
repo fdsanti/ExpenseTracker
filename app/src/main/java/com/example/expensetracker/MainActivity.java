@@ -106,10 +106,6 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
 
         //migrate DB from SQL to Firebase Code. Created a new button to do this. Will remove it once finalized
         /*btnSync.setOnClickListener(v -> {
-            System.out.println(HCardDB.getReports().get(1).getTableID());
-            System.out.println(HCardDB.getReports().get(1).getId());
-            System.out.println(HCardDB.getReports().get(1).getCreationDate());
-            System.out.println(HCardDB.getReports().get(1).getName());
 
             FirebaseDatabase database = FirebaseDatabase.getInstance();
             DatabaseReference myRef = database.getReference();
@@ -213,39 +209,36 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
                 //Show progress bar and create new report
                 else {
                     alertDialog.dismiss();
-                    ProgressDialog progressDialog = new ProgressDialog(MainActivity.this);
-                    progressDialog.show();
-                    progressDialog.setContentView(R.layout.progress_dialog);
-                    progressDialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
 
                     //Find biggest Id and create the new report with id + 1
                     int newID = HCardDB.getBiggestID() + 1;
                     HomeCard hc = new HomeCard(String.valueOf(newID), LocalDate.now(), editText.getText().toString());
-                    //Create runnable so that the server communication happens in a background thread
-                    Handler handlerUI = new Handler();
-                    Runnable runnable = new Runnable() {
-                        @Override
-                        public void run() {
-                            synchronized (this) {
-                                HCardDB.createDBTable(hc, MainActivity.this);
-                            }
 
-                            handlerUI.post(new Runnable() {
-                                @Override
-                                public void run() {
-                                    HCardDB.addExpense(String.valueOf(newID), hc);
-                                    hCards.add(0,hc);
-                                    adapter.notifyItemInserted(0);
-                                    adapter.notifyItemRangeChanged(0,hCards.size());
-                                    homeRecycler.smoothScrollToPosition(0);
-                                    progressDialog.dismiss();
-                                    Toast.makeText(MainActivity.this, "¡El expense ha sido creado con éxito!", Toast.LENGTH_SHORT).show();
-                                }
-                            });
+                    //add new card to Firebase DB & update the array
+                    FirebaseDatabase database = FirebaseDatabase.getInstance();
+                    DatabaseReference myRef = database.getReference();
+                    myRef.child("allTables").get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
+                        @Override
+                        public void onComplete(@NonNull Task<DataSnapshot> task) {
+                            if (!task.isSuccessful()) {
+                                Log.e("firebase", "Error getting data", task.getException());
+                            }
+                            else {
+                                myRef.child("allTables").child(hc.getTableID()).child("creationDate").setValue(String.valueOf(hc.getCreationDate()));
+                                myRef.child("allTables").child(hc.getTableID()).child("tableDescription").setValue(hc.getName());
+                                myRef.child("allTables").child(hc.getTableID()).child("tableName").setValue(hc.getTableID());
+                                HCardDB.addExpense(String.valueOf(newID), hc);
+                                hCards.add(0,hc);
+                                adapter.notifyItemInserted(0);
+                                adapter.notifyItemRangeChanged(0,hCards.size());
+                                homeRecycler.smoothScrollToPosition(0);
+                                Toast.makeText(MainActivity.this, "¡El expense ha sido creado con éxito!", Toast.LENGTH_SHORT).show();
+                                Log.d("firebase", String.valueOf(task.getResult().getValue()));
+                            }
                         }
-                    };
-                    Thread thread = new Thread(runnable);
-                    thread.start();
+                    });
+
+
                 }
             }
         });
@@ -280,42 +273,29 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
         dialog.setPositiveButton("Eliminar", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                ProgressDialog progressDialog = new ProgressDialog(MainActivity.this);
-                progressDialog.show();
-                progressDialog.setContentView(R.layout.progress_dialog);
-                progressDialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
 
-                Handler handlerUI = new Handler();
-                Runnable runnable = new Runnable() {
+                FirebaseDatabase database = FirebaseDatabase.getInstance();
+                DatabaseReference myRef = database.getReference();
+                myRef.child("allTables").get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
                     @Override
-                    public void run() {
-                        synchronized (this) {
-                            DBHandler handler = new DBHandler();
-                            Connection connection = handler.getConnection(MainActivity.this);
-                            HCardDB.removeReport(connection, hCards.get(position).getId());
-                            SettingsDB.removeSettings(hCards.get(position), MainActivity.this);
-                            try {
-                                connection.close();
-                            } catch (SQLException throwables) {
-                                throwables.printStackTrace();
-                            }
+                    public void onComplete(@NonNull Task<DataSnapshot> task) {
+                        if (!task.isSuccessful()) {
+                            Log.e("firebase", "Error getting data", task.getException());
                         }
-
-                        handlerUI.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                hCards.remove(position);
-                                progressDialog.dismiss();
-                                adapter.notifyItemRemoved(position);
-                                adapter.notifyItemRangeChanged(position,hCards.size());
-
-                                Toast.makeText(MainActivity.this, "El reporte se ha eliminado", Toast.LENGTH_SHORT).show();
-                            }
-                        });
+                        else {
+                            //remove table in "allTables", the table with all the rows & the data in "settings"
+                            //then, remove it from the local array & notify the changes
+                            myRef.child("allTables").child(hCards.get(position).getTableID()).removeValue();
+                            myRef.child(hCards.get(position).getTableID()).removeValue();
+                            myRef.child("settings").child(hCards.get(position).getTableID()).removeValue();
+                            hCards.remove(position);
+                            adapter.notifyItemRemoved(position);
+                            adapter.notifyItemRangeChanged(position,hCards.size());
+                            Toast.makeText(MainActivity.this, "El reporte se ha eliminado", Toast.LENGTH_SHORT).show();
+                            Log.d("firebase", String.valueOf(task.getResult().getValue()));
+                        }
                     }
-                };
-                Thread thread = new Thread(runnable);
-                thread.start();
+                });
             }
         });
 
@@ -447,7 +427,7 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
         ArrayList<HomeCard> tempHCArray = new ArrayList<HomeCard>();
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         DatabaseReference myRef = database.getReference();
-
+        //fetch homecards from Firebase db
         myRef.child("allTables").get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
             @RequiresApi(api = Build.VERSION_CODES.O)
             @Override
@@ -466,15 +446,17 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
                     }
                     //sort the array so that the new hashmap is ordered from newest to oldest
                     Collections.sort(tempHCArray, new HomeCardSortDate());
+                    //add expense to the hashmap in HCardDB
                     for (HomeCard hc : tempHCArray) {
                         HCardDB.addExpense(hc.getId(), hc);
                     }
-
+                    //load reports in the UI
                     loadReportsFromArrayList();
                     Log.d("firebase", String.valueOf(task.getResult().getValue()));
                 }
             }
         });
+        //fetch settings from Firebase db
         myRef.child("settings").get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
             @RequiresApi(api = Build.VERSION_CODES.O)
             @Override
@@ -498,8 +480,7 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
                 }
             }
         });
-        //HCardDB.setDB(fireBaseMap);
-        //SettingsDB.loadDB(connection);
+
 
     }
 

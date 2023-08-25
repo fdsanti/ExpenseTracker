@@ -6,20 +6,27 @@ import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -116,6 +123,8 @@ public class SettingsActivity extends AppCompatActivity {
                     & !txtEditNombre2.getText().toString().isEmpty()
                     & !txtEditSueldo2.getText().toString().isEmpty()) {
 
+                Settings newSet = new Settings(HCardDB.getSelected().getTableID(), txtEditNombre1.getText().toString(), Integer.parseInt(txtEditSueldo1.getText().toString()), txtEditNombre2.getText().toString(), Integer.parseInt(txtEditSueldo2.getText().toString()));
+
                 progressDialog = new ProgressDialog(SettingsActivity.this);
                 progressDialog.show();
                 progressDialog.setContentView(R.layout.progress_dialog);
@@ -138,7 +147,9 @@ public class SettingsActivity extends AppCompatActivity {
                                     updateNamesOnRows(SettingsDB.getSetting(HCardDB.getSelected()).getName2(), txtEditNombre2.getText().toString(), connection);
                                 }
                             }
+                            //upload to mysql db
                             SettingsDB.save(connection, newSet);
+                            //adding setting to local array
                             SettingsDB.addToDB(newSet);
                             try {
                                 connection.close();
@@ -159,6 +170,24 @@ public class SettingsActivity extends AppCompatActivity {
                 };
                 Thread thread = new Thread(runnable);
                 thread.start();
+
+                FirebaseDatabase database = FirebaseDatabase.getInstance();
+                DatabaseReference myRef = database.getReference();
+                /*myRef.child("settings").get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<DataSnapshot> task) {
+                        if (!task.isSuccessful()) {
+                            Log.e("firebase", "Error getting data", task.getException());
+                        }
+                        else {
+                            myRef.child("settings").child(newSet.getTableID()).child("name1").setValue(newSet.getName1());
+                            myRef.child("settings").child(newSet.getTableID()).child("name2").setValue(newSet.getName2());
+                            myRef.child("settings").child(newSet.getTableID()).child("sueldo1").setValue(newSet.getIncome1());
+                            myRef.child("settings").child(newSet.getTableID()).child("sueldo2").setValue(newSet.getIncome2());
+                            Log.d("firebase", String.valueOf(task.getResult().getValue()));
+                        }
+                    }
+                });*/
             }
             //si falta algun dato, pedir de completar los input fields
             else {
