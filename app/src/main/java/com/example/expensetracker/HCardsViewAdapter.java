@@ -53,6 +53,7 @@ public class HCardsViewAdapter extends RecyclerView.Adapter<HCardsViewAdapter.Vi
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+        System.out.println(position);
         holder.name.setText(hCards.get(position).getName());
         LocalDate today = hCards.get(position).getCreationDate();
         String formattedDate = today.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL));

@@ -51,12 +51,6 @@ public class RowsDB {
                     @Override
                     public void run() {
                         progressDialog.dismiss();
-                        System.out.println(rowsMap.get("DATA1").get(0).getId());
-                        System.out.println(rowsMap.get("DATA1").get(0).getDescription());
-                        System.out.println(rowsMap.get("DATA1").get(0).getDate());
-                        System.out.println(rowsMap.get("DATA1").get(0).getLocalDate().toString());
-                        System.out.println(rowsMap.get("DATA1").get(0).getValue());
-                        System.out.println(rowsMap.get("DATA1").get(0).getWho());
                     }
                 });
             }

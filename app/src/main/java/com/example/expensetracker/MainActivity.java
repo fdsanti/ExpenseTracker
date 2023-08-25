@@ -25,6 +25,8 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
@@ -42,11 +44,13 @@ import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 
 public class MainActivity extends AppCompatActivity implements CallBackItemTouch, SwipeRefreshLayout.OnRefreshListener{
 
@@ -80,16 +84,15 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
 
 
         toolbar = findViewById(R.id.toolbar_widget);
-        btnSync = findViewById(R.id.btnSync);
+        //btnSync = findViewById(R.id.btnSync);
         setSupportActionBar(toolbar);
         homeRecycler = findViewById(R.id.homeRecycler);
         //btnNewHomeCard = findViewById(R.id.btnNewHomeCard);
 
 
         if (HCardDB.isNull()) {
-            loadReportsFromDB();
-            //RowsDB.loadRows(this, HCardDB.getReports());
-            //HashMap<String, ArrayList<ExpenseRow>> mapTablesAndRows = RowsDB.getRowsMap();
+            //loadReportsFromDB();
+            loadReportsFromFirebase();
         }
         if (!HCardDB.isNull()) {
             loadReportsFromArrayList();
@@ -430,9 +433,6 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
                 handlerUI.post(new Runnable() {
                     @Override
                     public void run() {
-                        handler = new DBHandler();
-                        connection = handler.getConnection(MainActivity.this);
-                        RowsDB.loadRows(MainActivity.this, connection, HCardDB.getReports());
                         progressDialog.dismiss();
                         loadReportsFromArrayList();
                     }
@@ -443,8 +443,69 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
         thread.start();
     }
 
+    private void loadReportsFromFirebase(){
+        ArrayList<HomeCard> tempHCArray = new ArrayList<HomeCard>();
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        DatabaseReference myRef = database.getReference();
+
+        myRef.child("allTables").get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
+            @RequiresApi(api = Build.VERSION_CODES.O)
+            @Override
+            public void onComplete(@NonNull Task<DataSnapshot> task) {
+                if (!task.isSuccessful()) {
+                    Log.e("firebase", "Error getting data", task.getException());
+                }
+                else {
+                    for (DataSnapshot child : task.getResult().getChildren()) {
+
+                        String id = child.child("tableName").getValue().toString().substring(4);
+                        LocalDate date = Date.valueOf(child.child("creationDate").getValue().toString()).toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+                        String reportName = child.child("tableDescription").getValue().toString();
+                        HomeCard tempCard = new HomeCard(id, date, reportName);
+                        tempHCArray.add(tempCard);
+                    }
+                    //sort the array so that the new hashmap is ordered from newest to oldest
+                    Collections.sort(tempHCArray, new HomeCardSortDate());
+                    for (HomeCard hc : tempHCArray) {
+                        HCardDB.addExpense(hc.getId(), hc);
+                    }
+
+                    loadReportsFromArrayList();
+                    Log.d("firebase", String.valueOf(task.getResult().getValue()));
+                }
+            }
+        });
+        myRef.child("settings").get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
+            @RequiresApi(api = Build.VERSION_CODES.O)
+            @Override
+            public void onComplete(@NonNull Task<DataSnapshot> task) {
+                if (!task.isSuccessful()) {
+                    Log.e("firebase", "Error getting data", task.getException());
+                }
+                else {
+                    for (DataSnapshot child : task.getResult().getChildren()) {
+
+                        String tableName = child.getKey().toString();
+                        String name1 = child.child("name1").getValue().toString();
+                        String name2 = child.child("name2").getValue().toString();
+                        Integer sueldo1 = Integer.parseInt(child.child("sueldo1").getValue().toString());
+                        Integer sueldo2 = Integer.parseInt(child.child("sueldo2").getValue().toString());
+
+                        Settings tempSettings = new Settings(tableName, name1, sueldo1, name2, sueldo2);
+                        SettingsDB.addToDB(tempSettings);
+                    }
+                    Log.d("firebase", String.valueOf(task.getResult().getValue()));
+                }
+            }
+        });
+        //HCardDB.setDB(fireBaseMap);
+        //SettingsDB.loadDB(connection);
+
+    }
+
     private void loadReportsFromArrayList() {
         if(!HCardDB.isEmpty()) {
+            System.out.println("HCardDB not empty");
             hCards = HCardDB.getReports();
             adapter = new HCardsViewAdapter(MainActivity.this);
             adapter.setCards(hCards);
@@ -454,6 +515,7 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
         else {
             TextView txtEmpty = new TextView(MainActivity.this);
             txtEmpty.setText("There are no reports yet!");
+            System.out.println("HCardDB empty");
         }
 
     }
@@ -465,6 +527,6 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
                 mSwipeRefreshLayout.setRefreshing(false);
             }
         }, 50);
-        loadReportsFromDB();
+        loadReportsFromFirebase();
     }
 }

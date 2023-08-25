@@ -62,6 +62,10 @@ public class HCardDB {
         }
     }
 
+    public static void setDB(LinkedHashMap<String, HomeCard> newMap) {
+        if (expensesMap == null) initialize();
+        expensesMap = newMap;
+    }
 
     public static void createDBTable(HomeCard hc, Context context) {
         DBHandler handler = new DBHandler();
