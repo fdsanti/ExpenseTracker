@@ -10,6 +10,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.text.InputType;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -40,6 +41,8 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.datepicker.MaterialDatePicker;
 import com.google.android.material.datepicker.MaterialPickerOnPositiveButtonClickListener;
@@ -47,6 +50,9 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -55,7 +61,10 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -538,43 +547,67 @@ public class GastosFragment extends Fragment implements CallBackItemTouch, Swipe
     }
 
     private void loadRows(View view) {
-        progressDialog = new ProgressDialog(getContext());
-        progressDialog.show();
-        progressDialog.setContentView(R.layout.progress_dialog);
-        progressDialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
 
-        Handler handlerUI = new Handler();
-        Runnable runnable = new Runnable() {
+        rows = new ArrayList<ExpenseRow>();
+        rows1 = new ArrayList<ExpenseRow>();
+        rows2 = new ArrayList<ExpenseRow>();
+        rowsBoth = new ArrayList<ExpenseRow>();
+
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        DatabaseReference myRef = database.getReference();
+        //fetch rows from Firebase db
+        myRef.child(HCardDB.getSelected().getTableID()).get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
             @RequiresApi(api = Build.VERSION_CODES.O)
             @Override
-            public void run() {
-                synchronized (this) {
-                    getRows();
+            public void onComplete(@NonNull Task<DataSnapshot> task) {
+                if (!task.isSuccessful()) {
+                    Log.e("firebase", "Error getting data", task.getException());
                 }
+                else {
+                    for (DataSnapshot currRow : task.getResult().getChildren()) {
+                        ExpenseRow row = new ExpenseRow();
+                        row.setId(Integer.parseInt(currRow.getKey()));
+                        row.setDescription(currRow.child("Description").getValue(String.class));
+                        LocalDate newDate = LocalDate.parse(currRow.child("Date").getValue(String.class));
+                        row.setDate(newDate);
+                        row.setValue(currRow.child("Value").getValue(Long.class).doubleValue());
+                        row.setWho(currRow.child("Who").getValue(String.class));
 
-                handlerUI.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        adapter = new RowViewAdapter(context);
-                        adapter.passFragment(GastosFragment.this);
-                        adapter.setRows(rows, rows1, rows2, rowsBoth);
-                        adapter.changeToBoth();
-                        recyclerView = view.findViewById(R.id.expenseRecycler);
-
-                        recyclerView.setAdapter(adapter);
-                        recyclerView.setLayoutManager(new LinearLayoutManager(context));
-                        ItemTouchHelper.Callback callback = new ExpenseItemSwipeCallback(GastosFragment.this);
-                        ItemTouchHelper touchHelper = new ItemTouchHelper(callback);
-                        touchHelper.attachToRecyclerView(recyclerView);
-                        loadTotals();
-                        saldosFragment.calculate();
-                        progressDialog.dismiss();
+                        rowsBoth.add(row);
+                        if (currRow.child("Who").equals(SettingsDB.getSetting(HCardDB.getSelected()).getName1())) {
+                            rows1.add(row);
+                        }
+                        if (currRow.child("Who").equals(SettingsDB.getSetting(HCardDB.getSelected()).getName2())) {
+                            rows2.add(row);
+                        }
                     }
-                });
+                    rows = rowsBoth;
+                    Collections.sort(rowsBoth, new RowSortDate());
+                    if (!rows1.isEmpty()) {
+                        Collections.sort(rows1, new RowSortDate());
+                    }
+                    if (!rows2.isEmpty()) {
+                        Collections.sort(rows2, new RowSortDate());
+                    }
+
+                    adapter = new RowViewAdapter(context);
+                    adapter.passFragment(GastosFragment.this);
+                    adapter.setRows(rows, rows1, rows2, rowsBoth);
+                    adapter.changeToBoth();
+                    recyclerView = view.findViewById(R.id.expenseRecycler);
+
+                    recyclerView.setAdapter(adapter);
+                    recyclerView.setLayoutManager(new LinearLayoutManager(context));
+                    ItemTouchHelper.Callback callback = new ExpenseItemSwipeCallback(GastosFragment.this);
+                    ItemTouchHelper touchHelper = new ItemTouchHelper(callback);
+                    touchHelper.attachToRecyclerView(recyclerView);
+                    loadTotals();
+                    saldosFragment.calculate();
+
+                    Log.d("firebase", String.valueOf(task.getResult().getValue()));
+                }
             }
-        };
-        Thread thread = new Thread(runnable);
-        thread.start();
+        });
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)

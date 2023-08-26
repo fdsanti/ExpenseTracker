@@ -48,6 +48,7 @@ public class SettingsActivity extends AppCompatActivity {
     private TextInputEditText txtEditSueldo2;
     private MaterialButton btnContinuar;
     private Boolean comingFromExpense;
+    private MaterialButton btnTest;
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
@@ -125,70 +126,41 @@ public class SettingsActivity extends AppCompatActivity {
 
                 Settings newSet = new Settings(HCardDB.getSelected().getTableID(), txtEditNombre1.getText().toString(), Integer.parseInt(txtEditSueldo1.getText().toString()), txtEditNombre2.getText().toString(), Integer.parseInt(txtEditSueldo2.getText().toString()));
 
-                progressDialog = new ProgressDialog(SettingsActivity.this);
-                progressDialog.show();
-                progressDialog.setContentView(R.layout.progress_dialog);
-                progressDialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
-
-                Handler handlerUI = new Handler();
-                Runnable runnable = new Runnable() {
-                    @RequiresApi(api = Build.VERSION_CODES.O)
-                    @Override
-                    public void run() {
-                        synchronized (this) {
-                            handler = new DBHandler();
-                            connection = handler.getConnection(SettingsActivity.this);
-                            Settings newSet = new Settings(HCardDB.getSelected().getTableID(), txtEditNombre1.getText().toString(), Integer.parseInt(txtEditSueldo1.getText().toString()), txtEditNombre2.getText().toString(), Integer.parseInt(txtEditSueldo2.getText().toString()));
-                            if (comingFromExpense) {
-                                if (!txtEditNombre1.getText().toString().equals(SettingsDB.getSetting(HCardDB.getSelected()).getName1())) {
-                                    updateNamesOnRows(SettingsDB.getSetting(HCardDB.getSelected()).getName1(), txtEditNombre1.getText().toString(), connection);
-                                }
-                                if (!txtEditNombre2.getText().toString().equals(SettingsDB.getSetting(HCardDB.getSelected()).getName2())) {
-                                    updateNamesOnRows(SettingsDB.getSetting(HCardDB.getSelected()).getName2(), txtEditNombre2.getText().toString(), connection);
-                                }
-                            }
-                            //upload to mysql db
-                            SettingsDB.save(connection, newSet);
-                            //adding setting to local array
-                            SettingsDB.addToDB(newSet);
-                            try {
-                                connection.close();
-                            } catch (SQLException throwables) {
-                                throwables.printStackTrace();
-                            }
-                        }
-
-                        handlerUI.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                Intent intent = new Intent(SettingsActivity.this, ExpenseActivity.class);
-                                SettingsActivity.this.startActivity(intent);
-                                progressDialog.dismiss();
-                            }
-                        });
-                    }
-                };
-                Thread thread = new Thread(runnable);
-                thread.start();
-
                 FirebaseDatabase database = FirebaseDatabase.getInstance();
                 DatabaseReference myRef = database.getReference();
-                /*myRef.child("settings").get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
+                myRef.child("settings").get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
                     @Override
                     public void onComplete(@NonNull Task<DataSnapshot> task) {
                         if (!task.isSuccessful()) {
                             Log.e("firebase", "Error getting data", task.getException());
                         }
                         else {
+                            //Updating firebase DB
                             myRef.child("settings").child(newSet.getTableID()).child("name1").setValue(newSet.getName1());
                             myRef.child("settings").child(newSet.getTableID()).child("name2").setValue(newSet.getName2());
                             myRef.child("settings").child(newSet.getTableID()).child("sueldo1").setValue(newSet.getIncome1());
                             myRef.child("settings").child(newSet.getTableID()).child("sueldo2").setValue(newSet.getIncome2());
+
+                            //if the name has changed, then we need to iterate over all the rows and update the names
+                            //this still needs to be tested
+                            if (comingFromExpense) {
+                                if (!txtEditNombre1.getText().toString().equals(SettingsDB.getSetting(HCardDB.getSelected()).getName1())) {
+                                    updateNamesOnRowsFB(SettingsDB.getSetting(HCardDB.getSelected()).getName1(), txtEditNombre1.getText().toString());
+                                }
+                                if (!txtEditNombre2.getText().toString().equals(SettingsDB.getSetting(HCardDB.getSelected()).getName2())) {
+                                    updateNamesOnRowsFB(SettingsDB.getSetting(HCardDB.getSelected()).getName2(), txtEditNombre2.getText().toString());
+                                }
+                            }
+                            //adding to local array
+                            SettingsDB.addToDB(newSet);
+                            Intent intent = new Intent(SettingsActivity.this, ExpenseActivity.class);
+                            SettingsActivity.this.startActivity(intent);
                             Log.d("firebase", String.valueOf(task.getResult().getValue()));
                         }
                     }
-                });*/
+                });
             }
+
             //si falta algun dato, pedir de completar los input fields
             else {
                 txtEditNombre1.clearFocus();
@@ -218,6 +190,53 @@ public class SettingsActivity extends AppCompatActivity {
             }
         });
 
+        //testing purposes - Ignore. To uncomment this, you should uncomment the btn on the "activity_settings.xml"
+        /*btnTest.setOnClickListener(v -> {
+            FirebaseDatabase database = FirebaseDatabase.getInstance();
+            DatabaseReference myRef = database.getReference();
+
+            myRef.child("DATA1").get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
+                @Override
+                public void onComplete(@NonNull Task<DataSnapshot> task) {
+                    if (!task.isSuccessful()) {
+                        Log.e("firebase", "Error getting data", task.getException());
+                    }
+                    else {
+                        for (DataSnapshot child : task.getResult().getChildren()) {
+                            System.out.println(child.getKey().toString());
+                        }
+                        //Updating firebase DB
+                        System.out.println("Test " + task.getResult().child("1").getValue());
+
+                    }
+                }
+            });
+        });*/
+
+    }
+
+    private void updateNamesOnRowsFB(String oldName, String newName) {
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        DatabaseReference myRef = database.getReference();
+        myRef.child(HCardDB.getSelected().getTableID().toString()).get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DataSnapshot> task) {
+                if (!task.isSuccessful()) {
+                    Log.e("firebase", "Error getting data", task.getException());
+                }
+                else {
+                    //Updating firebase DB
+
+                    for (DataSnapshot row : task.getResult().getChildren()) {
+                        String currName = row.child("who").getValue().toString();
+                        if (currName == oldName) {
+                            myRef.child(HCardDB.getSelected().getTableID().toString()).child(row.getKey().toString()).child("who").setValue(newName);
+                        }
+                    }
+                    Log.d("firebase", String.valueOf(task.getResult().getValue()));
+                }
+            }
+        });
     }
 
     private void updateNamesOnRows(String oldName, String newName, Connection connection) {
@@ -240,6 +259,7 @@ public class SettingsActivity extends AppCompatActivity {
 
     private void loadIDs() {
         btnContinuar = findViewById(R.id.btnContinuar);
+        //btnTest = findViewById(R.id.btnTest);
 
         txtFieldNombre1 = findViewById(R.id.txtFieldNombre1);
         txtFieldSueldo1 = findViewById(R.id.txtFieldSueldo1);

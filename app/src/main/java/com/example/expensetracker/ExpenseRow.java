@@ -44,6 +44,12 @@ public class ExpenseRow {
         this.date = DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG).format(date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    public void setDate(LocalDate date) {
+        this.date1 = date;
+        this.date = DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG).format(date);
+    }
+
     public void setDate(String date) {
         this.date = date;
     }

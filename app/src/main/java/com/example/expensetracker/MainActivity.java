@@ -439,7 +439,7 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
                     for (DataSnapshot child : task.getResult().getChildren()) {
 
                         String id = child.child("tableName").getValue().toString().substring(4);
-                        LocalDate date = Date.valueOf(child.child("creationDate").getValue().toString()).toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+                        LocalDate date = Date.valueOf(child.child("creationDate").getValue(String.class)).toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
                         String reportName = child.child("tableDescription").getValue().toString();
                         HomeCard tempCard = new HomeCard(id, date, reportName);
                         tempHCArray.add(tempCard);
