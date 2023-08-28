@@ -9,6 +9,7 @@ import android.os.Handler;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -32,6 +33,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class SettingsActivity extends AppCompatActivity {
     private ProgressDialog progressDialog;
@@ -128,7 +131,7 @@ public class SettingsActivity extends AppCompatActivity {
 
                 FirebaseDatabase database = FirebaseDatabase.getInstance();
                 DatabaseReference myRef = database.getReference();
-                myRef.child("settings").get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
+                myRef.get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
                     @Override
                     public void onComplete(@NonNull Task<DataSnapshot> task) {
                         if (!task.isSuccessful()) {
@@ -142,19 +145,40 @@ public class SettingsActivity extends AppCompatActivity {
                             myRef.child("settings").child(newSet.getTableID()).child("sueldo2").setValue(newSet.getIncome2());
 
                             //if the name has changed, then we need to iterate over all the rows and update the names
-                            //this still needs to be tested
+                            //this still needs to be tested - NOW TESTED. Works good
+                            //create hashmap, and add old name and new name for each name changed to hashmap
+                            //then, if hashmap is not empty (which means that a named has changed), update the name of the rows with the new name which is the value in the hashmap
                             if (comingFromExpense) {
+                                //check if
+                                HashMap<String, String> oldAndNewNames = new HashMap<String, String>();
+
                                 if (!txtEditNombre1.getText().toString().equals(SettingsDB.getSetting(HCardDB.getSelected()).getName1())) {
-                                    updateNamesOnRowsFB(SettingsDB.getSetting(HCardDB.getSelected()).getName1(), txtEditNombre1.getText().toString());
+                                    String oldName = SettingsDB.getSetting(HCardDB.getSelected()).getName1();
+                                    String newName = txtEditNombre1.getText().toString();
+                                    oldAndNewNames.put(oldName, newName);
                                 }
                                 if (!txtEditNombre2.getText().toString().equals(SettingsDB.getSetting(HCardDB.getSelected()).getName2())) {
-                                    updateNamesOnRowsFB(SettingsDB.getSetting(HCardDB.getSelected()).getName2(), txtEditNombre2.getText().toString());
+                                    String oldName = SettingsDB.getSetting(HCardDB.getSelected()).getName2();
+                                    String newName = txtEditNombre2.getText().toString();
+                                    oldAndNewNames.put(oldName, newName);
                                 }
+                                if (!oldAndNewNames.isEmpty()) {
+                                    for (DataSnapshot row : task.getResult().child(HCardDB.getSelected().getTableID()).getChildren()) {
+                                        for (Map.Entry<String, String> entry : oldAndNewNames.entrySet()) {
+                                            String currName = row.child("Who").getValue().toString();
+                                            System.out.println("CurrName: " + currName);
+                                            System.out.println("oldName: " + entry.getKey().toString());
+                                            if (currName.equals(entry.getKey())) {
+                                                myRef.child(HCardDB.getSelected().getTableID().toString()).child(row.getKey().toString()).child("Who").setValue(entry.getValue());
+                                            }
+                                        }
+                                    }
+                                }
+
+                                SettingsDB.addToDB(newSet);
+                                Intent intent = new Intent(SettingsActivity.this, ExpenseActivity.class);
+                                SettingsActivity.this.startActivity(intent);
                             }
-                            //adding to local array
-                            SettingsDB.addToDB(newSet);
-                            Intent intent = new Intent(SettingsActivity.this, ExpenseActivity.class);
-                            SettingsActivity.this.startActivity(intent);
                             Log.d("firebase", String.valueOf(task.getResult().getValue()));
                         }
                     }
@@ -213,30 +237,6 @@ public class SettingsActivity extends AppCompatActivity {
             });
         });*/
 
-    }
-
-    private void updateNamesOnRowsFB(String oldName, String newName) {
-        FirebaseDatabase database = FirebaseDatabase.getInstance();
-        DatabaseReference myRef = database.getReference();
-        myRef.child(HCardDB.getSelected().getTableID().toString()).get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<DataSnapshot> task) {
-                if (!task.isSuccessful()) {
-                    Log.e("firebase", "Error getting data", task.getException());
-                }
-                else {
-                    //Updating firebase DB
-
-                    for (DataSnapshot row : task.getResult().getChildren()) {
-                        String currName = row.child("who").getValue().toString();
-                        if (currName == oldName) {
-                            myRef.child(HCardDB.getSelected().getTableID().toString()).child(row.getKey().toString()).child("who").setValue(newName);
-                        }
-                    }
-                    Log.d("firebase", String.valueOf(task.getResult().getValue()));
-                }
-            }
-        });
     }
 
     private void updateNamesOnRows(String oldName, String newName, Connection connection) {

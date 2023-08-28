@@ -197,7 +197,8 @@ public class GastosFragment extends Fragment implements CallBackItemTouch, Swipe
             TextInputEditText txt_NombreGasto = dialogView.findViewById(R.id.editText_NombreGasto);
             TextInputEditText txt_FechaGasto = dialogView.findViewById(R.id.editText_FechaGasto);
             SimpleDateFormat simpleFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.US);
-            txt_FechaGasto.setText(simpleFormat.format(new Date()));
+            date = new Date();
+            txt_FechaGasto.setText(simpleFormat.format(date));
             TextInputEditText txt_Gasto = dialogView.findViewById(R.id.editText_Gasto);
 
 
@@ -298,10 +299,10 @@ public class GastosFragment extends Fragment implements CallBackItemTouch, Swipe
                     && !txt_FechaGasto.getText().toString().isEmpty()
                     && !txt_Gasto.getText().toString().isEmpty()
                     && !dropdown_nombres.getText().toString().isEmpty()) {
-                        progressDialog.show();
                         ExpenseRow newRow = new ExpenseRow(txt_NombreGasto.getText().toString(), date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate(), Double.parseDouble(txt_Gasto.getText().toString()), dropdown_nombres.getText().toString());
 
-                        Handler handlerUI = new Handler();
+                        //MySQL upload row code
+                        /*Handler handlerUI = new Handler();
                         Runnable runnable = new Runnable() {
                             @Override
                             public void run() {
@@ -419,7 +420,112 @@ public class GastosFragment extends Fragment implements CallBackItemTouch, Swipe
                             }
                         };
                         Thread thread = new Thread(runnable);
-                        thread.start();
+                        thread.start();*/
+
+                        FirebaseDatabase database = FirebaseDatabase.getInstance();
+                        DatabaseReference myRef = database.getReference();
+                        myRef.get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
+                            @Override
+                            public void onComplete(@NonNull Task<DataSnapshot> task) {
+                                if (!task.isSuccessful()) {
+                                    Log.e("firebase", "Error getting data", task.getException());
+                                }
+                                else {
+                                    //Upload new row
+                                    //Find biggest id
+                                    int biggest = 0;
+                                    for (DataSnapshot row : task.getResult().child(HCardDB.getSelected().getTableID()).getChildren()) {
+                                        System.out.println(row.getKey());
+                                        Integer intID = Integer.parseInt(row.getKey().toString());
+                                        if (intID > biggest) {
+                                            biggest = intID;
+                                        }
+                                    }
+                                    newRow.setId(biggest+1);
+                                    System.out.println(newRow);
+                                    myRef.child(HCardDB.getSelected().getTableID().toString()).child(String.valueOf(newRow.getId())).child("Date").setValue(newRow.getLocalDate().toString());
+                                    myRef.child(HCardDB.getSelected().getTableID().toString()).child(String.valueOf(newRow.getId())).child("Description").setValue(newRow.getDescription().toString());
+                                    myRef.child(HCardDB.getSelected().getTableID().toString()).child(String.valueOf(newRow.getId())).child("Value").setValue(newRow.getValue());
+                                    myRef.child(HCardDB.getSelected().getTableID().toString()).child(String.valueOf(newRow.getId())).child("Who").setValue(newRow.getWho().toString());
+
+                                    if (dropdown_nombres.getText().toString().equals(SettingsDB.getSetting(HCardDB.getSelected()).getName1())) {
+                                        rows1.add(newRow);
+                                        if (sort_menu_selected == 1) {
+                                            Collections.sort(rows1, new RowSortDate());
+                                        }
+                                        else if (sort_menu_selected == 2) {
+                                            Collections.sort(rows1, new RowSortPrice().reversed());
+                                        }
+                                        else {
+                                            Collections.sort(rows1, new RowSortPrice());
+                                        }
+
+                                    }
+                                    else {
+                                        rows2.add(newRow);
+                                        if (sort_menu_selected == 1) {
+                                            Collections.sort(rows2, new RowSortDate());
+                                        }
+                                        else if (sort_menu_selected == 2) {
+                                            Collections.sort(rows2, new RowSortPrice().reversed());
+                                        }
+                                        else {
+                                            Collections.sort(rows2, new RowSortPrice());
+                                        }
+                                    }
+                                    rowsBoth.add(newRow);
+                                    if (sort_menu_selected == 1) {
+                                        Collections.sort(rowsBoth, new RowSortDate());
+                                    }
+                                    else if (sort_menu_selected == 2) {
+                                        Collections.sort(rowsBoth, new RowSortPrice().reversed());
+                                    }
+                                    else {
+                                        Collections.sort(rowsBoth, new RowSortPrice());
+                                    }
+
+                                    int currPos = 0;
+
+                                    //Find position of the item added
+                                    if (!chip_1.isChecked() && !chip_2.isChecked()) {
+                                        for (ExpenseRow currRow : rowsBoth) {
+                                            if (currRow.getId() == newRow.getId()) {
+                                                break;
+                                            }
+                                            currPos += 1;
+                                        }
+                                    }
+                                    if (chip_1.isChecked()) {
+                                        for (ExpenseRow currRow : rows1) {
+                                            if (currRow.getId() == newRow.getId()) {
+                                                break;
+                                            }
+                                            currPos += 1;
+                                        }
+                                    }
+                                    if (chip_2.isChecked()){
+                                        for (ExpenseRow currRow : rows2) {
+                                            if (currRow.getId() == newRow.getId()) {
+                                                break;
+                                            }
+                                            currPos += 1;
+                                        }
+                                    }
+
+                                    adapter.notifyItemInserted(currPos);
+                                    adapter.notifyItemRangeChanged(currPos,rows.size());
+                                    if (currPos == 0) {
+                                        recyclerView.smoothScrollToPosition(0);
+                                    }
+
+                                    loadTotals();
+                                    saldosFragment.calculate();
+                                    alertDialog.dismiss();
+
+                                    Log.d("firebase", String.valueOf(task.getResult().getValue()));
+                                }
+                            }
+                        });
                     }
                 }
             });
@@ -498,7 +604,6 @@ public class GastosFragment extends Fragment implements CallBackItemTouch, Swipe
         });
     }
 
-
     private void loadNames() {
         txt_abajo_nombre1.setText(SettingsDB.getSetting(HCardDB.getSelected()).getName1());
         txt_abajo_nombre2.setText(SettingsDB.getSetting(HCardDB.getSelected()).getName2());
@@ -525,6 +630,8 @@ public class GastosFragment extends Fragment implements CallBackItemTouch, Swipe
 
         txt_abajo_total1.setText(str_total1);
         txt_abajo_total2.setText(str_total2);
+        System.out.println("Total 1: " + str_total1);
+        System.out.println("Total 2: " + str_total2);
 
     }
 
@@ -547,6 +654,7 @@ public class GastosFragment extends Fragment implements CallBackItemTouch, Swipe
     }
 
     private void loadRows(View view) {
+        System.out.println("Loading rows");
 
         rows = new ArrayList<ExpenseRow>();
         rows1 = new ArrayList<ExpenseRow>();
@@ -574,10 +682,10 @@ public class GastosFragment extends Fragment implements CallBackItemTouch, Swipe
                         row.setWho(currRow.child("Who").getValue(String.class));
 
                         rowsBoth.add(row);
-                        if (currRow.child("Who").equals(SettingsDB.getSetting(HCardDB.getSelected()).getName1())) {
+                        if (currRow.child("Who").getValue().equals(SettingsDB.getSetting(HCardDB.getSelected()).getName1())) {
                             rows1.add(row);
                         }
-                        if (currRow.child("Who").equals(SettingsDB.getSetting(HCardDB.getSelected()).getName2())) {
+                        if (currRow.child("Who").getValue().equals(SettingsDB.getSetting(HCardDB.getSelected()).getName2())) {
                             rows2.add(row);
                         }
                     }
