@@ -30,6 +30,7 @@ import com.google.android.gms.tasks.Task;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
+import com.google.android.material.progressindicator.LinearProgressIndicator;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.database.DataSnapshot;
@@ -55,6 +56,7 @@ import java.util.Set;
 public class MainActivity extends AppCompatActivity implements CallBackItemTouch, SwipeRefreshLayout.OnRefreshListener{
 
     private Toolbar toolbar;
+    private LinearProgressIndicator progressBar;
     private RecyclerView homeRecycler;
     private Connection connection;
     private DBHandler handler;
@@ -84,14 +86,17 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
 
 
         toolbar = findViewById(R.id.toolbar_widget);
-        //btnSync = findViewById(R.id.btnSync);
+        progressBar = findViewById(R.id.progressBar);
         setSupportActionBar(toolbar);
         homeRecycler = findViewById(R.id.homeRecycler);
+        //btnSync = findViewById(R.id.btnSync);
         //btnNewHomeCard = findViewById(R.id.btnNewHomeCard);
 
 
         if (HCardDB.isNull()) {
+            //loadreportsfromDB should be used for migration! Otherwise, keep it as a comment
             //loadReportsFromDB();
+
             loadReportsFromFirebase();
         }
         if (!HCardDB.isNull()) {
@@ -288,6 +293,8 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
                             myRef.child("allTables").child(hCards.get(position).getTableID()).removeValue();
                             myRef.child(hCards.get(position).getTableID()).removeValue();
                             myRef.child("settings").child(hCards.get(position).getTableID()).removeValue();
+                            HCardDB.removeReportFromArrayList(hCards.get(position).getTableID());
+                            SettingsDB.removeReportFromArrayList(hCards.get(position).getTableID());
                             hCards.remove(position);
                             adapter.notifyItemRemoved(position);
                             adapter.notifyItemRangeChanged(position,hCards.size());
@@ -403,6 +410,7 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
                     connection = handler.getConnection(MainActivity.this);
                     HCardDB.loadDB(connection);
                     SettingsDB.loadDB(connection);
+
                     try {
                         connection.close();
                     } catch (SQLException throwables) {
@@ -413,6 +421,12 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
                 handlerUI.post(new Runnable() {
                     @Override
                     public void run() {
+                        //Code for migrating from MySQL
+                        handler = new DBHandler();
+                        connection = handler.getConnection(MainActivity.this);
+
+                        RowsDB.loadRows(MainActivity.this, connection,HCardDB.getReports());
+
                         progressDialog.dismiss();
                         loadReportsFromArrayList();
                     }
@@ -447,6 +461,7 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
                     //sort the array so that the new hashmap is ordered from newest to oldest
                     Collections.sort(tempHCArray, new HomeCardSortDate());
                     //add expense to the hashmap in HCardDB
+                    HCardDB.clearMap();
                     for (HomeCard hc : tempHCArray) {
                         HCardDB.addExpense(hc.getId(), hc);
                     }
@@ -487,6 +502,9 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
     private void loadReportsFromArrayList() {
         if(!HCardDB.isEmpty()) {
             System.out.println("HCardDB not empty");
+            //hide progressBar
+            progressBar.hide();
+            progressBar.setVisibility(View.INVISIBLE);
             hCards = HCardDB.getReports();
             adapter = new HCardsViewAdapter(MainActivity.this);
             adapter.setCards(hCards);
@@ -508,6 +526,8 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
                 mSwipeRefreshLayout.setRefreshing(false);
             }
         }, 50);
+        progressBar.show();
+        progressBar.setVisibility(View.VISIBLE);
         loadReportsFromFirebase();
     }
 }

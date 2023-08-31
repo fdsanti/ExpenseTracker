@@ -69,6 +69,7 @@ public class RowsDB {
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     private static void getRows(Connection connection, ArrayList<HomeCard> homeCards) {
+
         rowsMap = new HashMap<String, ArrayList<ExpenseRow>>();
         for(HomeCard card : homeCards) {
             ArrayList<ExpenseRow> tempRow = new ArrayList<ExpenseRow>();
@@ -98,7 +99,7 @@ public class RowsDB {
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
-
+        System.out.println(rowsMap);
 
     }
 }

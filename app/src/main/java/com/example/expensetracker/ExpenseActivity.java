@@ -52,8 +52,9 @@ public class ExpenseActivity extends AppCompatActivity {
         toolbar.getChildAt(1).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(ExpenseActivity.this, MainActivity.class);
-                ExpenseActivity.this.startActivity(intent);
+                finish();
+                //Intent intent = new Intent(ExpenseActivity.this, MainActivity.class);
+                //ExpenseActivity.this.startActivity(intent);
             }
         });
 

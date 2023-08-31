@@ -45,7 +45,7 @@ dependencies {
 //    implementation group: 'mysql', name: 'mysql-connector-java', version: '8.0.22'
     implementation group: 'mysql', name: 'mysql-connector-java', version: '5.1.24'
     implementation 'com.android.support:multidex:1.0.3'
-    implementation platform('com.google.firebase:firebase-bom:32.2.2')
+    implementation platform('com.google.firebase:firebase-bom:32.2.3')
     implementation ('com.google.firebase:firebase-analytics')
     implementation('com.google.firebase:firebase-database')
 }

@@ -10,6 +10,7 @@ import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Handler;
 import android.text.InputType;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -31,12 +32,17 @@ import androidx.core.content.ContextCompat;
 import androidx.core.graphics.drawable.DrawableCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.datepicker.MaterialDatePicker;
 import com.google.android.material.datepicker.MaterialPickerOnPositiveButtonClickListener;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -138,7 +144,7 @@ public class RowViewAdapter extends RecyclerView.Adapter<RowViewAdapter.ViewHold
         String str = NumberFormat.getCurrencyInstance(new Locale(LANGUAGE, COUNTRY)).format(rows.get(position).getValue());
         holder.txtPrecio.setText(str);
 
-        //al hacer click en la card, abrir el dialog para editar la info
+        //al hacer click en la row, abrir el dialog para editar la info
         holder.row_fg.setOnClickListener(v -> {
 
             MaterialAlertDialogBuilder dialog = new MaterialAlertDialogBuilder(context);
@@ -203,6 +209,13 @@ public class RowViewAdapter extends RecyclerView.Adapter<RowViewAdapter.ViewHold
                 }
             });
 
+            //Codigo con el dropdown de los nombres. Cuando tenga que trabajar en esto, lo que deberia hacer es si el nombre se cambio, entonces elminar de una lista y agregarlo a la otra
+            /*String[] nombres = new String[2];
+            nombres[0] = SettingsDB.getSetting(HCardDB.getSelected()).getName1();
+            nombres[1] = SettingsDB.getSetting(HCardDB.getSelected()).getName2();
+            ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(context, R.layout.dropdown_item, nombres);
+            dropdown_nombres.setAdapter(arrayAdapter);*/
+
             //create date para que si no se cambia, a la hora de editar la row en la base de datos, "date" no sea null
             TimeZone timeZoneUTC = TimeZone.getDefault();
             // It will be negative, so that's the -1
@@ -250,6 +263,7 @@ public class RowViewAdapter extends RecyclerView.Adapter<RowViewAdapter.ViewHold
 
             //cuando haces click en guardar
             alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
+                @RequiresApi(api = Build.VERSION_CODES.O)
                 @Override
                 public void onClick(View v) {
                     if (dropdown_nombres.getText().toString().isEmpty()) {
@@ -278,98 +292,78 @@ public class RowViewAdapter extends RecyclerView.Adapter<RowViewAdapter.ViewHold
                             && !txt_Gasto.getText().toString().isEmpty()
                             && !dropdown_nombres.getText().toString().isEmpty()) {
 
-                        ProgressDialog progressDialog = new ProgressDialog(context);
-                        progressDialog.show();
-                        progressDialog.setContentView(R.layout.progress_dialog);
-                        progressDialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+                        ExpenseRow newRow = new ExpenseRow(txt_NombreGasto.getText().toString(), date, Double.parseDouble(txt_Gasto.getText().toString()), dropdown_nombres.getText().toString());
 
-                        Handler handlerUI = new Handler();
-                        Runnable runnable = new Runnable() {
-                            @RequiresApi(api = Build.VERSION_CODES.O)
+
+                        FirebaseDatabase database = FirebaseDatabase.getInstance();
+                        DatabaseReference myRef = database.getReference();
+                        myRef.get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
                             @Override
-                            public void run() {
-
-                                // updatear la row en la table en la base de datos
-                                synchronized (this) {
-                                    handler = new DBHandler();
-                                    connection = handler.getConnection(context);
-
-                                    String update = "UPDATE " + SettingsDB.getSetting(HCardDB.getSelected()).getTableID() + " SET Description=?,Date=?,Value=?,Who=? WHERE id=?";
-
-                                    try {
-                                        PreparedStatement pst = connection.prepareStatement(update);
-                                        pst.setString(1, txt_NombreGasto.getText().toString());
-                                        pst.setDate(2, java.sql.Date.valueOf(date.toString()));
-                                        pst.setDouble(3, Double.parseDouble(txt_Gasto.getText().toString()));
-                                        pst.setString(4, dropdown_nombres.getText().toString());
-                                        pst.setInt(5,rows.get(position).getId());
-                                        pst.executeUpdate();
-                                    }
-                                    catch (SQLException throwables) {
-                                        throwables.printStackTrace();
-                                    }
-                                    try {
-                                        connection.close();
-                                    } catch (SQLException throwables) {
-                                        throwables.printStackTrace();
-                                    }
+                            public void onComplete(@NonNull Task<DataSnapshot> task) {
+                                if (!task.isSuccessful()) {
+                                    Log.e("firebase", "Error getting data", task.getException());
+                                    Toast.makeText(context, "Error de conexión", Toast.LENGTH_SHORT).show();
                                 }
+                                else {
+                                    //Upload new row
+                                    //Find biggest id
 
-                                handlerUI.post(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        //since the array list within the adapter is referencing the arraylist in this class, we
-                                        //just need to add the new row to the arraylists in this class
+                                    myRef.child(HCardDB.getSelected().getTableID().toString()).child(String.valueOf(rows.get(position).getId())).child("Date").setValue(newRow.getLocalDate().toString());
+                                    myRef.child(HCardDB.getSelected().getTableID().toString()).child(String.valueOf(rows.get(position).getId())).child("Description").setValue(newRow.getDescription().toString());
+                                    myRef.child(HCardDB.getSelected().getTableID().toString()).child(String.valueOf(rows.get(position).getId())).child("Value").setValue(newRow.getValue());
+                                    myRef.child(HCardDB.getSelected().getTableID().toString()).child(String.valueOf(rows.get(position).getId())).child("Who").setValue(newRow.getWho().toString());
 
-                                        //si el nombre del dropdown es igual a nombre1, entonces editar la row del arraylist rows1
-                                        if (dropdown_nombres.getText().toString().equals(SettingsDB.getSetting(HCardDB.getSelected()).getName1())) {
-                                            for (ExpenseRow currRow : rows1) {
-                                                //encontrar la row con la misma id que la row seleccionada
-                                                if (currRow.getId() == rows.get(position).getId()) {
-                                                    currRow.setDescription(txt_NombreGasto.getText().toString());
-                                                    currRow.setDate(java.sql.Date.valueOf(date.toString()));
-                                                    currRow.setValue(Double.parseDouble(txt_Gasto.getText().toString()));
-                                                    currRow.setWho(dropdown_nombres.getText().toString());
-                                                }
-                                            }
-                                            Collections.sort(rows1, new RowSortDate());
-                                        }
-                                        //si el nombre del dropdown es igual a nombre2, entonces editar la row del arraylist rows2
-                                        else {
-                                            for (ExpenseRow currRow : rows2) {
-                                                //encontrar la row con la misma id que la row seleccionada
-                                                if (currRow.getId() == rows.get(position).getId()) {
-                                                    currRow.setDescription(txt_NombreGasto.getText().toString());
-                                                    currRow.setDate(java.sql.Date.valueOf(date.toString()));
-                                                    currRow.setValue(Double.parseDouble(txt_Gasto.getText().toString()));
-                                                    currRow.setWho(dropdown_nombres.getText().toString());
-                                                }
-                                            }
-                                            Collections.sort(rows2, new RowSortDate());
-                                        }
+                                    //since the array list within the adapter is referencing the arraylist in this class, we
+                                    //just need to add the new row to the arraylists in this class
 
-                                        //editar la row de rowsBoth
-                                        for (ExpenseRow currRow : rowsBoth) {
+                                    //si el nombre del dropdown es igual a nombre1, entonces editar la row del arraylist rows1
+                                    if (dropdown_nombres.getText().toString().equals(SettingsDB.getSetting(HCardDB.getSelected()).getName1())) {
+                                        for (ExpenseRow currRow : rows1) {
+                                            //encontrar la row con la misma id que la row seleccionada
                                             if (currRow.getId() == rows.get(position).getId()) {
-                                                rowsBoth.get(position).setDescription(txt_NombreGasto.getText().toString());
-                                                rowsBoth.get(position).setDate(java.sql.Date.valueOf(date.toString()));
-                                                rowsBoth.get(position).setValue(Double.parseDouble(txt_Gasto.getText().toString()));
-                                                rowsBoth.get(position).setWho(dropdown_nombres.getText().toString());
+                                                currRow.setDescription(txt_NombreGasto.getText().toString());
+                                                currRow.setDate(java.sql.Date.valueOf(date.toString()));
+                                                currRow.setValue(Double.parseDouble(txt_Gasto.getText().toString()));
+                                                currRow.setWho(dropdown_nombres.getText().toString());
                                             }
                                         }
-                                        Collections.sort(rowsBoth, new RowSortDate());
-
-                                        notifyDataSetChanged();
-                                        fragment.loadTotals();
-                                        fragment.getSaldosFragment().calculate();
-                                        progressDialog.dismiss();
-                                        alertDialog.dismiss();
+                                        Collections.sort(rows1, new RowSortDate());
                                     }
-                                });
+                                    //si el nombre del dropdown es igual a nombre2, entonces editar la row del arraylist rows2
+                                    else {
+                                        for (ExpenseRow currRow : rows2) {
+                                            //encontrar la row con la misma id que la row seleccionada
+                                            if (currRow.getId() == rows.get(position).getId()) {
+                                                currRow.setDescription(txt_NombreGasto.getText().toString());
+                                                currRow.setDate(java.sql.Date.valueOf(date.toString()));
+                                                currRow.setValue(Double.parseDouble(txt_Gasto.getText().toString()));
+                                                currRow.setWho(dropdown_nombres.getText().toString());
+                                            }
+                                        }
+                                        Collections.sort(rows2, new RowSortDate());
+                                    }
+
+                                    //editar la row de rowsBoth
+                                    for (ExpenseRow currRow : rowsBoth) {
+                                        if (currRow.getId() == rows.get(position).getId()) {
+                                            rowsBoth.get(position).setDescription(txt_NombreGasto.getText().toString());
+                                            rowsBoth.get(position).setDate(java.sql.Date.valueOf(date.toString()));
+                                            rowsBoth.get(position).setValue(Double.parseDouble(txt_Gasto.getText().toString()));
+                                            rowsBoth.get(position).setWho(dropdown_nombres.getText().toString());
+                                        }
+                                    }
+                                    Collections.sort(rowsBoth, new RowSortDate());
+
+                                    notifyDataSetChanged();
+                                    fragment.loadTotals();
+                                    fragment.getSaldosFragment().calculate();
+                                    alertDialog.dismiss();
+                                    Toast.makeText(context, "La fila ha sido modificada con éxito", Toast.LENGTH_SHORT).show();
+                                    Log.d("firebase", String.valueOf(task.getResult().getValue()));
+                                }
                             }
-                        };
-                        Thread thread = new Thread(runnable);
-                        thread.start();
+                        });
+
                     }
                 }
             });

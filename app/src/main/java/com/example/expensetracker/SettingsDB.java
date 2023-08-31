@@ -8,6 +8,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.HashMap;
+import java.util.Map;
 
 public class SettingsDB {
 
@@ -24,6 +25,17 @@ public class SettingsDB {
             }
         }
         return null;
+    }
+
+    public static void removeReportFromArrayList(String tableID) {
+        for (Map.Entry<String, Settings> entry : settingsDB.entrySet()) {
+            String key = entry.getKey();
+            Settings value = entry.getValue();
+            if (value.getTableID().toString().equals(tableID)) {
+                settingsDB.remove(key);
+                break;
+            }
+        }
     }
 
     public static void loadDB(Connection conn) {

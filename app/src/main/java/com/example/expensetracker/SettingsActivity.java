@@ -174,11 +174,11 @@ public class SettingsActivity extends AppCompatActivity {
                                         }
                                     }
                                 }
-
-                                SettingsDB.addToDB(newSet);
-                                Intent intent = new Intent(SettingsActivity.this, ExpenseActivity.class);
-                                SettingsActivity.this.startActivity(intent);
                             }
+                            SettingsDB.addToDB(newSet);
+                            Intent intent = new Intent(SettingsActivity.this, ExpenseActivity.class);
+                            SettingsActivity.this.startActivity(intent);
+                            finish();
                             Log.d("firebase", String.valueOf(task.getResult().getValue()));
                         }
                     }

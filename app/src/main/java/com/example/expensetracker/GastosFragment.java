@@ -1,6 +1,8 @@
 package com.example.expensetracker;
 
 
+import static android.content.ContentValues.TAG;
+
 import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -48,11 +50,14 @@ import com.google.android.material.datepicker.MaterialDatePicker;
 import com.google.android.material.datepicker.MaterialPickerOnPositiveButtonClickListener;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.progressindicator.LinearProgressIndicator;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -78,6 +83,7 @@ public class GastosFragment extends Fragment implements CallBackItemTouch, Swipe
     private RowViewAdapter adapter;
     private Connection connection;
     private DBHandler handler;
+    private LinearProgressIndicator progressBar;
     public static ArrayList<ExpenseRow> rows;
     public static ArrayList<ExpenseRow> rows1;
     public static ArrayList<ExpenseRow> rows2;
@@ -147,6 +153,7 @@ public class GastosFragment extends Fragment implements CallBackItemTouch, Swipe
         super.onViewCreated(view, savedInstanceState);
 
         loadVariables(view);
+
         loadRows(view);
         loadNames();
 
@@ -300,127 +307,10 @@ public class GastosFragment extends Fragment implements CallBackItemTouch, Swipe
                     && !txt_Gasto.getText().toString().isEmpty()
                     && !dropdown_nombres.getText().toString().isEmpty()) {
                         ExpenseRow newRow = new ExpenseRow(txt_NombreGasto.getText().toString(), date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate(), Double.parseDouble(txt_Gasto.getText().toString()), dropdown_nombres.getText().toString());
-
-                        //MySQL upload row code
-                        /*Handler handlerUI = new Handler();
-                        Runnable runnable = new Runnable() {
-                            @Override
-                            public void run() {
-
-                                synchronized (this) {
-                                    handler = new DBHandler();
-                                    connection = handler.getConnection(context);
-
-                                    String insert = "INSERT INTO " + SettingsDB.getSetting(HCardDB.getSelected()).getTableID() + "(Description,Date,Value,Who)" + "VALUES (?,?,?,?)";
-                                    PreparedStatement pst = null;
-                                    try {
-                                        pst = connection.prepareStatement(insert, Statement.RETURN_GENERATED_KEYS);
-                                        pst.setString(1, newRow.getDescription());
-                                        pst.setDate(2, java.sql.Date.valueOf(newRow.getLocalDate().toString()));
-                                        pst.setDouble(3, newRow.getValue());
-                                        pst.setString(4, newRow.getWho());
-                                        pst.executeUpdate();
-                                        ResultSet rs = pst.getGeneratedKeys();
-                                        if(rs.next()) {
-                                            int last_inserted_id = rs.getInt(1);
-                                            newRow.setId(last_inserted_id);
-                                        }
-                                    }
-                                    catch (SQLException throwables) {
-                                        throwables.printStackTrace();
-                                    }
-                                    try {
-                                        connection.close();
-                                    } catch (SQLException throwables) {
-                                        throwables.printStackTrace();
-                                    }
-                                }
-
-                                handlerUI.post(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        //since the array list within the adapter is referencing the arraylist in this class, we
-                                        //just need to add the new row to the array lists in this class and sort the array lists
-                                        if (dropdown_nombres.getText().toString().equals(SettingsDB.getSetting(HCardDB.getSelected()).getName1())) {
-                                            rows1.add(newRow);
-                                            if (sort_menu_selected == 1) {
-                                                Collections.sort(rows1, new RowSortDate());
-                                            }
-                                            else if (sort_menu_selected == 2) {
-                                                Collections.sort(rows1, new RowSortPrice().reversed());
-                                            }
-                                            else {
-                                                Collections.sort(rows1, new RowSortPrice());
-                                            }
-
-                                        }
-                                        else {
-                                            rows2.add(newRow);
-                                            if (sort_menu_selected == 1) {
-                                                Collections.sort(rows2, new RowSortDate());
-                                            }
-                                            else if (sort_menu_selected == 2) {
-                                                Collections.sort(rows2, new RowSortPrice().reversed());
-                                            }
-                                            else {
-                                                Collections.sort(rows2, new RowSortPrice());
-                                            }
-                                        }
-                                        rowsBoth.add(newRow);
-                                        if (sort_menu_selected == 1) {
-                                            Collections.sort(rowsBoth, new RowSortDate());
-                                        }
-                                        else if (sort_menu_selected == 2) {
-                                            Collections.sort(rowsBoth, new RowSortPrice().reversed());
-                                        }
-                                        else {
-                                            Collections.sort(rowsBoth, new RowSortPrice());
-                                        }
-
-                                        int currPos = 0;
-
-                                        //Find position of the item added
-                                        if (!chip_1.isChecked() && !chip_2.isChecked()) {
-                                            for (ExpenseRow currRow : rowsBoth) {
-                                                if (currRow.getId() == newRow.getId()) {
-                                                    break;
-                                                }
-                                                currPos += 1;
-                                            }
-                                        }
-                                        if (chip_1.isChecked()) {
-                                            for (ExpenseRow currRow : rows1) {
-                                                if (currRow.getId() == newRow.getId()) {
-                                                    break;
-                                                }
-                                                currPos += 1;
-                                            }
-                                        }
-                                        if (chip_2.isChecked()){
-                                            for (ExpenseRow currRow : rows2) {
-                                                if (currRow.getId() == newRow.getId()) {
-                                                    break;
-                                                }
-                                                currPos += 1;
-                                            }
-                                        }
-
-                                        adapter.notifyItemInserted(currPos);
-                                        adapter.notifyItemRangeChanged(currPos,rows.size());
-                                        if (currPos == 0) {
-                                            recyclerView.smoothScrollToPosition(0);
-                                        }
-
-                                        loadTotals();
-                                        saldosFragment.calculate();
-                                        progressDialog.dismiss();
-                                        alertDialog.dismiss();
-                                    }
-                                });
-                            }
-                        };
-                        Thread thread = new Thread(runnable);
-                        thread.start();*/
+                        alertDialog.dismiss();
+                        //show progressBar
+                        progressBar.show();
+                        progressBar.setVisibility(View.VISIBLE);
 
                         FirebaseDatabase database = FirebaseDatabase.getInstance();
                         DatabaseReference myRef = database.getReference();
@@ -428,6 +318,7 @@ public class GastosFragment extends Fragment implements CallBackItemTouch, Swipe
                             @Override
                             public void onComplete(@NonNull Task<DataSnapshot> task) {
                                 if (!task.isSuccessful()) {
+                                    Toast.makeText(context, "Error de conectividad", Toast.LENGTH_SHORT).show();
                                     Log.e("firebase", "Error getting data", task.getException());
                                 }
                                 else {
@@ -518,10 +409,13 @@ public class GastosFragment extends Fragment implements CallBackItemTouch, Swipe
                                         recyclerView.smoothScrollToPosition(0);
                                     }
 
+                                    //hide progressBar
+                                    progressBar.hide();
+                                    progressBar.setVisibility(View.INVISIBLE);
                                     loadTotals();
                                     saldosFragment.calculate();
-                                    alertDialog.dismiss();
 
+                                    Toast.makeText(context, "¡El expense ha sido creado con éxito!", Toast.LENGTH_SHORT).show();
                                     Log.d("firebase", String.valueOf(task.getResult().getValue()));
                                 }
                             }
@@ -602,6 +496,30 @@ public class GastosFragment extends Fragment implements CallBackItemTouch, Swipe
             popupHelper.show();
 
         });
+
+        //OnDataChange - Disabled for now. Need to think this through
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        DatabaseReference myRef = database.getReference();
+        myRef.child(HCardDB.getSelected().getTableID().toString()).addValueEventListener(new ValueEventListener() {
+            int numberOfChanges = 0;
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                // This method is called once with the initial value and again
+                // whenever data at this location is updated.
+                //String value = dataSnapshot.getValue(String.class);
+                if (numberOfChanges > 0) {
+                    //Toast.makeText(context, "Hay un update", Toast.LENGTH_SHORT).show();
+                }
+                numberOfChanges += 1;
+                //Log.d(TAG, "Value is: " + value);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                // Failed to read value
+                Log.w(TAG, "Failed to read value.", error.toException());
+            }
+        });
     }
 
     private void loadNames() {
@@ -651,6 +569,7 @@ public class GastosFragment extends Fragment implements CallBackItemTouch, Swipe
         chip_1.setText(SettingsDB.getSetting(HCardDB.getSelected()).getName1());
         chip_2.setText(SettingsDB.getSetting(HCardDB.getSelected()).getName2());
         icon_sort = view.findViewById(R.id.icon_sort);
+        progressBar = view.findViewById(R.id.progressBar);
     }
 
     private void loadRows(View view) {
@@ -702,8 +621,12 @@ public class GastosFragment extends Fragment implements CallBackItemTouch, Swipe
                     adapter.passFragment(GastosFragment.this);
                     adapter.setRows(rows, rows1, rows2, rowsBoth);
                     adapter.changeToBoth();
-                    recyclerView = view.findViewById(R.id.expenseRecycler);
 
+                    //hide progressBar
+                    progressBar.hide();
+                    progressBar.setVisibility(View.INVISIBLE);
+
+                    recyclerView = view.findViewById(R.id.expenseRecycler);
                     recyclerView.setAdapter(adapter);
                     recyclerView.setLayoutManager(new LinearLayoutManager(context));
                     ItemTouchHelper.Callback callback = new ExpenseItemSwipeCallback(GastosFragment.this);
@@ -778,6 +701,8 @@ public class GastosFragment extends Fragment implements CallBackItemTouch, Swipe
             }
         }, 50);
 
+        progressBar.show();
+        progressBar.setVisibility(View.VISIBLE);
         loadRows(getView());
         chip_1.setChecked(false);
         chip_2.setChecked(false);
@@ -810,86 +735,62 @@ public class GastosFragment extends Fragment implements CallBackItemTouch, Swipe
         dialog.setPositiveButton("Eliminar", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                ProgressDialog progressDialog = new ProgressDialog(context);
-                progressDialog.show();
-                progressDialog.setContentView(R.layout.progress_dialog);
-                progressDialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
 
-                Handler handlerUI = new Handler();
-                Runnable runnable = new Runnable() {
+                FirebaseDatabase database = FirebaseDatabase.getInstance();
+                DatabaseReference myRef = database.getReference();
+                myRef.get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
                     @Override
-                    public void run() {
-                        synchronized (this) {
-                            DBHandler handler = new DBHandler();
-                            Connection connection = handler.getConnection(context);
-                            //remove line from report from db
-                            String ql = "DELETE FROM " + HCardDB.getSelected().getTableID() + " WHERE id = ?";
-                            PreparedStatement pst = null;
-                            try {
-                                pst = connection.prepareStatement(ql);
-                                pst.setInt(1,rows.get(position).getId());
-                                pst.executeUpdate();
-                            } catch (SQLException throwables) {
-                                throwables.printStackTrace();
-                            }
-                            try {
-                                connection.close();
-                            } catch (SQLException throwables) {
-                                throwables.printStackTrace();
-                            }
+                    public void onComplete(@NonNull Task<DataSnapshot> task) {
+                        if (!task.isSuccessful()) {
+                            Toast.makeText(context, "Error de conexión", Toast.LENGTH_SHORT).show();
+                            Log.e("firebase", "Error getting data", task.getException());
                         }
+                        else {
+                            myRef.child(HCardDB.getSelected().getTableID()).child(String.valueOf(rows.get(position).getId())).removeValue();
 
-                        handlerUI.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                //como voy a estar eliminando items de las rows, voy a clonar la lista
-                                //para poder buscar el ID de la row swipeada
-                                ArrayList<ExpenseRow> copyRows = new ArrayList<ExpenseRow>();
-                                copyRows = (ArrayList<ExpenseRow>) rows.clone();
+                            ArrayList<ExpenseRow> copyRows;
+                            copyRows = (ArrayList<ExpenseRow>) rows.clone();
 
-                                //si la row es de Name1, entonces eliminar la row de la rows1
-                                if (rows.get(position).getWho().equals(SettingsDB.getSetting(HCardDB.getSelected()).getName1())) {
-                                    for (ExpenseRow currRow : rows1) {
-                                        //encontrar la row con la misma id que la row seleccionada
-                                        if (currRow.getId() == copyRows.get(position).getId()) {
-                                            rows1.remove(currRow);
-                                            break;
-                                        }
-                                    }
-                                }
-                                //si la row es de Name2, entonces eliminar la row de la rows2
-                                if (rows.get(position).getWho().equals(SettingsDB.getSetting(HCardDB.getSelected()).getName2())) {
-                                    for (ExpenseRow currRow : rows2) {
-                                        //encontrar la row con la misma id que la row seleccionada
-                                        if (currRow.getId() == copyRows.get(position).getId()) {
-                                            rows2.remove(currRow);
-                                            break;
-                                        }
-                                    }
-                                }
-                                //eliminar de la rowsBoth
-                                for (ExpenseRow currRow : rowsBoth) {
+                            //si la row es de Name1, entonces eliminar la row de la rows1
+                            if (rows.get(position).getWho().equals(SettingsDB.getSetting(HCardDB.getSelected()).getName1())) {
+                                for (ExpenseRow currRow : rows1) {
+                                    //encontrar la row con la misma id que la row seleccionada
                                     if (currRow.getId() == copyRows.get(position).getId()) {
-                                        rowsBoth.remove(currRow);
+                                        rows1.remove(currRow);
                                         break;
                                     }
                                 }
-
-                                adapter.notifyItemRemoved(position);
-                                adapter.notifyItemRangeChanged(position,rows.size());
-
-
-                                //adapter.notifyDataSetChanged();
-                                loadTotals();
-                                saldosFragment.calculate();
-                                progressDialog.dismiss();
-                                Toast.makeText(context, "El gasto se ha eliminado", Toast.LENGTH_SHORT).show();
                             }
-                        });
+                            //si la row es de Name2, entonces eliminar la row de la rows2
+                            if (rows.get(position).getWho().equals(SettingsDB.getSetting(HCardDB.getSelected()).getName2())) {
+                                for (ExpenseRow currRow : rows2) {
+                                    //encontrar la row con la misma id que la row seleccionada
+                                    if (currRow.getId() == copyRows.get(position).getId()) {
+                                        rows2.remove(currRow);
+                                        break;
+                                    }
+                                }
+                            }
+                            //eliminar de la rowsBoth
+                            for (ExpenseRow currRow : rowsBoth) {
+                                if (currRow.getId() == copyRows.get(position).getId()) {
+                                    rowsBoth.remove(currRow);
+                                    break;
+                                }
+                            }
+
+                            adapter.notifyItemRemoved(position);
+                            adapter.notifyItemRangeChanged(position,rows.size());
+
+
+                            //adapter.notifyDataSetChanged();
+                            loadTotals();
+                            saldosFragment.calculate();
+                            Toast.makeText(context, "¡El expense ha sido eliminado con éxito!", Toast.LENGTH_SHORT).show();
+                            Log.d("firebase", String.valueOf(task.getResult().getValue()));
+                        }
                     }
-                };
-                Thread thread = new Thread(runnable);
-                thread.start();
+                });
             }
         });
 

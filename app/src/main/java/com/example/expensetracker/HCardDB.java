@@ -11,6 +11,7 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.Map;
 
 public class HCardDB {
 
@@ -29,6 +30,12 @@ public class HCardDB {
 
     public static void setSelected(HomeCard selected) {
         HCardDB.selected = selected;
+    }
+
+    public static void clearMap() {
+        if (expensesMap != null) {
+            expensesMap.clear();
+        }
     }
 
 
@@ -161,6 +168,17 @@ public class HCardDB {
             answer.add(0, expensesMap.get(s));
         }
         return answer;
+    }
+
+    public static void removeReportFromArrayList(String tableID) {
+        for (Map.Entry<String, HomeCard> entry : expensesMap.entrySet()) {
+            String key = entry.getKey();
+            HomeCard value = entry.getValue();
+            if (value.getTableID().toString().equals(tableID)) {
+                expensesMap.remove(key);
+                break;
+            }
+        }
     }
 
     public static Boolean containsDescription(String name) {
