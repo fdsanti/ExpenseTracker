@@ -94,9 +94,8 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
 
 
         if (HCardDB.isNull()) {
-            //loadreportsfromDB should be used for migration! Otherwise, keep it as a comment
-            //loadReportsFromDB();
-
+            progressBar.show();
+            progressBar.setVisibility(View.VISIBLE);
             loadReportsFromFirebase();
         }
         if (!HCardDB.isNull()) {
