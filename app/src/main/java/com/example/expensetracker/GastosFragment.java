@@ -281,6 +281,7 @@ public class GastosFragment extends Fragment implements CallBackItemTouch, Swipe
             alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                    //check if fields are empty
                     if (dropdown_nombres.getText().toString().isEmpty()) {
                         inputLayout_Who.setErrorEnabled(true);
                         inputLayout_Who.setError("Es necesario elegir a alguien");

@@ -109,62 +109,6 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
         ItemTouchHelper touchHelper = new ItemTouchHelper(callback);
         touchHelper.attachToRecyclerView(homeRecycler);
 
-        //migrate DB from SQL to Firebase Code. Created a new button to do this. Will remove it once finalized
-        /*btnSync.setOnClickListener(v -> {
-
-            FirebaseDatabase database = FirebaseDatabase.getInstance();
-            DatabaseReference myRef = database.getReference();
-            myRef.addValueEventListener(new ValueEventListener() {
-                @Override
-                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                    // This method is called once with the initial value and again
-                    // whenever data at this location is updated.
-
-                    //load allTables (home cards)
-                    if(!HCardDB.isEmpty()) {
-                        ArrayList<HomeCard> homeCards = HCardDB.getReports();
-                        for (HomeCard entry : homeCards) {
-                            myRef.child("allTables").child(entry.getTableID()).child("creationDate").setValue(String.valueOf(entry.getCreationDate()));
-                            myRef.child("allTables").child(entry.getTableID()).child("tableDescription").setValue(entry.getName());
-                            myRef.child("allTables").child(entry.getTableID()).child("tableName").setValue(entry.getTableID());
-                        }
-                    }
-                    //load all tables with rows
-                    if (!RowsDB.isEmpty()) {
-                        HashMap<String, ArrayList<ExpenseRow>> map = RowsDB.getRowsMap();
-                        for (Map.Entry<String, ArrayList<ExpenseRow>> entry : map.entrySet()) {
-                            String key = entry.getKey();
-                            ArrayList<ExpenseRow> value = entry.getValue();
-                            for(ExpenseRow tempRow : value) {
-                                myRef.child(key).child(String.valueOf(tempRow.getId())).child("Description").setValue(tempRow.getDescription());
-                                myRef.child(key).child(String.valueOf(tempRow.getId())).child("Date").setValue(tempRow.getLocalDate().toString());
-                                myRef.child(key).child(String.valueOf(tempRow.getId())).child("Value").setValue(tempRow.getValue());
-                                myRef.child(key).child(String.valueOf(tempRow.getId())).child("Who").setValue(tempRow.getWho());
-                            }
-
-                        }
-                    }
-                    //load settings
-                    if(!SettingsDB.isNull()) {
-                        HashMap<String, Settings> settingsMap = SettingsDB.getHashMap();
-                        for (Map.Entry<String, Settings> entry : settingsMap.entrySet()) {
-                            String key = entry.getKey();
-                            Settings value = entry.getValue();
-                            myRef.child("settings").child(key).child("name1").setValue(value.getName1());
-                            myRef.child("settings").child(key).child("sueldo1").setValue(value.getIncome1());
-                            myRef.child("settings").child(key).child("name2").setValue(value.getName2());
-                            myRef.child("settings").child(key).child("sueldo2").setValue(value.getIncome2());
-                        }
-                    }
-                }
-
-                @Override
-                public void onCancelled(@NonNull DatabaseError error) {
-                    // Failed to read value
-                    Log.w(TAG, "Failed to read value.", error.toException());
-                }
-            });
-        });*/
 
     }
 
