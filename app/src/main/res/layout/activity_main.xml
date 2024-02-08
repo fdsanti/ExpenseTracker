@@ -74,7 +74,6 @@
         android:indeterminate="true"
         android:layout_marginTop="56dp"
         android:visibility="invisible" />
-        <!-- android:visibility="invisible" -->
         
     <!--<RelativeLayout
         android:layout_width="wrap_content"
