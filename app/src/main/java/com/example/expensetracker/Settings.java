@@ -8,7 +8,6 @@ public class Settings {
     private int income2;
     private String name2;
     private String tableID;
-    Boolean isEmpty = false;
 
     public Settings(String tableID, String name1, int income1, String name2, int income2) {
         this.tableID = tableID;

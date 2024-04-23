@@ -144,6 +144,7 @@ public class SettingsActivity extends AppCompatActivity {
                             myRef.child("settings").child(newSet.getTableID()).child("sueldo1").setValue(newSet.getIncome1());
                             myRef.child("settings").child(newSet.getTableID()).child("sueldo2").setValue(newSet.getIncome2());
 
+
                             //if the name has changed, then we need to iterate over all the rows and update the names
                             //this still needs to be tested - NOW TESTED. Works good
                             //create hashmap, and add old name and new name for each name changed to hashmap

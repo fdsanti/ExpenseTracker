@@ -154,6 +154,12 @@ public class GastosFragment extends Fragment implements CallBackItemTouch, Swipe
 
         loadVariables(view);
 
+        if (HCardDB.getSelected().isCerrado()) {
+            //btn_fab.setClickable(false);
+            //btn_fab.setEnabled(false);
+            //btn_fab.show();
+        }
+
         loadRows(view);
         loadNames();
 

@@ -1,20 +1,35 @@
 package com.example.expensetracker;
 
+import android.content.Context;
+import android.content.DialogInterface;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+
 import java.text.NumberFormat;
+import java.util.ArrayList;
 import java.util.Locale;
 
 public class SaldosFragment extends Fragment {
 
+    private Context context;
     private TextView number_Gastos_GastosTotales;
 
     private TextView txt_Saldos_TotalGastosPersona1;
@@ -33,10 +48,13 @@ public class SaldosFragment extends Fragment {
 
     private TextView txt_Saldos_Deudor;
     private TextView number_Saldos_Deuda;
+    private Button btn_cerrarExpense;
 
+    private ExpenseActivity expenseActivity;
     private GastosFragment gastosFragment;
 
-    public SaldosFragment() {
+    public SaldosFragment(ExpenseActivity expenseActivity) {
+        this.expenseActivity = expenseActivity;
     }
 
     public void setGastosFragment(GastosFragment fragment) {
@@ -57,6 +75,59 @@ public class SaldosFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        context = getContext();
+        btn_cerrarExpense = view.findViewById(R.id.btn_cerrarExpense);
+        if (HCardDB.getSelected().isCerrado()) btn_cerrarExpense.setText("Abrir Expense");
+        btn_cerrarExpense.setOnClickListener(v -> {
+            MaterialAlertDialogBuilder dialog = new MaterialAlertDialogBuilder(context);
+            if (HCardDB.getSelected().isCerrado()) {
+                dialog.setTitle("Abrir Reporte");
+                dialog.setMessage("¿Estás seguro que querés abrir el reporte nuevamente?");
+            }
+            else {
+                dialog.setTitle("Cerrar Reporte");
+                dialog.setMessage("¿Estás seguro que querés cerrar el reporte? Esto deshabilitará las funcionalidades del mismo.");
+            }
+            dialog.setIcon(R.drawable.baseline_verified_24);
+            dialog.setNegativeButton("Cancelar", null);
+            dialog.setPositiveButton("Confirmar", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    FirebaseDatabase database = FirebaseDatabase.getInstance();
+                    DatabaseReference myRef = database.getReference();
+                    myRef.get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
+                        @Override
+                        public void onComplete(@NonNull Task<DataSnapshot> task) {
+                            if (!task.isSuccessful()) {
+                                Toast.makeText(context, "Error de conexión", Toast.LENGTH_SHORT).show();
+                                Log.e("firebase", "Error getting data", task.getException());
+                            }
+                            else {
+                                if (!HCardDB.getSelected().isCerrado()) {
+                                    myRef.child("allTables").child(HCardDB.getSelected().getTableID()).child("cerrado").setValue(true);
+                                    HCardDB.getSelected().setCerrado(true);
+                                    btn_cerrarExpense.setText("Abrir Expense");
+                                    Toast.makeText(context, "Expense Cerrado", Toast.LENGTH_SHORT).show();
+                                }
+                                else {
+                                    myRef.child("allTables").child(HCardDB.getSelected().getTableID()).child("cerrado").setValue(false);
+                                    HCardDB.getSelected().setCerrado(false);
+                                    btn_cerrarExpense.setText("Cerrar Expense");
+                                    Toast.makeText(context, "Expense Abierto", Toast.LENGTH_SHORT).show();
+                                }
+
+                                expenseActivity.updateCerrado();
+
+                            }
+                        }
+                    });
+
+                }
+            });
+            dialog.show();
+
+
+        });
     }
 
     public void calculate() {
@@ -202,6 +273,8 @@ public class SaldosFragment extends Fragment {
 
         txt_Saldos_Deudor = view.findViewById(R.id.txt_Saldos_Deudor);
         number_Saldos_Deuda = view.findViewById(R.id.number_Saldos_Deuda);
+
+
     }
 
 

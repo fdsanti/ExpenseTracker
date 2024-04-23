@@ -89,8 +89,7 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
         progressBar = findViewById(R.id.progressBar);
         setSupportActionBar(toolbar);
         homeRecycler = findViewById(R.id.homeRecycler);
-        //btnSync = findViewById(R.id.btnSync);
-        //btnNewHomeCard = findViewById(R.id.btnNewHomeCard);
+
 
 
         if (HCardDB.isNull()) {
@@ -103,12 +102,17 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
         }
 
         //Click listener for "Crear nuevo expense" btn
-
         ItemTouchHelper.Callback callback = new MainItemDragSwipeCallback(this);
         ItemTouchHelper touchHelper = new ItemTouchHelper(callback);
         touchHelper.attachToRecyclerView(homeRecycler);
 
 
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if(adapter != null) adapter.notifyDataSetChanged();
     }
 
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -160,7 +164,7 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
 
                     //Find biggest Id and create the new report with id + 1
                     int newID = HCardDB.getBiggestID() + 1;
-                    HomeCard hc = new HomeCard(String.valueOf(newID), LocalDate.now(), editText.getText().toString());
+                    HomeCard hc = new HomeCard(String.valueOf(newID), LocalDate.now(), editText.getText().toString(),false);
 
                     //add new card to Firebase DB & update the array
                     FirebaseDatabase database = FirebaseDatabase.getInstance();
@@ -175,6 +179,7 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
                                 myRef.child("allTables").child(hc.getTableID()).child("creationDate").setValue(String.valueOf(hc.getCreationDate()));
                                 myRef.child("allTables").child(hc.getTableID()).child("tableDescription").setValue(hc.getName());
                                 myRef.child("allTables").child(hc.getTableID()).child("tableName").setValue(hc.getTableID());
+                                myRef.child("allTables").child(hc.getTableID()).child("cerrado").setValue(hc.isCerrado());
                                 HCardDB.addExpense(String.valueOf(newID), hc);
                                 hCards.add(0,hc);
                                 adapter.notifyItemInserted(0);
@@ -249,9 +254,7 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
             }
         });
 
-        dialog.show();
     }
-
 
 
     /*ItemTouchHelper.SimpleCallback simpleCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT) {
@@ -336,7 +339,7 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
 
 
 
-    private void loadReportsFromDB() {
+    /*private void loadReportsFromDB() {
         progressDialog = new ProgressDialog(MainActivity.this);
         progressDialog.show();
         progressDialog.setContentView(R.layout.progress_dialog);
@@ -378,7 +381,7 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
         };
         Thread thread = new Thread(runnable);
         thread.start();
-    }
+    }*/
 
     private void loadReportsFromFirebase(){
         ArrayList<HomeCard> tempHCArray = new ArrayList<HomeCard>();
@@ -394,11 +397,11 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
                 }
                 else {
                     for (DataSnapshot child : task.getResult().getChildren()) {
-
                         String id = child.child("tableName").getValue().toString().substring(4);
                         LocalDate date = Date.valueOf(child.child("creationDate").getValue(String.class)).toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
                         String reportName = child.child("tableDescription").getValue().toString();
-                        HomeCard tempCard = new HomeCard(id, date, reportName);
+                        Boolean cerrado = Boolean.valueOf((Boolean) child.child("cerrado").getValue());
+                        HomeCard tempCard = new HomeCard(id, date, reportName, cerrado);
                         tempHCArray.add(tempCard);
                     }
                     //sort the array so that the new hashmap is ordered from newest to oldest
@@ -424,13 +427,11 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
                 }
                 else {
                     for (DataSnapshot child : task.getResult().getChildren()) {
-
                         String tableName = child.getKey().toString();
                         String name1 = child.child("name1").getValue().toString();
                         String name2 = child.child("name2").getValue().toString();
                         Integer sueldo1 = Integer.parseInt(child.child("sueldo1").getValue().toString());
                         Integer sueldo2 = Integer.parseInt(child.child("sueldo2").getValue().toString());
-
                         Settings tempSettings = new Settings(tableName, name1, sueldo1, name2, sueldo2);
                         SettingsDB.addToDB(tempSettings);
                     }

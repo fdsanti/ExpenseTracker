@@ -37,9 +37,19 @@
                 <TextView
                     android:id="@+id/txtName"
                     style="@style/Title"
-                    android:layout_width="match_parent"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Título" />
+                <ImageView
+                    android:id="@+id/icn_cerrado"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_toEndOf="@id/txtName"
+                    android:layout_marginLeft="8dp"
+                    android:layout_marginTop="6dp"
+                    android:src="@drawable/baseline_verified_24"
+                    app:tint="?attr/whiteBlack"
+                    android:contentDescription="icn_cerrado" />
 
                 <TextView
                     android:id="@+id/txtDate"

@@ -38,7 +38,7 @@ public class SettingsDB {
         }
     }
 
-    public static void loadDB(Connection conn) {
+    /*public static void loadDB(Connection conn) {
         if (settingsDB == null) initialize();
         String ql = "SELECT * FROM settings";
         Statement st = null;
@@ -56,7 +56,7 @@ public class SettingsDB {
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
-    }
+    }*/
 
     public static HashMap<String,Settings> getHashMap() {
         if (settingsDB == null) initialize();

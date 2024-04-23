@@ -10,6 +10,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -57,6 +58,8 @@ public class HCardsViewAdapter extends RecyclerView.Adapter<HCardsViewAdapter.Vi
         LocalDate today = hCards.get(position).getCreationDate();
         String formattedDate = today.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL));
         holder.date.setText(formattedDate);
+        if (!hCards.get(position).isCerrado()) holder.icn_cerrado.setVisibility(View.GONE);
+        if (hCards.get(position).isCerrado()) holder.icn_cerrado.setVisibility(View.VISIBLE);
 
         //Cuando haces click en la card, ir al expense report
         holder.mCardView.setOnClickListener(v -> {
@@ -83,6 +86,7 @@ public class HCardsViewAdapter extends RecyclerView.Adapter<HCardsViewAdapter.Vi
         private TextView name;
         private TextView date;
         private Button btn;
+        private ImageView icn_cerrado;
         MaterialCardView mCardView,viewB;
 
         public ViewHolder(@NonNull View itemView) {
@@ -91,6 +95,7 @@ public class HCardsViewAdapter extends RecyclerView.Adapter<HCardsViewAdapter.Vi
             date = itemView.findViewById(R.id.txtDate);
             mCardView = itemView.findViewById(R.id.trackerCard);
             viewB = itemView.findViewById(R.id.hc_delete);
+            icn_cerrado = itemView.findViewById(R.id.icn_cerrado);
 
         }
     }

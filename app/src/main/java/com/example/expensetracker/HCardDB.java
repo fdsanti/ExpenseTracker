@@ -39,6 +39,7 @@ public class HCardDB {
     }
 
 
+/*
     @RequiresApi(api = Build.VERSION_CODES.O)
     public static void loadDB(Connection conn) {
         if (expensesMap == null) initialize();
@@ -68,6 +69,7 @@ public class HCardDB {
             }
         }
     }
+*/
 
     public static void setDB(LinkedHashMap<String, HomeCard> newMap) {
         if (expensesMap == null) initialize();

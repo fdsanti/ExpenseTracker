@@ -37,6 +37,7 @@ public class ExpenseActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
     private RowViewAdapter adapter;
     private RelativeLayout filtrosBar;
+    private MenuItem icn_checked;
 
     @SuppressLint("MissingInflatedId")
     @RequiresApi(api = Build.VERSION_CODES.O)
@@ -53,8 +54,6 @@ public class ExpenseActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 finish();
-                //Intent intent = new Intent(ExpenseActivity.this, MainActivity.class);
-                //ExpenseActivity.this.startActivity(intent);
             }
         });
 
@@ -66,7 +65,7 @@ public class ExpenseActivity extends AppCompatActivity {
         recyclerView = findViewById(R.id.expenseRecycler);
 
         gastosFragment = new GastosFragment();
-        saldosFragment = new SaldosFragment();
+        saldosFragment = new SaldosFragment(this);
 
         gastosFragment.setSaldosFragment(saldosFragment);
         saldosFragment.setGastosFragment(gastosFragment);
@@ -81,18 +80,35 @@ public class ExpenseActivity extends AppCompatActivity {
 
     }
 
+    //need to make sure the home page is updated when an expense is closed
+
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.settings,menu);
+        icn_checked = menu.findItem(R.id.iconChecked);
+        updateCerrado();
         return true;
+    }
+
+    public void updateCerrado() {
+        if (!HCardDB.getSelected().isCerrado()) {
+            icn_checked.setVisible(false);
+        }
+        else {
+            icn_checked.setVisible(true);
+        }
+
     }
 
 
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        Intent intent = new Intent(this, SettingsActivity.class);
-        Bundle b = new Bundle();
-        b.putInt("existingSetting", 1); //Your id
-        intent.putExtras(b);
-        this.startActivity(intent);
+        switch(item.getItemId()) {
+            case R.id.btnSettings:
+                Intent intent = new Intent(this, SettingsActivity.class);
+                Bundle b = new Bundle();
+                b.putInt("existingSetting", 1); //Your id
+                intent.putExtras(b);
+                this.startActivity(intent);
+        }
         return super.onOptionsItemSelected(item);
     }
 
