@@ -8,12 +8,14 @@ public class HomeCard {
     private LocalDate creationDate;
     private String id;
     private String tableID;
+    private Boolean cerrado;
 
-    public HomeCard(String id, LocalDate creationDate, String name) {
+    public HomeCard(String id, LocalDate creationDate, String name, Boolean cerrado) {
         this.name = name;
         this.creationDate = creationDate;
         this.id = id;
         tableID = "DATA" + id;
+        this.cerrado = cerrado;
     }
 
     public String getTableID() {
@@ -26,6 +28,10 @@ public class HomeCard {
 
     public String getName() {
         return name;
+    }
+
+    public Boolean isCerrado() {
+        return this.cerrado;
     }
 
     public void setName(String title) {
@@ -46,5 +52,9 @@ public class HomeCard {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public void setCerrado(Boolean cerrado) {
+        this.cerrado = cerrado;
     }
 }
