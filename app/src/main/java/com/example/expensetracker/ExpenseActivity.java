@@ -119,7 +119,7 @@ public class ExpenseActivity extends AppCompatActivity {
         //ExpenseActivity.this.startActivity(intent);
     }
 
-    private class ViewPagerAdapter extends FragmentPagerAdapter {
+    static class ViewPagerAdapter extends FragmentPagerAdapter {
         private List<Fragment> fragments = new ArrayList<>();
         private List<String> fragmentTitle = new ArrayList<>();
 

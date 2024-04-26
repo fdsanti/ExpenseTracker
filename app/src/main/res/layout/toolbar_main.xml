@@ -7,7 +7,7 @@
     tools:context=".MainActivity"
     android:clipChildren="false"
     android:clipToPadding="false"
-    android:paddingBottom="8dp"
+    android:paddingBottom="4dp"
     >
 
     <com.google.android.material.appbar.AppBarLayout
@@ -17,7 +17,7 @@
         android:elevation="4dp">
 
         <com.google.android.material.appbar.MaterialToolbar
-            android:id="@+id/toolbar_report"
+            android:id="@+id/toolbar_home"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             app:title="@string/app_name"
@@ -31,7 +31,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             tools:ignore="MissingConstraints"
-            android:id="@+id/tabsComponent"
+            android:id="@+id/homeTabsComponent"
             android:layout_below="@id/toolbar_back"
             >
 

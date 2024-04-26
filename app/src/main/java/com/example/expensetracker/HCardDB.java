@@ -28,6 +28,14 @@ public class HCardDB {
         return selected;
     }
 
+    public static void setCerrado(Boolean cerradoValue) {
+        for(String s : expensesMap.keySet()) {
+             if(expensesMap.get(s).getId() == selected.getId()) {
+                 expensesMap.get(s).setCerrado(cerradoValue);
+             }
+        }
+        selected.setCerrado(cerradoValue);
+    }
     public static void setSelected(HomeCard selected) {
         HCardDB.selected = selected;
     }
@@ -168,6 +176,22 @@ public class HCardDB {
         ArrayList<HomeCard> answer = new ArrayList<HomeCard>();
         for(String s : expensesMap.keySet()) {
             answer.add(0, expensesMap.get(s));
+        }
+        return answer;
+    }
+
+    public static ArrayList<HomeCard> getReportsActuals() {
+        ArrayList<HomeCard> answer = new ArrayList<HomeCard>();
+        for(String s : expensesMap.keySet()) {
+            if (!expensesMap.get(s).isCerrado()) answer.add(0, expensesMap.get(s));
+        }
+        return answer;
+    }
+
+    public static ArrayList<HomeCard> getReportsPast() {
+        ArrayList<HomeCard> answer = new ArrayList<HomeCard>();
+        for(String s : expensesMap.keySet()) {
+            if (expensesMap.get(s).isCerrado()) answer.add(0, expensesMap.get(s));
         }
         return answer;
     }
