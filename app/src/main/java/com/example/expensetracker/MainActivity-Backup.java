@@ -1,11 +1,5 @@
 package com.example.expensetracker;
 
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.FirebaseApp;
-import android.util.Log;
-import android.widget.Toast;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
@@ -82,25 +76,6 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        
-        // Firebase Anonymous Authentication
-        FirebaseApp.initializeApp(this);
-        FirebaseAuth mAuth = FirebaseAuth.getInstance();
-        FirebaseUser currentUser = mAuth.getCurrentUser();
-        if (currentUser == null) {
-            mAuth.signInAnonymously()
-                .addOnCompleteListener(this, task -> {
-                    if (task.isSuccessful()) {
-                        FirebaseUser user = mAuth.getCurrentUser();
-                        Log.d("FirebaseAuth", "Signed in anonymously as: " + user.getUid());
-                    } else {
-                        Log.w("FirebaseAuth", "Anonymous sign-in failed", task.getException());
-                        Toast.makeText(MainActivity.this, "Auth failed.", Toast.LENGTH_SHORT).show();
-                    }
-                });
-        } else {
-            Log.d("FirebaseAuth", "Already signed in as: " + currentUser.getUid());
-        }
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main2);
 
@@ -127,7 +102,7 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
         viewPagerAdapter.addFragment(pastFragment, "Cerrados");
         viewPager.setAdapter(viewPagerAdapter);
         viewPager.setSwipeable(false);
-        }
+}
 
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main_menu,menu);
