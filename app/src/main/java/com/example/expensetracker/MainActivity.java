@@ -82,7 +82,7 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        
+        System.out.println("Trying to sign in");
         // Firebase Anonymous Authentication
         FirebaseApp.initializeApp(this);
         FirebaseAuth mAuth = FirebaseAuth.getInstance();
