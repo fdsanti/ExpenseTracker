@@ -82,7 +82,9 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        System.out.println("Trying to sign in");
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main2);
+
         // Firebase Anonymous Authentication
         FirebaseApp.initializeApp(this);
         FirebaseAuth mAuth = FirebaseAuth.getInstance();
@@ -93,6 +95,7 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
                     if (task.isSuccessful()) {
                         FirebaseUser user = mAuth.getCurrentUser();
                         Log.d("FirebaseAuth", "Signed in anonymously as: " + user.getUid());
+                        initializePage();
                     } else {
                         Log.w("FirebaseAuth", "Anonymous sign-in failed", task.getException());
                         Toast.makeText(MainActivity.this, "Auth failed.", Toast.LENGTH_SHORT).show();
@@ -100,11 +103,17 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
                 });
         } else {
             Log.d("FirebaseAuth", "Already signed in as: " + currentUser.getUid());
+            initializePage();
         }
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main2);
 
+    }
 
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.main_menu,menu);
+        return true;
+    }
+
+    public void initializePage() {
         toolbar = findViewById(R.id.toolbar_home);
         setSupportActionBar(toolbar);
 
@@ -127,11 +136,6 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
         viewPagerAdapter.addFragment(pastFragment, "Cerrados");
         viewPager.setAdapter(viewPagerAdapter);
         viewPager.setSwipeable(false);
-        }
-
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.main_menu,menu);
-        return true;
     }
 
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
