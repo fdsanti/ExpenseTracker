@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="32dp"
+    tools:context=".LoginActivity">
+
+    <TextView
+        android:id="@+id/titleText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Expense Tracker"
+        android:textSize="32sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="12dp"
+        style="@style/Title"/>
+
+    <TextView
+        android:id="@+id/subtitleText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Inicie sesión para continuar"
+        android:textSize="16sp"
+        android:textColor="#555555"
+        android:layout_marginBottom="32dp" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/sign_in_button"
+        android:layout_width="match_parent"
+        android:layout_height="46dp"
+        android:elevation="4dp"
+        android:insetTop="0dp"
+        android:insetBottom="0dp"
+        android:text="CONTINUAR CON GOOGLE"
+        android:textAllCaps="true"
+        android:textColor="#FFFFFF"
+        app:backgroundTint="#4285F4"
+        app:cornerRadius="6dp"
+        app:icon="@drawable/ic_google_logo"
+        app:iconTint="#FFFFFF"
+        app:iconGravity="textStart"
+        app:iconPadding="16dp"
+        app:iconSize="16dp" />
+
+</LinearLayout>
+
+
+

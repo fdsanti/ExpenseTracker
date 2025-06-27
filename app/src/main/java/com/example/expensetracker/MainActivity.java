@@ -79,32 +79,25 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
     private Drawable mIcon;
     private MaterialButton btnSync;
     private static final String TAG = "MainActivity";
+    private FirebaseAuth mAuth;
+
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main2);
 
-        // Firebase Anonymous Authentication
-        FirebaseApp.initializeApp(this);
-        FirebaseAuth mAuth = FirebaseAuth.getInstance();
-        FirebaseUser currentUser = mAuth.getCurrentUser();
-        if (currentUser == null) {
-            mAuth.signInAnonymously()
-                .addOnCompleteListener(this, task -> {
-                    if (task.isSuccessful()) {
-                        FirebaseUser user = mAuth.getCurrentUser();
-                        Log.d("FirebaseAuth", "Signed in anonymously as: " + user.getUid());
-                        initializePage();
-                    } else {
-                        Log.w("FirebaseAuth", "Anonymous sign-in failed", task.getException());
-                        Toast.makeText(MainActivity.this, "Auth failed.", Toast.LENGTH_SHORT).show();
-                    }
-                });
-        } else {
-            Log.d("FirebaseAuth", "Already signed in as: " + currentUser.getUid());
-            initializePage();
+        mAuth = FirebaseAuth.getInstance();
+
+        // Seguridad extra: si no está autenticado, volver al login
+        if (mAuth.getCurrentUser() == null) {
+            startActivity(new Intent(this, LoginActivity.class));
+            finish();
+            return;
         }
+
+
+        setContentView(R.layout.activity_main2);
+        initializePage();
 
     }
 
