@@ -1,0 +1,77 @@
+{
+  "project_info": {
+    "project_number": "997985540558",
+    "firebase_url": "https://expense-tracker-debug-default-rtdb.firebaseio.com",
+    "project_id": "expense-tracker-debug",
+    "storage_bucket": "expense-tracker-debug.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:997985540558:android:ff71c1456c5e7632bdb39f",
+        "android_client_info": {
+          "package_name": "com.example.expensetracker"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "997985540558-s165cli4m2um99ic89742u2sdl30gnl2.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC7jzGLfhTQBcBH_exxvhs5logvOxzITsg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "997985540558-s165cli4m2um99ic89742u2sdl30gnl2.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:997985540558:android:a33a23ebf48f5f3abdb39f",
+        "android_client_info": {
+          "package_name": "com.example.expensetracker.debug"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "997985540558-o7pi7fuik6d1m4on38ul0ldhsf0974ti.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.expensetracker.debug",
+            "certificate_hash": "d3d8603b736dd3cc1f76fbc94c1c5525edf8175e"
+          }
+        },
+        {
+          "client_id": "997985540558-s165cli4m2um99ic89742u2sdl30gnl2.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC7jzGLfhTQBcBH_exxvhs5logvOxzITsg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "997985540558-s165cli4m2um99ic89742u2sdl30gnl2.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

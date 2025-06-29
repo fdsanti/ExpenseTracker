@@ -4,7 +4,16 @@
     <item
         android:id="@+id/btnRefresh"
         android:icon="@drawable/ic_add"
-        android:title="Favorite"
+        android:title="Agregar"
         app:showAsAction="always" />
+
+    <item
+        android:id="@+id/btnMore"
+        android:icon="@drawable/ic_more_vertical"
+        android:title="Más opciones"
+        app:showAsAction="always" />
+
+
+
 
 </menu>
