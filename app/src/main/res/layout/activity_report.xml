@@ -30,6 +30,7 @@
             android:layout_height="wrap_content"
             android:id="@+id/tabLayout"
             app:tabMode="fixed"
+            app:tabTextAppearance="@style/MyTabTextAppearance"
             >
 
         </com.google.android.material.tabs.TabLayout>
