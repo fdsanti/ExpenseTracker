@@ -73,6 +73,7 @@ import java.time.format.FormatStyle;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
 
@@ -100,6 +101,7 @@ public class GastosFragment extends Fragment implements CallBackItemTouch, Swipe
     private SwipeRefreshLayout mSwipeRefreshLayout;
     private ImageView icon_sort;
     private int sort_menu_selected = 1;
+    @SuppressLint("RestrictedApi")
     private MenuBuilder menuBuilder;
 
     private SaldosFragment saldosFragment;
@@ -205,7 +207,9 @@ public class GastosFragment extends Fragment implements CallBackItemTouch, Swipe
             TextInputLayout inputLayout_NombreGasto = dialogView.findViewById(R.id.inputLayout_NombreGasto);
             TextInputLayout inputLayout_FechaGasto = dialogView.findViewById(R.id.inputLayout_FechaGasto);
             TextInputLayout inputLayout_Gasto = dialogView.findViewById(R.id.inputLayout_Gasto);
+            TextInputLayout inputLayout_Category = dialogView.findViewById(R.id.menu_category);
 
+            AutoCompleteTextView catDropdown = dialogView.findViewById(R.id.cat_dropdown);
             AutoCompleteTextView dropdown_nombres = dialogView.findViewById(R.id.dropdown_nombres);
             TextInputEditText txt_NombreGasto = dialogView.findViewById(R.id.editText_NombreGasto);
             TextInputEditText txt_FechaGasto = dialogView.findViewById(R.id.editText_FechaGasto);
@@ -215,10 +219,40 @@ public class GastosFragment extends Fragment implements CallBackItemTouch, Swipe
             TextInputEditText txt_Gasto = dialogView.findViewById(R.id.editText_Gasto);
 
 
+            //fill in the options for the category dropdown
+            List<String> categoryNames = new ArrayList<>();
+            String tableID = HCardDB.getSelected().getTableID();
+
+            FirebaseDatabase.getInstance().getReference("categories").child(tableID)
+                .get().addOnCompleteListener(task -> {
+                    if (task.isSuccessful() && task.getResult().exists()) {
+                        for (DataSnapshot ds : task.getResult().getChildren()) {
+                            // Mapping the "name" field from your Firebase objects
+                            String name = ds.child("name").getValue(String.class);
+                            if (name != null) categoryNames.add(name);
+                        }
+                    } else {
+                        // RISK-FREE FALLBACK: Use your class defaults if DB is empty
+                        for (Category c : Category.getDefaultCategories()) {
+                            categoryNames.add(c.getName());
+                        }
+                    }
+
+                    // Setup the adapter with the results
+                    ArrayAdapter<String> catAdapter = new ArrayAdapter<>(context, R.layout.dropdown_item, categoryNames);
+                    catDropdown.setAdapter(catAdapter);
+
+                });
+
             //hacer que si hay error, cuando toques de vuelta para escribir otra cosa, el error desaparezca
             dropdown_nombres.setOnClickListener(v1 -> {
                 if (inputLayout_Who.isErrorEnabled()) {
                     inputLayout_Who.setErrorEnabled(false);
+                }
+            });
+            catDropdown.setOnClickListener(v1 -> {
+                if (inputLayout_Category.isErrorEnabled()) {
+                    inputLayout_Category.setErrorEnabled(false);
                 }
             });
             txt_NombreGasto.setOnTouchListener(new View.OnTouchListener() {
@@ -288,32 +322,45 @@ public class GastosFragment extends Fragment implements CallBackItemTouch, Swipe
                 @Override
                 public void onClick(View v) {
                     //check if fields are empty
+                    boolean error = false;
                     if (dropdown_nombres.getText().toString().isEmpty()) {
                         inputLayout_Who.setErrorEnabled(true);
                         inputLayout_Who.setError("Es necesario elegir a alguien");
                         inputLayout_Who.setErrorIconDrawable(R.drawable.ic_info);
+                        error = true;
+                    }
+                    if (catDropdown.getText().toString().isEmpty()) {
+                        inputLayout_Category.setErrorEnabled(true);
+                        inputLayout_Category.setError("Es necesario elegir una categoría");
+                        error = true;
                     }
                     if (txt_NombreGasto.getText().toString().isEmpty()) {
                         inputLayout_NombreGasto.setErrorEnabled(true);
                         inputLayout_NombreGasto.setError("Es necesario elegir un nombre.");
                         inputLayout_NombreGasto.setErrorIconDrawable(R.drawable.ic_info);
+                        error = true;
                     }
                     if (txt_FechaGasto.getText().toString().isEmpty()) {
                         inputLayout_FechaGasto.setErrorEnabled(true);
                         inputLayout_FechaGasto.setError("Es necesario elegir una fecha");
                         inputLayout_FechaGasto.setErrorIconDrawable(R.drawable.ic_info);
+                        error = true;
                     }
                     if (txt_Gasto.getText().toString().isEmpty()) {
                         inputLayout_Gasto.setErrorEnabled(true);
                         inputLayout_Gasto.setError("Es necesario agregar un precio");
                         inputLayout_Gasto.setErrorIconDrawable(R.drawable.ic_info);
+                        error = true;
                     }
 
-                    if (!txt_NombreGasto.getText().toString().isEmpty()
-                    && !txt_FechaGasto.getText().toString().isEmpty()
-                    && !txt_Gasto.getText().toString().isEmpty()
-                    && !dropdown_nombres.getText().toString().isEmpty()) {
-                        ExpenseRow newRow = new ExpenseRow(txt_NombreGasto.getText().toString(), date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate(), Double.parseDouble(txt_Gasto.getText().toString()), dropdown_nombres.getText().toString());
+                    if (!error) {
+                        ExpenseRow newRow = new ExpenseRow(
+                                txt_NombreGasto.getText().toString(),
+                                date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate(),
+                                Double.parseDouble(txt_Gasto.getText().toString()),
+                                dropdown_nombres.getText().toString()
+                        );
+                        newRow.setCategory(catDropdown.getText().toString());
                         alertDialog.dismiss();
                         //show progressBar
                         progressBar.show();
@@ -345,6 +392,8 @@ public class GastosFragment extends Fragment implements CallBackItemTouch, Swipe
                                     myRef.child(HCardDB.getSelected().getTableID().toString()).child(String.valueOf(newRow.getId())).child("Description").setValue(newRow.getDescription().toString());
                                     myRef.child(HCardDB.getSelected().getTableID().toString()).child(String.valueOf(newRow.getId())).child("Value").setValue(newRow.getValue());
                                     myRef.child(HCardDB.getSelected().getTableID().toString()).child(String.valueOf(newRow.getId())).child("Who").setValue(newRow.getWho().toString());
+                                    myRef.child(HCardDB.getSelected().getTableID().toString()).child(String.valueOf(newRow.getId())).child("Category").setValue(newRow.getCategory().toString());
+
 
                                     if (dropdown_nombres.getText().toString().equals(SettingsDB.getSetting(HCardDB.getSelected()).getName1())) {
                                         rows1.add(newRow);
@@ -600,13 +649,14 @@ public class GastosFragment extends Fragment implements CallBackItemTouch, Swipe
                 else {
                     for (DataSnapshot currRow : task.getResult().getChildren()) {
                         ExpenseRow row = new ExpenseRow();
+                        String categoryFromDB = currRow.child("Category").getValue(String.class);
                         row.setId(Integer.parseInt(currRow.getKey()));
                         row.setDescription(currRow.child("Description").getValue(String.class));
                         LocalDate newDate = LocalDate.parse(currRow.child("Date").getValue(String.class));
                         row.setDate(newDate);
                         row.setValue(currRow.child("Value").getValue(Long.class).doubleValue());
                         row.setWho(currRow.child("Who").getValue(String.class));
-
+                        row.setCategory(currRow.child("Category").getValue(String.class));
                         rowsBoth.add(row);
                         if (currRow.child("Who").getValue().equals(SettingsDB.getSetting(HCardDB.getSelected()).getName1())) {
                             rows1.add(row);
