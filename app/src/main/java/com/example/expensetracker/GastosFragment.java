@@ -689,8 +689,17 @@ public class GastosFragment extends Fragment implements CallBackItemTouch, Swipe
                     ItemTouchHelper.Callback callback = new ExpenseItemSwipeCallback(GastosFragment.this);
                     ItemTouchHelper touchHelper = new ItemTouchHelper(callback);
                     touchHelper.attachToRecyclerView(recyclerView);
+                    // Now that the lists are updated, tell the activity
+                    if (getActivity() != null) {
+                        ((ExpenseActivity) getActivity()).onDataLoaded(rowsBoth);
+                    }
                     loadTotals();
                     saldosFragment.calculate();
+                    // Inside GastosFragment, after rowsBoth is populated...
+                    if (getActivity() != null) {
+                        ((ExpenseActivity) getActivity()).onDataLoaded(rowsBoth);
+                    }
+
 
                     Log.d("firebase", String.valueOf(task.getResult().getValue()));
                 }
@@ -838,8 +847,10 @@ public class GastosFragment extends Fragment implements CallBackItemTouch, Swipe
 
                             adapter.notifyItemRemoved(position);
                             adapter.notifyItemRangeChanged(position,rows.size());
-
-
+                            // Now that the lists are updated, tell the activity
+                            if (getActivity() != null) {
+                                ((ExpenseActivity) getActivity()).onDataLoaded(rowsBoth);
+                            }
                             //adapter.notifyDataSetChanged();
                             loadTotals();
                             saldosFragment.calculate();

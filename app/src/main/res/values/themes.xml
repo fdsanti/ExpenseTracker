@@ -17,6 +17,7 @@
 
         <item name="colorBackgroundCards">@color/white</item>
         <item name="colorBorderCards">@color/colorPrimary</item>
+        <item name="colorBgResumenRows">@color/bgOnWhite</item>
 
         <item name="greyBackground">@color/purple_500</item>
         <item name="onGreyBackground">@color/white</item>
@@ -39,6 +40,13 @@
     </style>
 
     <style name="Title" parent="@android:style/TextAppearance.Medium">
+        <item name="android:textSize">24sp</item>
+        <item name="android:textColor">@color/colorSurface</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:typeface">sans</item>
+    </style>
+
+    <style name="TotalChart" parent="@android:style/TextAppearance.Medium">
         <item name="android:textSize">24sp</item>
         <item name="android:textColor">@color/colorSurface</item>
         <item name="android:textStyle">bold</item>

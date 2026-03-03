@@ -22,6 +22,7 @@
         <item name="android:spotShadowAlpha" tools:targetApi="lollipop">0.4</item>
 
         <item name="colorBackgroundCards">@color/cards_background</item>
+        <item name="colorBgResumenRows">@color/cards_background</item>
         <item name="colorBorderCards">@color/cards_border</item>
 
         <item name="greyBackground">@color/background</item>
@@ -50,6 +51,13 @@
 
 
     <style name="Title" parent="@android:style/TextAppearance.Medium">
+        <item name="android:textSize">24sp</item>
+        <item name="android:textColor">@color/white</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:typeface">sans</item>
+    </style>
+
+    <style name="TotalChart" parent="@android:style/TextAppearance.Medium">
         <item name="android:textSize">24sp</item>
         <item name="android:textColor">@color/white</item>
         <item name="android:textStyle">bold</item>

@@ -238,13 +238,6 @@ public class RowViewAdapter extends RecyclerView.Adapter<RowViewAdapter.ViewHold
                 }
             });
 
-            //Codigo con el dropdown de los nombres. Cuando tenga que trabajar en esto, lo que deberia hacer es si el nombre se cambio, entonces elminar de una lista y agregarlo a la otra
-            /*String[] nombres = new String[2];
-            nombres[0] = SettingsDB.getSetting(HCardDB.getSelected()).getName1();
-            nombres[1] = SettingsDB.getSetting(HCardDB.getSelected()).getName2();
-            ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(context, R.layout.dropdown_item, nombres);
-            dropdown_nombres.setAdapter(arrayAdapter);*/
-
             //create date para que si no se cambia, a la hora de editar la row en la base de datos, "date" no sea null
             TimeZone timeZoneUTC = TimeZone.getDefault();
             // It will be negative, so that's the -1
@@ -387,7 +380,9 @@ public class RowViewAdapter extends RecyclerView.Adapter<RowViewAdapter.ViewHold
                                         }
                                     }
                                     Collections.sort(rowsBoth, new RowSortDate());
-
+                                    if (context instanceof ExpenseActivity) {
+                                        ((ExpenseActivity) context).onDataLoaded(rowsBoth);
+                                    }
                                     notifyDataSetChanged();
                                     fragment.loadTotals();
                                     fragment.getSaldosFragment().calculate();

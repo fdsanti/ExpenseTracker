@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <attr name="colorBackgroundCards" format="color" />
+    <attr name="colorBgResumenRows" format="color" />
     <attr name="colorBorderCards" format="color" />
     <attr name="greyBackground" format="color" />
     <attr name="onGreyBackground" format="color" />
