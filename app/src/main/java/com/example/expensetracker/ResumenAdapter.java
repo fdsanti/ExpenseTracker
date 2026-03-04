@@ -47,8 +47,7 @@ public class ResumenAdapter extends RecyclerView.Adapter<ResumenAdapter.ViewHold
         holder.viewIconBg.setBackgroundTintList(ColorStateList.valueOf(category.getColor()));
 
         // Set Icon (We will implement a helper to get the icon later)
-        holder.ivCatIcon.setImageResource(getIconForCategory(category.getName()));
-    }
+        holder.ivCatIcon.setImageResource(Category.fromString(category.getName()).getIconRes());    }
 
     @Override
     public int getItemCount() {
@@ -69,37 +68,5 @@ public class ResumenAdapter extends RecyclerView.Adapter<ResumenAdapter.ViewHold
             tvCatTotal = itemView.findViewById(R.id.tv_cat_total);
         }
     }
-    private int getIconForCategory(String name) {
-        if (name == null) return R.drawable.ic_info;
 
-        // We convert to lowercase once here
-        String normalizedName = name.toLowerCase().trim();
-
-        switch (normalizedName) {
-            case "delivery":
-                return R.drawable.delivery;
-            case "salidas":
-                return R.drawable.salidas;
-            case "super":
-                return R.drawable.supermercado;
-            case "gatitas":
-                return R.drawable.gatitas;
-            case "servicios":
-                return R.drawable.servicios;
-            case "nafta / peajes":
-                return R.drawable.nafta_peajes;
-            case "olga":
-                return R.drawable.olga;
-            case "auto":
-                return R.drawable.auto;
-            case "pago casa":
-                return R.drawable.pago_casa;
-            case "suscripciones":
-                return R.drawable.suscripciones;
-            case "compras":
-                return R.drawable.compras;
-            default:
-                return R.drawable.ic_info; // Fallback icon
-        }
-    }
 }

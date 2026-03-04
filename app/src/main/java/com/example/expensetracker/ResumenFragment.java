@@ -122,14 +122,14 @@ public class ResumenFragment extends Fragment {
             AnalysisCategory ac = new AnalysisCategory(entry.getKey(), entry.getValue());
             float actualPercentage = (float) (entry.getValue() * 100 / grandTotal);
 
-            // Apply 1% minimum floor for any category with a value > 0
-            float displayPercentage = actualPercentage;
-            if (entry.getValue() > 0 && actualPercentage < 1.3f) {
-                displayPercentage = 1.3f;
-            }
-
+            // 1.3% Floor
+            float displayPercentage = Math.max(actualPercentage, entry.getValue() > 0 ? 1.3f : 0f);
             ac.setPercentage(displayPercentage);
-            ac.setColor(getColorForCategory(entry.getKey()));
+
+            // USE THE NEW ENUM
+            Category catInfo = Category.fromString(entry.getKey());
+            ac.setColor(catInfo.getColor());
+
             analysisData.add(ac);
         }
 
@@ -145,8 +145,9 @@ public class ResumenFragment extends Fragment {
             // Note: PieChart automatically normalizes these values to 100%
             PieEntry entry = new PieEntry(category.getPercentage(), category.getName());
 
-            if (category.getPercentage() >= 15f && getContext() != null) {
-                int iconResId = getIconForCategory(category.getName());
+            if (category.getPercentage() >= 10f && getContext() != null) {
+                // Simplified lookup
+                int iconResId = Category.fromString(category.getName()).getIconRes();
                 android.graphics.drawable.Drawable drawable = ContextCompat.getDrawable(getContext(), iconResId);
 
                 if (drawable != null) {
@@ -223,71 +224,6 @@ public class ResumenFragment extends Fragment {
                 android.util.Log.d("ResumenFragment", "Data pulled from Activity in onResume");
                 updateData(rows);
             }
-        }
-    }
-    private int getIconForCategory(String name) {
-        if (name == null) return R.drawable.ic_info;
-
-        // We convert to lowercase once here
-        String normalizedName = name.toLowerCase().trim();
-
-        switch (normalizedName) {
-            case "delivery":
-                return R.drawable.delivery;
-            case "salidas":
-                return R.drawable.salidas;
-            case "super":
-                return R.drawable.supermercado;
-            case "gatitas":
-                return R.drawable.gatitas;
-            case "servicios":
-                return R.drawable.servicios;
-            case "nafta / peajes":
-                return R.drawable.nafta_peajes;
-            case "olga":
-                return R.drawable.olga;
-            case "auto":
-                return R.drawable.auto;
-            case "pago casa":
-                return R.drawable.pago_casa;
-            case "suscripciones":
-                return R.drawable.suscripciones;
-            case "compras":
-                return R.drawable.compras;
-            default:
-                return R.drawable.ic_info; // Fallback icon
-        }
-    }
-
-    private int getColorForCategory(String name) {
-        String normalized = name.toLowerCase().trim();
-        switch (normalized) {
-            case "super":
-                return Color.parseColor("#A99E00");
-            case "salidas":
-                return Color.parseColor("#007356");
-            case "delivery":
-                return Color.parseColor("#004573");
-            case "gatitas":
-                return Color.parseColor("#5C3FFF");
-            case "servicios":
-                return Color.parseColor("#9100A4");
-            case "nafta / peajes":
-                return Color.parseColor("#A4003C");
-            case "olga":
-                return Color.parseColor("#A40019");
-            case "auto":
-                return Color.parseColor("#A45D00");
-            case "pago casa":
-                return Color.parseColor("#978600");
-            case "suscripciones":
-                return Color.parseColor("#731D00");
-            case "compras":
-                return Color.parseColor("#006D73");
-            case "otros":
-                return Color.parseColor("#5C5C5C");
-            default:
-                return Color.parseColor("#5C5C5C");
         }
     }
 }

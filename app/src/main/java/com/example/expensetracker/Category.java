@@ -1,45 +1,75 @@
 package com.example.expensetracker;
 
+import android.graphics.Color;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Category {
-    private String name;
+public enum Category {
+    DELIVERY("Delivery", R.drawable.delivery, "#004573"),
+    SALIDAS("Salidas", R.drawable.salidas, "#007356"),
+    SUPER("Super", R.drawable.supermercado, "#A99E00"),
+    GATITAS("Gatitas", R.drawable.gatitas, "#5C3FFF"),
+    SERVICIOS("Servicios", R.drawable.servicios, "#9100A4"),
+    NAFTA_PEAJES("Nafta / Peajes", R.drawable.nafta_peajes, "#A4003C"),
+    OLGA("Olga", R.drawable.olga, "#A40019"),
+    AUTO("Auto", R.drawable.auto, "#A45D00"),
+    PAGO_CASA("Pago Casa", R.drawable.pago_casa, "#978600"),
+    SUSCRIPCIONES("Suscripciones", R.drawable.suscripciones, "#731D00"),
+    COMPRAS("Compras", R.drawable.compras, "#006D73"),
+    OTROS("Otros", R.drawable.otros, "#5C5C5C");
 
-    // Required empty constructor for Firebase
-    public Category() {}
+    private final String displayName;
+    private final int iconRes;
+    private final int color;
 
-    public Category(String name) {
-        this.name = name;
+    Category(String displayName, int iconRes, String colorHex) {
+        this.displayName = displayName;
+        this.iconRes = iconRes;
+        this.color = Color.parseColor(colorHex);
     }
 
-    public String getName() {
-        return name;
+    public String getDisplayName() {
+        return displayName;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public int getIconRes() {
+        return iconRes;
     }
 
-    @Override
-    public String toString() {
-        return name; // Helpful for Spinners later
+    public int getColor() {
+        return color;
     }
 
+    /**
+     * Used by ResumenFragment and RowViewAdapter to find the Enum
+     * based on the string stored in Firebase.
+     */
+    public static Category fromString(String text) {
+        if (text == null) return OTROS;
+        String normalized = text.toLowerCase().trim();
+        for (Category c : Category.values()) {
+            if (c.displayName.toLowerCase().equals(normalized)) {
+                return c;
+            }
+        }
+        return OTROS;
+    }
+
+    /**
+     * Fixes the error in RowViewAdapter where you call Category.getDefaultCategories()
+     */
     public static List<Category> getDefaultCategories() {
-        List<Category> defaults = new ArrayList<>();
-        defaults.add(new Category("Salidas"));
-        defaults.add(new Category("Delivery"));
-        defaults.add(new Category("Super"));
-        defaults.add(new Category("Gatitas"));
-        defaults.add(new Category("Servicios"));
-        defaults.add(new Category("Nafta / Peajes"));
-        defaults.add(new Category("Olga"));
-        defaults.add(new Category("Auto"));
-        defaults.add(new Category("Pago Casa"));
-        defaults.add(new Category("Suscripciones"));
-        defaults.add(new Category("Compras"));
-        defaults.add(new Category("Otros"));
-        return defaults;
+        List<Category> list = new ArrayList<>();
+        for (Category c : Category.values()) {
+            list.add(c);
+        }
+        return list;
+    }
+
+    /**
+     * Added helper so you can call c.getName() if your adapter expects that
+     */
+    public String getName() {
+        return displayName;
     }
 }

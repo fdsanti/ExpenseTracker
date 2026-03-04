@@ -219,30 +219,34 @@ public class GastosFragment extends Fragment implements CallBackItemTouch, Swipe
             TextInputEditText txt_Gasto = dialogView.findViewById(R.id.editText_Gasto);
 
 
-            //fill in the options for the category dropdown
+            // 1. Initialize the list
             List<String> categoryNames = new ArrayList<>();
             String tableID = HCardDB.getSelected().getTableID();
 
+            // 2. Fetch from Firebase
             FirebaseDatabase.getInstance().getReference("categories").child(tableID)
-                .get().addOnCompleteListener(task -> {
-                    if (task.isSuccessful() && task.getResult().exists()) {
-                        for (DataSnapshot ds : task.getResult().getChildren()) {
-                            // Mapping the "name" field from your Firebase objects
-                            String name = ds.child("name").getValue(String.class);
-                            if (name != null) categoryNames.add(name);
+                    .get().addOnCompleteListener(task -> {
+                        if (task.isSuccessful() && task.getResult().exists()) {
+                            for (DataSnapshot ds : task.getResult().getChildren()) {
+                                // Get the name from Firebase
+                                String name = ds.child("name").getValue(String.class);
+                                if (name != null) categoryNames.add(name);
+                            }
                         }
-                    } else {
-                        // RISK-FREE FALLBACK: Use your class defaults if DB is empty
-                        for (Category c : Category.getDefaultCategories()) {
-                            categoryNames.add(c.getName());
+
+                        // 3. ENUM FALLBACK/SYNC:
+                        // If Firebase is empty OR if you want to ensure your Enum defaults
+                        // are always available, add them here.
+                        if (categoryNames.isEmpty()) {
+                            for (Category c : Category.values()) {
+                                categoryNames.add(c.getDisplayName());
+                            }
                         }
-                    }
 
-                    // Setup the adapter with the results
-                    ArrayAdapter<String> catAdapter = new ArrayAdapter<>(context, R.layout.dropdown_item, categoryNames);
-                    catDropdown.setAdapter(catAdapter);
-
-                });
+                        // 4. Setup the adapter
+                        ArrayAdapter<String> catAdapter = new ArrayAdapter<>(context, R.layout.dropdown_item, categoryNames);
+                        catDropdown.setAdapter(catAdapter);
+                    });
 
             //hacer que si hay error, cuando toques de vuelta para escribir otra cosa, el error desaparezca
             dropdown_nombres.setOnClickListener(v1 -> {
