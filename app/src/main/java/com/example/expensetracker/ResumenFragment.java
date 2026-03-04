@@ -1,6 +1,7 @@
 package com.example.expensetracker;
 
 import android.graphics.Color;
+import android.graphics.Paint;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.TypedValue;
@@ -61,17 +62,16 @@ public class ResumenFragment extends Fragment {
         pieChart.setUsePercentValues(true);
         pieChart.getDescription().setEnabled(false);
 
+        pieChart.setExtraOffsets(0, 5f, 0, 5f);
+
+        pieChart.setDrawRoundedSlices(false);
+
         // Disable all interactions
         pieChart.setTouchEnabled(false);
         pieChart.setHighlightPerTapEnabled(false);
 
         pieChart.setDrawHoleEnabled(true);
-
-        // 1. SET HOLE COLOR TO WHITE (or your background color)
-        // Using Color.TRANSPARENT with SliceSpace often creates "sharp"
-        // pixelated edges. A solid color creates a smoother anti-aliased edge.
         pieChart.setHoleColor(Color.TRANSPARENT);
-
         pieChart.setHoleRadius(75f);
         pieChart.setTransparentCircleRadius(0f);
         pieChart.setDrawCenterText(true);
@@ -81,8 +81,8 @@ public class ResumenFragment extends Fragment {
         pieChart.setRotationEnabled(false);
         pieChart.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
 
-        // 2. REMOVE OR COMMENT OUT THIS LINE
-        // pieChart.setDrawRoundedSlices(true);
+
+
     }
 
     private void setupRecyclerView() {
@@ -145,7 +145,7 @@ public class ResumenFragment extends Fragment {
             // Note: PieChart automatically normalizes these values to 100%
             PieEntry entry = new PieEntry(category.getPercentage(), category.getName());
 
-            if (category.getPercentage() >= 10f && getContext() != null) {
+            if (category.getPercentage() >= 5f && getContext() != null) {
                 // Simplified lookup
                 int iconResId = Category.fromString(category.getName()).getIconRes();
                 android.graphics.drawable.Drawable drawable = ContextCompat.getDrawable(getContext(), iconResId);
@@ -154,7 +154,7 @@ public class ResumenFragment extends Fragment {
                     drawable = drawable.mutate();
                     drawable.setColorFilter(new android.graphics.PorterDuffColorFilter(
                             Color.WHITE, android.graphics.PorterDuff.Mode.SRC_IN));
-                    drawable.setBounds(0, 0, 80, 80);
+                    drawable.setBounds(0, -30, 80, 80);
                     entry.setIcon(drawable);
                 }
             }
@@ -164,16 +164,37 @@ public class ResumenFragment extends Fragment {
 
         PieDataSet dataSet = new PieDataSet(entries, "");
         dataSet.setColors(colors);
-        dataSet.setSliceSpace(6f);
+        dataSet.setSliceSpace(12f);
         dataSet.setSelectionShift(0f);
         dataSet.setDrawValues(false);
         dataSet.setDrawIcons(true);
 
         // This ensures icons stay centered even with the 1% floor shifts
-        dataSet.setIconsOffset(new com.github.mikephil.charting.utils.MPPointF(0, 0));
-
+        dataSet.setIconsOffset(new com.github.mikephil.charting.utils.MPPointF(8f, 0f));
         PieData data = new PieData(dataSet);
         pieChart.setData(data);
+        Paint paint = pieChart.getRenderer().getPaintRender();
+
+        // 1. Set the Join and Cap to Round (This creates the rounded corners)
+        paint.setStrokeJoin(Paint.Join.ROUND);
+        paint.setStrokeCap(Paint.Cap.ROUND);
+
+        // 2. Set style to FILL_AND_STROKE
+        paint.setStyle(Paint.Style.FILL_AND_STROKE);
+
+        // 3. Set a Stroke Width.
+        // A width of 10-15f will make the rounding very apparent.
+        paint.setStrokeWidth(15f);
+
+        // Compensate for the stroke thickness so the chart doesn't
+        // grow outside its bounds. We do this by shrinking the Hole slightly
+        // and ensuring the view has internal padding.
+        //pieChart.setTransparentCircleRadius(95f); // Use this to "push" the chart in
+        pieChart.setHoleRadius(77f); // Slightly smaller hole to keep the "meat" of the slice consistent
+
+        // 4. Remove the PathEffect as it causes the "one end smaller" distortion
+        paint.setPathEffect(null);
+        paint.setAntiAlias(true);
 
         // 4. Update the Center Text (Total with decimals/commas)
         String amountText = "$" + String.format(Locale.getDefault(), "%,.2f", grandTotal);
