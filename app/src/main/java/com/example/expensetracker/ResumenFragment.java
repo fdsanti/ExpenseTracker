@@ -1,6 +1,7 @@
 package com.example.expensetracker;
 
 import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
@@ -57,37 +58,31 @@ public class ResumenFragment extends Fragment {
     }
 
     private void setupPieChart() {
-        // Basic config
         pieChart.setUsePercentValues(true);
         pieChart.getDescription().setEnabled(false);
 
-        // This creates the "Donut" hole
+        // Disable all interactions
+        pieChart.setTouchEnabled(false);
+        pieChart.setHighlightPerTapEnabled(false);
+
         pieChart.setDrawHoleEnabled(true);
+
+        // 1. SET HOLE COLOR TO WHITE (or your background color)
+        // Using Color.TRANSPARENT with SliceSpace often creates "sharp"
+        // pixelated edges. A solid color creates a smoother anti-aliased edge.
         pieChart.setHoleColor(Color.TRANSPARENT);
-        pieChart.setHoleRadius(75f); // Larger hole = Thinner ring
+
+        pieChart.setHoleRadius(75f);
         pieChart.setTransparentCircleRadius(0f);
-
         pieChart.setDrawCenterText(true);
-        pieChart.setCenterTextTypeface(android.graphics.Typeface.DEFAULT_BOLD);
-
-        // Disable the chart's built-in legend because you want a custom list below
         pieChart.getLegend().setEnabled(false);
-        pieChart.setDrawEntryLabels(false);
-        pieChart.setRotationAngle(0);
-        pieChart.setRotationEnabled(true);
+        pieChart.setDrawEntryLabels(true);
+        pieChart.setEntryLabelColor(Color.TRANSPARENT);
+        pieChart.setRotationEnabled(false);
+        pieChart.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
 
-        // Rotation and interactivity
-        pieChart.setRotationAngle(0);
-        pieChart.setRotationEnabled(true);
-        pieChart.setHighlightPerTapEnabled(true);
-
-        // Disable text inside the chart slices
-        pieChart.setDrawEntryLabels(false);
-
-        pieChart.setNoDataText("No hay datos disponibles");
-        pieChart.setNoDataTextColor(Color.GRAY);
-        pieChart.setVisibility(View.VISIBLE); // Force visibility
-
+        // 2. REMOVE OR COMMENT OUT THIS LINE
+        // pieChart.setDrawRoundedSlices(true);
     }
 
     private void setupRecyclerView() {
@@ -96,72 +91,15 @@ public class ResumenFragment extends Fragment {
         recyclerView.setAdapter(adapter);
     }
 
-    private void loadDummyData() {
-        analysisData.clear();
-
-        // Creating some dummy categories to test the UI
-        AnalysisCategory cat1 = new AnalysisCategory("Comida", 450.0);
-        cat1.setPercentage(45f);
-        cat1.setColor(Color.parseColor("#FF7043")); // Orange-ish
-
-        AnalysisCategory cat2 = new AnalysisCategory("Transporte", 200.0);
-        cat2.setPercentage(20f);
-        cat2.setColor(Color.parseColor("#26A69A")); // Teal-ish
-
-        AnalysisCategory cat3 = new AnalysisCategory("Ocio", 350.0);
-        cat3.setPercentage(35f);
-        cat3.setColor(Color.parseColor("#5C6BC0")); // Indigo-ish
-
-        analysisData.add(cat1);
-        analysisData.add(cat2);
-        analysisData.add(cat3);
-
-        updateChart();
-        adapter.notifyDataSetChanged();
-    }
-
-    private void updateChart() {
-        ArrayList<PieEntry> entries = new ArrayList<>();
-        ArrayList<Integer> colors = new ArrayList<>();
-
-        for (AnalysisCategory category : analysisData) {
-            entries.add(new PieEntry((float) category.getTotal(), category.getName()));
-            colors.add(category.getColor());
-        }
-
-        PieDataSet dataSet = new PieDataSet(entries, "");
-
-        // SPACE BETWEEN SLICES: This makes it look like separate shapes
-        dataSet.setSliceSpace(8f);
-        dataSet.setSelectionShift(5f);
-        dataSet.setColors(colors);
-
-        // Hide values on the chart to keep it clean
-        dataSet.setDrawValues(false);
-
-        PieData data = new PieData(dataSet);
-        pieChart.setData(data);
-        pieChart.invalidate(); // Refresh chart
-    }
-
     private List<ExpenseRow> pendingRows;
     // At the top of your class add a Tag for logs
     private static final String TAG = "ResumenFragment";
 
     public void updateData(List<ExpenseRow> rows) {
-
-        if (rows == null || rows.isEmpty()) {
-            android.util.Log.d(TAG, "Rows are empty or null, returning.");
-            return;
-        }
+        if (rows == null || rows.isEmpty()) return;
 
         this.pendingRows = rows;
-
-        // CHECK: Is the pieChart actually initialized?
-        if (pieChart == null) {
-            android.util.Log.d(TAG, "PieChart is null, storing data and returning.");
-            return;
-        }
+        if (pieChart == null) return;
 
         // 1. Group totals by category
         java.util.Map<String, Double> categoryTotals = new java.util.HashMap<>();
@@ -170,50 +108,89 @@ public class ResumenFragment extends Fragment {
         for (ExpenseRow row : rows) {
             String cat = row.getCategory();
             if (cat == null || cat.isEmpty()) cat = "Otros";
-
             double val = row.getValue();
-            double currentTotal = categoryTotals.containsKey(cat) ? categoryTotals.get(cat) : 0;
-            categoryTotals.put(cat, currentTotal + val);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                categoryTotals.put(cat, (categoryTotals.getOrDefault(cat, 0.0)) + val);
+            }
             grandTotal += val;
         }
 
-        android.util.Log.d(TAG, "Calculated Grand Total: " + grandTotal);
-
         // 2. Convert Map to AnalysisCategory objects
         analysisData.clear();
-        int[] colorPalette = {
-                Color.parseColor("#FF7043"), Color.parseColor("#26A69A"),
-                Color.parseColor("#5C6BC0"), Color.parseColor("#FFA726"),
-                Color.parseColor("#EC407A"), Color.parseColor("#78909C")
-        };
 
-        int colorIndex = 0;
         for (java.util.Map.Entry<String, Double> entry : categoryTotals.entrySet()) {
             AnalysisCategory ac = new AnalysisCategory(entry.getKey(), entry.getValue());
-            ac.setPercentage((float) (entry.getValue() * 100 / grandTotal));
-            ac.setColor(colorPalette[colorIndex % colorPalette.length]);
-            colorIndex++;
+            float actualPercentage = (float) (entry.getValue() * 100 / grandTotal);
+
+            // Apply 1% minimum floor for any category with a value > 0
+            float displayPercentage = actualPercentage;
+            if (entry.getValue() > 0 && actualPercentage < 1.3f) {
+                displayPercentage = 1.3f;
+            }
+
+            ac.setPercentage(displayPercentage);
+            ac.setColor(getColorForCategory(entry.getKey()));
             analysisData.add(ac);
         }
 
-        // 3. Force UI Update
-        android.util.Log.d(TAG, "Updating UI with " + analysisData.size() + " categories");
+        // Sort biggest to smallest
+        java.util.Collections.sort(analysisData, (o1, o2) -> Double.compare(o2.getTotal(), o1.getTotal()));
 
-        String totalString = "TOTAL\n$" + String.format(Locale.getDefault(), "%.0f", grandTotal);
-        pieChart.setCenterText(totalString);
+        // 3. Update the Slices
+        ArrayList<PieEntry> entries = new ArrayList<>();
+        ArrayList<Integer> colors = new ArrayList<>();
 
-        // We set the size to 24 (from your TotalChart style)
-        pieChart.setCenterTextSize(24f);
-        // Use the color from your style (White)
+        for (AnalysisCategory category : analysisData) {
+            // We use the "Percentage" as the value for the entry to respect the 1% floor
+            // Note: PieChart automatically normalizes these values to 100%
+            PieEntry entry = new PieEntry(category.getPercentage(), category.getName());
 
-        //NEED TO FIX THIS LINE, IT IS MAKING THE TEXT ALWAYS WHITE, DISREGARDING THE THEME
-        pieChart.setCenterTextColor(ContextCompat.getColor(getContext(), R.color.white));
+            if (category.getPercentage() >= 15f && getContext() != null) {
+                int iconResId = getIconForCategory(category.getName());
+                android.graphics.drawable.Drawable drawable = ContextCompat.getDrawable(getContext(), iconResId);
 
-        // Set Bold (from your style)
-        pieChart.setCenterTextTypeface(android.graphics.Typeface.DEFAULT_BOLD);
+                if (drawable != null) {
+                    drawable = drawable.mutate();
+                    drawable.setColorFilter(new android.graphics.PorterDuffColorFilter(
+                            Color.WHITE, android.graphics.PorterDuff.Mode.SRC_IN));
+                    drawable.setBounds(0, 0, 80, 80);
+                    entry.setIcon(drawable);
+                }
+            }
+            entries.add(entry);
+            colors.add(category.getColor());
+        }
 
-        // ... (rest of the update logic) ...
-        updateChart();
+        PieDataSet dataSet = new PieDataSet(entries, "");
+        dataSet.setColors(colors);
+        dataSet.setSliceSpace(6f);
+        dataSet.setSelectionShift(0f);
+        dataSet.setDrawValues(false);
+        dataSet.setDrawIcons(true);
+
+        // This ensures icons stay centered even with the 1% floor shifts
+        dataSet.setIconsOffset(new com.github.mikephil.charting.utils.MPPointF(0, 0));
+
+        PieData data = new PieData(dataSet);
+        pieChart.setData(data);
+
+        // 4. Update the Center Text (Total with decimals/commas)
+        String amountText = "$" + String.format(Locale.getDefault(), "%,.2f", grandTotal);
+        android.text.SpannableString s = new android.text.SpannableString(amountText);
+
+        int textColor = Color.BLACK;
+        TypedValue tv = new TypedValue();
+        if (getContext() != null && getContext().getTheme().resolveAttribute(R.attr.textColorPrimary, tv, true)) {
+            textColor = tv.data;
+        }
+
+        s.setSpan(new android.text.style.ForegroundColorSpan(textColor), 0, s.length(), 0);
+        s.setSpan(new android.text.style.RelativeSizeSpan(1.8f), 0, s.length(), 0);
+        s.setSpan(new android.text.style.StyleSpan(android.graphics.Typeface.BOLD), 0, s.length(), 0);
+
+        pieChart.setCenterText(s);
+        pieChart.notifyDataSetChanged();
+        pieChart.invalidate();
 
         if (adapter != null) {
             adapter.notifyDataSetChanged();
@@ -248,9 +225,69 @@ public class ResumenFragment extends Fragment {
             }
         }
     }
+    private int getIconForCategory(String name) {
+        if (name == null) return R.drawable.ic_info;
 
+        // We convert to lowercase once here
+        String normalizedName = name.toLowerCase().trim();
 
+        switch (normalizedName) {
+            case "delivery":
+                return R.drawable.delivery;
+            case "salidas":
+                return R.drawable.salidas;
+            case "super":
+                return R.drawable.supermercado;
+            case "gatitas":
+                return R.drawable.gatitas;
+            case "servicios":
+                return R.drawable.servicios;
+            case "nafta / peajes":
+                return R.drawable.nafta_peajes;
+            case "olga":
+                return R.drawable.olga;
+            case "auto":
+                return R.drawable.auto;
+            case "pago casa":
+                return R.drawable.pago_casa;
+            case "suscripciones":
+                return R.drawable.suscripciones;
+            case "compras":
+                return R.drawable.compras;
+            default:
+                return R.drawable.ic_info; // Fallback icon
+        }
+    }
 
-
-    // You can remove the setUserVisibleHint method entirely as it is less reliable
+    private int getColorForCategory(String name) {
+        String normalized = name.toLowerCase().trim();
+        switch (normalized) {
+            case "super":
+                return Color.parseColor("#A99E00");
+            case "salidas":
+                return Color.parseColor("#007356");
+            case "delivery":
+                return Color.parseColor("#004573");
+            case "gatitas":
+                return Color.parseColor("#5C3FFF");
+            case "servicios":
+                return Color.parseColor("#9100A4");
+            case "nafta / peajes":
+                return Color.parseColor("#A4003C");
+            case "olga":
+                return Color.parseColor("#A40019");
+            case "auto":
+                return Color.parseColor("#A45D00");
+            case "pago casa":
+                return Color.parseColor("#978600");
+            case "suscripciones":
+                return Color.parseColor("#731D00");
+            case "compras":
+                return Color.parseColor("#006D73");
+            case "otros":
+                return Color.parseColor("#5C5C5C");
+            default:
+                return Color.parseColor("#5C5C5C");
+        }
+    }
 }

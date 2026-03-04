@@ -12,4 +12,5 @@
     <attr name="bgwhitegrey" format="color" />
     <attr name="whiteBlack" format="color" />
     <attr name="popupbg" format="color" />
+    <attr name="textColorPrimary" format="color" />
 </resources>

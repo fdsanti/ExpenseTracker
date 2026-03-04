@@ -35,7 +35,7 @@ public class Category {
         defaults.add(new Category("Servicios"));
         defaults.add(new Category("Nafta / Peajes"));
         defaults.add(new Category("Olga"));
-        defaults.add(new Category("Peajes"));
+        defaults.add(new Category("Auto"));
         defaults.add(new Category("Pago Casa"));
         defaults.add(new Category("Suscripciones"));
         defaults.add(new Category("Compras"));

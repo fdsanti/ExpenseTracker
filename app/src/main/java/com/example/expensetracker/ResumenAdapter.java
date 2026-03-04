@@ -37,7 +37,8 @@ public class ResumenAdapter extends RecyclerView.Adapter<ResumenAdapter.ViewHold
         holder.tvCatName.setText(category.getName());
 
         // Set Total Value (Formatted as currency or number)
-        holder.tvCatTotal.setText(String.format(Locale.getDefault(), "$%.0f", category.getTotal()));
+        String formattedValue = "$" + String.format(Locale.getDefault(), "%,.2f", category.getTotal());
+        holder.tvCatTotal.setText(formattedValue);
 
         // Set Percentage Badge
         holder.tvCatPercentage.setText(String.format(Locale.getDefault(), "%.1f%%", category.getPercentage()));
@@ -71,16 +72,32 @@ public class ResumenAdapter extends RecyclerView.Adapter<ResumenAdapter.ViewHold
     private int getIconForCategory(String name) {
         if (name == null) return R.drawable.ic_info;
 
-        switch (name.toLowerCase()) {
-            case "comida":
-            case "restaurante":
-                return R.drawable.ic_info; // Use your actual drawable names
-            case "transporte":
-            case "gasolina":
-                return R.drawable.ic_info;
-            case "ocio":
-            case "entretenimiento":
-                return R.drawable.ic_info;
+        // We convert to lowercase once here
+        String normalizedName = name.toLowerCase().trim();
+
+        switch (normalizedName) {
+            case "delivery":
+                return R.drawable.delivery;
+            case "salidas":
+                return R.drawable.salidas;
+            case "super":
+                return R.drawable.supermercado;
+            case "gatitas":
+                return R.drawable.gatitas;
+            case "servicios":
+                return R.drawable.servicios;
+            case "nafta / peajes":
+                return R.drawable.nafta_peajes;
+            case "olga":
+                return R.drawable.olga;
+            case "auto":
+                return R.drawable.auto;
+            case "pago casa":
+                return R.drawable.pago_casa;
+            case "suscripciones":
+                return R.drawable.suscripciones;
+            case "compras":
+                return R.drawable.compras;
             default:
                 return R.drawable.ic_info; // Fallback icon
         }

@@ -24,6 +24,7 @@
         <item name="colorBackgroundCards">@color/cards_background</item>
         <item name="colorBgResumenRows">@color/cards_background</item>
         <item name="colorBorderCards">@color/cards_border</item>
+        <item name="textColorPrimary">@color/white</item>
 
         <item name="greyBackground">@color/background</item>
         <item name="onGreyBackground">@color/white</item>
