@@ -59,7 +59,7 @@ public class ResumenFragment extends Fragment {
     }
 
     private void setupPieChart() {
-        pieChart.setUsePercentValues(true);
+        pieChart.setUsePercentValues(false);
         pieChart.getDescription().setEnabled(false);
 
         pieChart.setExtraOffsets(0, 5f, 0, 5f);
@@ -117,23 +117,42 @@ public class ResumenFragment extends Fragment {
 
         // 2. Convert Map to AnalysisCategory objects
         analysisData.clear();
+        float totalExtraFromFloor = 0f;
+        AnalysisCategory biggestCategory = null;
 
+        // First pass: Calculate percentages and find the "Top Donor"
         for (java.util.Map.Entry<String, Double> entry : categoryTotals.entrySet()) {
             AnalysisCategory ac = new AnalysisCategory(entry.getKey(), entry.getValue());
             float actualPercentage = (float) (entry.getValue() * 100 / grandTotal);
 
-            // 1.3% Floor
+            // Calculate how much we are adding to reach the 1.3% floor
             float displayPercentage = Math.max(actualPercentage, entry.getValue() > 0 ? 1.3f : 0f);
+            totalExtraFromFloor += (displayPercentage - actualPercentage);
+
             ac.setPercentage(displayPercentage);
 
-            // USE THE NEW ENUM
             Category catInfo = Category.fromString(entry.getKey());
             ac.setColor(catInfo.getColor());
-
             analysisData.add(ac);
+
+            // Track the largest category to subtract the "tax" from it later
+            if (biggestCategory == null || ac.getTotal() > biggestCategory.getTotal()) {
+                biggestCategory = ac;
+            }
         }
 
-        // Sort biggest to smallest
+        // Second pass: Subtract the total accumulated "extra" from the biggest category.
+        if (biggestCategory != null) {
+            float sumOfOthers = 0;
+            for (AnalysisCategory ac : analysisData) {
+                if (ac != biggestCategory) {
+                    sumOfOthers += ac.getPercentage();
+                }
+            }
+            // Force the biggest category to be EXACTLY what is left to reach 100
+            biggestCategory.setPercentage(100f - sumOfOthers);
+        }
+        // Sort biggest to smallest for the legend/list
         java.util.Collections.sort(analysisData, (o1, o2) -> Double.compare(o2.getTotal(), o1.getTotal()));
 
         // 3. Update the Slices
@@ -154,7 +173,7 @@ public class ResumenFragment extends Fragment {
                     drawable = drawable.mutate();
                     drawable.setColorFilter(new android.graphics.PorterDuffColorFilter(
                             Color.WHITE, android.graphics.PorterDuff.Mode.SRC_IN));
-                    drawable.setBounds(0, -30, 80, 80);
+                    drawable.setBounds(4, -32, -4, 32);
                     entry.setIcon(drawable);
                 }
             }
@@ -164,7 +183,7 @@ public class ResumenFragment extends Fragment {
 
         PieDataSet dataSet = new PieDataSet(entries, "");
         dataSet.setColors(colors);
-        dataSet.setSliceSpace(12f);
+        dataSet.setSliceSpace(16f);
         dataSet.setSelectionShift(0f);
         dataSet.setDrawValues(false);
         dataSet.setDrawIcons(true);
@@ -178,13 +197,9 @@ public class ResumenFragment extends Fragment {
         // 1. Set the Join and Cap to Round (This creates the rounded corners)
         paint.setStrokeJoin(Paint.Join.ROUND);
         paint.setStrokeCap(Paint.Cap.ROUND);
-
-        // 2. Set style to FILL_AND_STROKE
         paint.setStyle(Paint.Style.FILL_AND_STROKE);
-
         // 3. Set a Stroke Width.
-        // A width of 10-15f will make the rounding very apparent.
-        paint.setStrokeWidth(15f);
+        paint.setStrokeWidth(25f);
 
         // Compensate for the stroke thickness so the chart doesn't
         // grow outside its bounds. We do this by shrinking the Hole slightly
