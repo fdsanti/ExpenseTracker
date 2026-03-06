@@ -34,10 +34,12 @@ public class ExpenseActivity extends AppCompatActivity {
     private TabLayout tabLayout;
     private GastosFragment gastosFragment;
     private SaldosFragment saldosFragment;
+    private ResumenFragment resumenFragment;
     private RecyclerView recyclerView;
     private RowViewAdapter adapter;
     private RelativeLayout filtrosBar;
     private MenuItem icn_checked;
+    private List<ExpenseRow> allRows;
 
     @SuppressLint("MissingInflatedId")
     @RequiresApi(api = Build.VERSION_CODES.O)
@@ -66,19 +68,23 @@ public class ExpenseActivity extends AppCompatActivity {
 
         gastosFragment = new GastosFragment();
         saldosFragment = new SaldosFragment(this);
+        resumenFragment = new ResumenFragment();
 
         gastosFragment.setSaldosFragment(saldosFragment);
         saldosFragment.setGastosFragment(gastosFragment);
+
 
         tabLayout.setupWithViewPager(viewPager);
 
         ViewPagerAdapter viewPagerAdapter = new ViewPagerAdapter(getSupportFragmentManager(),0);
         viewPagerAdapter.addFragment(gastosFragment, "Gastos");
         viewPagerAdapter.addFragment(saldosFragment, "Saldos");
+        viewPagerAdapter.addFragment(resumenFragment, "Resumen");
         viewPager.setAdapter(viewPagerAdapter);
         viewPager.setSwipeable(false);
 
     }
+
 
     //need to make sure the home page is updated when an expense is closed
 
@@ -151,6 +157,20 @@ public class ExpenseActivity extends AppCompatActivity {
 
     }
 
+    // Inside ExpenseActivity
+    public void onDataLoaded(List<ExpenseRow> rowsBoth) {
+        this.allRows = rowsBoth; // Save a copy in the Activity too
+        if (resumenFragment != null) {
+            android.util.Log.d("DEBUG_DATA", "Sending rows to Resumen: " + rowsBoth.size());
+            resumenFragment.updateData(rowsBoth);
+
+        }
+    }
+
+    // Inside ExpenseActivity.java (at the bottom)
+    public List<ExpenseRow> getAllRows() {
+        return allRows;
+    }
 
 }
 

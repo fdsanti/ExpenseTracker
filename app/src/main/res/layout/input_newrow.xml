@@ -9,59 +9,46 @@
     tools:ignore="HardcodedText"
     android:paddingTop="24dp">
 
-    <!--this is the outlined layout box for the edit text-->
-    <!--this layout must be used to reposition or change the
-        height and width of the edit text-->
-    <!--to get the outlined edit text the style attribute as
-        following must be invoked-->
+    <!-- Who Dropdown -->
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/inputLayout_Who"
-
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
-
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="24dp"
         android:layout_marginEnd="24dp"
         android:layout_marginBottom="16dp">
 
-        <!--this is the actual edit text which takes the input-->
         <AutoCompleteTextView
             android:id="@+id/dropdown_nombres"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="none"
-            android:hint="Elegir persona"
-            />
-
+            android:hint="Elegir persona" />
     </com.google.android.material.textfield.TextInputLayout>
 
+    <!-- Expense Name -->
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/inputLayout_NombreGasto"
-
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="24dp"
         android:layout_marginEnd="24dp"
         android:layout_marginBottom="16dp">
 
-        <!--this is the actual edit text which takes the input-->
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/editText_NombreGasto"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Nombre del gasto"
             android:inputType="text"/>
-
     </com.google.android.material.textfield.TextInputLayout>
 
+    <!-- Date Picker -->
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/inputLayout_FechaGasto"
-
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="24dp"
@@ -69,34 +56,58 @@
         app:startIconDrawable="@drawable/ic_calendar"
         android:layout_marginBottom="16dp">
 
-        <!--this is the actual edit text which takes the input-->
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/editText_FechaGasto"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Fecha del gasto"
             android:inputType="none"/>
-
     </com.google.android.material.textfield.TextInputLayout>
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/inputLayout_Gasto"
 
-        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-
+    <!-- NEW HORIZONTAL GROUP: Category and Amount -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:orientation="horizontal"
         android:layout_marginStart="24dp"
         android:layout_marginEnd="24dp"
-        android:layout_marginBottom="16dp">
+        android:layout_marginBottom="16dp"
+        android:baselineAligned="false">
 
-        <!--this is the actual edit text which takes the input-->
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/editText_Gasto"
-            android:layout_width="match_parent"
+        <!-- Category (Left Half) -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/menu_category"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:hint="Valor $$$"
-            android:inputType="numberDecimal"/>
+            android:layout_weight="1"
+            android:layout_marginEnd="8dp"
+            android:hint="Categoría">
 
-    </com.google.android.material.textfield.TextInputLayout>
+            <AutoCompleteTextView
+                android:id="@+id/cat_dropdown"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="none" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Value/Amount (Right Half) -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/inputLayout_Gasto"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="8dp">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/editText_Gasto"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Valor $$$"
+                android:inputType="numberDecimal"/>
+        </com.google.android.material.textfield.TextInputLayout>
+
+    </LinearLayout>
 
 </LinearLayout>

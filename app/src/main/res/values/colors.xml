@@ -11,6 +11,7 @@
 
     <!--Colors for dark theme here-->
     <color name="background">#292929</color>
+    <color name="bgOnWhite">#F2F2F2</color>
     <color name="colorPrimary">#BB86FC</color>
     <color name="colorSurface">#121212</color>
     <color name="title_dark">#FFFFFF</color>

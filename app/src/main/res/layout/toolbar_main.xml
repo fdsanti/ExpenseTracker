@@ -33,6 +33,7 @@
             tools:ignore="MissingConstraints"
             android:id="@+id/homeTabsComponent"
             android:layout_below="@id/toolbar_back"
+            app:tabTextAppearance="@style/MyTabTextAppearance"
             >
 
             <com.google.android.material.tabs.TabItem

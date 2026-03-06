@@ -17,6 +17,7 @@ public class ExpenseRow {
     private Double value;
     private String who;
     public int id;
+    private String category;
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     public ExpenseRow(String description, LocalDate date, double value, String who) {
@@ -85,4 +86,15 @@ public class ExpenseRow {
     public String getWho() {
         return who;
     }
+
+    public String getCategory() {
+        // Fallback for old expenses that don't have this field yet
+        return (category == null || category.isEmpty()) ? "Otros" : category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
+
+
 }

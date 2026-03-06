@@ -59,6 +59,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Currency;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
 
@@ -163,6 +164,7 @@ public class RowViewAdapter extends RecyclerView.Adapter<RowViewAdapter.ViewHold
             TextInputLayout inputLayout_NombreGasto = dialogView.findViewById(R.id.inputLayout_NombreGasto);
             TextInputLayout inputLayout_FechaGasto = dialogView.findViewById(R.id.inputLayout_FechaGasto);
             TextInputLayout inputLayout_Gasto = dialogView.findViewById(R.id.inputLayout_Gasto);
+            TextInputLayout menu_category = dialogView.findViewById(R.id.menu_category);
 
             AutoCompleteTextView dropdown_nombres = dialogView.findViewById(R.id.dropdown_nombres);
             dropdown_nombres.setText(rows.get(position).getWho());
@@ -173,7 +175,29 @@ public class RowViewAdapter extends RecyclerView.Adapter<RowViewAdapter.ViewHold
             txt_FechaGasto.setText(rows.get(position).getDate());
             TextInputEditText txt_Gasto = dialogView.findViewById(R.id.editText_Gasto);
             txt_Gasto.setText(String.valueOf(rows.get(position).getValue()));
+            AutoCompleteTextView cat_dropdown = dialogView.findViewById(R.id.cat_dropdown);
+            cat_dropdown.setText(rows.get(position).getCategory(), false);
 
+            // Load categories for the dropdown
+            String tableID = HCardDB.getSelected().getTableID();
+            List<String> categoryNames = new ArrayList<>();
+
+            FirebaseDatabase.getInstance().getReference("categories").child(tableID)
+                .get().addOnCompleteListener(task -> {
+                    if (task.isSuccessful() && task.getResult().exists()) {
+                        for (DataSnapshot ds : task.getResult().getChildren()) {
+                            String name = ds.child("name").getValue(String.class);
+                            if (name != null) categoryNames.add(name);
+                        }
+                    } else {
+                        // Fallback to defaults if not in DB
+                        for (Category c : Category.getDefaultCategories()) {
+                            categoryNames.add(c.getName());
+                        }
+                    }
+                    ArrayAdapter<String> catAdapter = new ArrayAdapter<>(context, R.layout.dropdown_item, categoryNames);
+                    cat_dropdown.setAdapter(catAdapter);
+                });
 
             //hacer que si hay error, cuando toques de vuelta para escribir otra cosa, el error desaparezca
             dropdown_nombres.setOnFocusChangeListener(new View.OnFocusChangeListener() {
@@ -182,6 +206,11 @@ public class RowViewAdapter extends RecyclerView.Adapter<RowViewAdapter.ViewHold
                     if (hasFocus) {
                         inputLayout_Who.setErrorEnabled(false);
                     }
+                }
+            });
+            cat_dropdown.setOnClickListener(v1 -> {
+                if (menu_category.isErrorEnabled()) {
+                    menu_category.setErrorEnabled(false);
                 }
             });
             txt_NombreGasto.setOnFocusChangeListener(new View.OnFocusChangeListener() {
@@ -208,13 +237,6 @@ public class RowViewAdapter extends RecyclerView.Adapter<RowViewAdapter.ViewHold
                     }
                 }
             });
-
-            //Codigo con el dropdown de los nombres. Cuando tenga que trabajar en esto, lo que deberia hacer es si el nombre se cambio, entonces elminar de una lista y agregarlo a la otra
-            /*String[] nombres = new String[2];
-            nombres[0] = SettingsDB.getSetting(HCardDB.getSelected()).getName1();
-            nombres[1] = SettingsDB.getSetting(HCardDB.getSelected()).getName2();
-            ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(context, R.layout.dropdown_item, nombres);
-            dropdown_nombres.setAdapter(arrayAdapter);*/
 
             //create date para que si no se cambia, a la hora de editar la row en la base de datos, "date" no sea null
             TimeZone timeZoneUTC = TimeZone.getDefault();
@@ -293,6 +315,7 @@ public class RowViewAdapter extends RecyclerView.Adapter<RowViewAdapter.ViewHold
                             && !dropdown_nombres.getText().toString().isEmpty()) {
 
                         ExpenseRow newRow = new ExpenseRow(txt_NombreGasto.getText().toString(), date, Double.parseDouble(txt_Gasto.getText().toString()), dropdown_nombres.getText().toString());
+                        newRow.setCategory(cat_dropdown.getText().toString());
 
 
                         FirebaseDatabase database = FirebaseDatabase.getInstance();
@@ -312,6 +335,7 @@ public class RowViewAdapter extends RecyclerView.Adapter<RowViewAdapter.ViewHold
                                     myRef.child(HCardDB.getSelected().getTableID().toString()).child(String.valueOf(rows.get(position).getId())).child("Description").setValue(newRow.getDescription().toString());
                                     myRef.child(HCardDB.getSelected().getTableID().toString()).child(String.valueOf(rows.get(position).getId())).child("Value").setValue(newRow.getValue());
                                     myRef.child(HCardDB.getSelected().getTableID().toString()).child(String.valueOf(rows.get(position).getId())).child("Who").setValue(newRow.getWho().toString());
+                                    myRef.child(HCardDB.getSelected().getTableID().toString()).child(String.valueOf(rows.get(position).getId())).child("Category").setValue(newRow.getCategory().toString());
 
                                     //since the array list within the adapter is referencing the arraylist in this class, we
                                     //just need to add the new row to the arraylists in this class
@@ -325,6 +349,7 @@ public class RowViewAdapter extends RecyclerView.Adapter<RowViewAdapter.ViewHold
                                                 currRow.setDate(java.sql.Date.valueOf(date.toString()));
                                                 currRow.setValue(Double.parseDouble(txt_Gasto.getText().toString()));
                                                 currRow.setWho(dropdown_nombres.getText().toString());
+                                                currRow.setCategory(newRow.getCategory());
                                             }
                                         }
                                         Collections.sort(rows1, new RowSortDate());
@@ -338,6 +363,7 @@ public class RowViewAdapter extends RecyclerView.Adapter<RowViewAdapter.ViewHold
                                                 currRow.setDate(java.sql.Date.valueOf(date.toString()));
                                                 currRow.setValue(Double.parseDouble(txt_Gasto.getText().toString()));
                                                 currRow.setWho(dropdown_nombres.getText().toString());
+                                                currRow.setCategory(newRow.getCategory());
                                             }
                                         }
                                         Collections.sort(rows2, new RowSortDate());
@@ -350,10 +376,13 @@ public class RowViewAdapter extends RecyclerView.Adapter<RowViewAdapter.ViewHold
                                             rowsBoth.get(position).setDate(java.sql.Date.valueOf(date.toString()));
                                             rowsBoth.get(position).setValue(Double.parseDouble(txt_Gasto.getText().toString()));
                                             rowsBoth.get(position).setWho(dropdown_nombres.getText().toString());
+                                            currRow.setCategory(newRow.getCategory());
                                         }
                                     }
                                     Collections.sort(rowsBoth, new RowSortDate());
-
+                                    if (context instanceof ExpenseActivity) {
+                                        ((ExpenseActivity) context).onDataLoaded(rowsBoth);
+                                    }
                                     notifyDataSetChanged();
                                     fragment.loadTotals();
                                     fragment.getSaldosFragment().calculate();

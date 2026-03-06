@@ -144,6 +144,14 @@ public class SettingsActivity extends AppCompatActivity {
                             myRef.child("settings").child(newSet.getTableID()).child("sueldo1").setValue(newSet.getIncome1());
                             myRef.child("settings").child(newSet.getTableID()).child("sueldo2").setValue(newSet.getIncome2());
 
+                            // 2. NEW: Initialize categories for this tracker if they don't exist
+                            // We check if the tracker already has categories (in case the user is just editing settings)
+                            myRef.child("categories").child(newSet.getTableID()).get().addOnCompleteListener(catTask -> {
+                                if (catTask.isSuccessful() && !catTask.getResult().exists()) {
+                                    // No categories found for this ID, so we push the defaults
+                                    myRef.child("categories").child(newSet.getTableID()).setValue(Category.getDefaultCategories());
+                                }
+                            });
 
                             //if the name has changed, then we need to iterate over all the rows and update the names
                             //this still needs to be tested - NOW TESTED. Works good
@@ -214,30 +222,6 @@ public class SettingsActivity extends AppCompatActivity {
                 }
             }
         });
-
-        //testing purposes - Ignore. To uncomment this, you should uncomment the btn on the "activity_settings.xml"
-        /*btnTest.setOnClickListener(v -> {
-            FirebaseDatabase database = FirebaseDatabase.getInstance();
-            DatabaseReference myRef = database.getReference();
-
-            myRef.child("DATA1").get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
-                @Override
-                public void onComplete(@NonNull Task<DataSnapshot> task) {
-                    if (!task.isSuccessful()) {
-                        Log.e("firebase", "Error getting data", task.getException());
-                    }
-                    else {
-                        for (DataSnapshot child : task.getResult().getChildren()) {
-                            System.out.println(child.getKey().toString());
-                        }
-                        //Updating firebase DB
-                        System.out.println("Test " + task.getResult().child("1").getValue());
-
-                    }
-                }
-            });
-        });*/
-
     }
 
     private void updateNamesOnRows(String oldName, String newName, Connection connection) {
