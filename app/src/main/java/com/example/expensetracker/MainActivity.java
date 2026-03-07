@@ -2,7 +2,6 @@ package com.example.expensetracker;
 
 import com.google.firebase.auth.FirebaseAuth;
 import android.util.Log;
-import android.view.Gravity;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -23,11 +22,7 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.TextView;
-import android.widget.Toast;
 
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
@@ -35,28 +30,15 @@ import com.google.android.material.progressindicator.LinearProgressIndicator;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 
-import com.example.expensetracker.AuthGuard;
-
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.sql.Connection;
-
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Set;
 
-public class MainActivity extends AppCompatActivity implements CallBackItemTouch, SwipeRefreshLayout.OnRefreshListener{
+public class MainActivity extends AppCompatActivity implements CallBackItemTouch, SwipeRefreshLayout.OnRefreshListener {
 
     private Toolbar toolbar;
     private TabLayout tabLayout;
@@ -86,7 +68,6 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
             setContentView(R.layout.activity_main2);
             initializePage();
         });
-
     }
 
     public void redirectToLogin() {
@@ -94,9 +75,8 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
         finish();
     }
 
-
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.main_menu,menu);
+        getMenuInflater().inflate(R.menu.main_menu, menu);
         return true;
     }
 
@@ -105,8 +85,6 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
         setSupportActionBar(toolbar);
 
         progressBar = findViewById(R.id.progressBar);
-
-        //homeRecycler = findViewById(R.id.homeRecycler);
 
         viewPager = findViewById(R.id.viewPagerMain);
         tabLayout = findViewById(R.id.homeTabsComponent);
@@ -118,7 +96,7 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
         actualFragment.setPastFragment(pastFragment);
         pastFragment.setActualFragment(actualFragment);
 
-        ExpenseActivity.ViewPagerAdapter viewPagerAdapter = new ExpenseActivity.ViewPagerAdapter(getSupportFragmentManager(),0);
+        ExpenseActivity.ViewPagerAdapter viewPagerAdapter = new ExpenseActivity.ViewPagerAdapter(getSupportFragmentManager(), 0);
         viewPagerAdapter.addFragment(actualFragment, "Abiertos");
         viewPagerAdapter.addFragment(pastFragment, "Cerrados");
         viewPager.setAdapter(viewPagerAdapter);
@@ -130,7 +108,6 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
         int id = item.getItemId();
 
         if (id == R.id.btnRefresh) {
-            // Crear diálogo para agregar reporte
             MaterialAlertDialogBuilder dialog = new MaterialAlertDialogBuilder(this);
             dialog.setCancelable(false);
             dialog.setTitle("Agregar reporte");
@@ -145,48 +122,22 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
             AlertDialog alertDialog = dialog.create();
             alertDialog.show();
 
-            alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
-                @RequiresApi(api = Build.VERSION_CODES.O)
-                @Override
-                public void onClick(View v) {
-                    TextInputEditText editText = dialogView.findViewById(R.id.edit_text);
-                    TextInputLayout inputField = dialogView.findViewById(R.id.filledTextField);
+            alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
+                TextInputEditText editText = dialogView.findViewById(R.id.edit_text);
+                TextInputLayout inputField = dialogView.findViewById(R.id.filledTextField);
 
-                    String input = editText.getText().toString().trim();
-                    if (HCardDB.containsDescription(input)) {
-                        inputField.setErrorEnabled(true);
-                        inputField.setError("El nombre ya existe. Elija otro.");
-                        inputField.setErrorIconDrawable(R.drawable.ic_info);
-                    } else if (input.isEmpty()) {
-                        inputField.setErrorEnabled(true);
-                        inputField.setError("Es necesario elegir un nombre.");
-                        inputField.setErrorIconDrawable(R.drawable.ic_info);
-                    } else {
-                        alertDialog.dismiss();
-                        int newID = HCardDB.getBiggestID() + 1;
-                        HomeCard hc = new HomeCard(String.valueOf(newID), LocalDate.now(), input, false);
-
-                        FirebaseDatabase database = FirebaseDatabase.getInstance();
-                        DatabaseReference myRef = database.getReference();
-
-                        myRef.child("allTables").get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
-                            @Override
-                            public void onComplete(@NonNull Task<DataSnapshot> task) {
-                                if (task.isSuccessful()) {
-                                    myRef.child("allTables").child(hc.getTableID()).child("creationDate").setValue(String.valueOf(hc.getCreationDate()));
-                                    myRef.child("allTables").child(hc.getTableID()).child("tableDescription").setValue(hc.getName());
-                                    myRef.child("allTables").child(hc.getTableID()).child("tableName").setValue(hc.getTableID());
-                                    myRef.child("allTables").child(hc.getTableID()).child("cerrado").setValue(hc.isCerrado());
-
-                                    HCardDB.addExpense(String.valueOf(newID), hc);
-                                    actualFragment.addHCards(0, hc);
-                                    Toast.makeText(MainActivity.this, "¡El expense ha sido creado con éxito!", Toast.LENGTH_SHORT).show();
-                                } else {
-                                    Log.e("firebase", "Error getting data", task.getException());
-                                }
-                            }
-                        });
-                    }
+                String input = editText.getText() != null ? editText.getText().toString().trim() : "";
+                if (HCardDB.containsDescription(input)) {
+                    inputField.setErrorEnabled(true);
+                    inputField.setError("El nombre ya existe. Elija otro.");
+                    inputField.setErrorIconDrawable(R.drawable.ic_info);
+                } else if (input.isEmpty()) {
+                    inputField.setErrorEnabled(true);
+                    inputField.setError("Es necesario elegir un nombre.");
+                    inputField.setErrorIconDrawable(R.drawable.ic_info);
+                } else {
+                    alertDialog.dismiss();
+                    createTrackerV2(input);
                 }
             });
 
@@ -209,7 +160,6 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
                 });
 
                 popup.show();
-
             }
             return true;
         }
@@ -217,20 +167,53 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
         return super.onOptionsItemSelected(item);
     }
 
+    private void createTrackerV2(@NonNull String trackerName) {
+        int newID = HCardDB.getBiggestID() + 1;
+        String trackerId = "DATA" + newID;
+        LocalDate today = LocalDate.now();
+        HomeCard hc = HomeCard.fromTrackerId(trackerId, today, trackerName, false);
+
+        DatabaseReference trackerRef = FirebaseDatabase.getInstance()
+                .getReference()
+                .child(HomeFirebaseV2Repository.ROOT)
+                .child(trackerId);
+
+        trackerRef.child("meta").child("legacyId").setValue(trackerId);
+        trackerRef.child("meta").child("name").setValue(trackerName);
+        trackerRef.child("meta").child("createdAt").setValue(today.toString());
+        trackerRef.child("meta").child("updatedAt").setValue(today.toString());
+        trackerRef.child("meta").child("status").setValue("open");
+        trackerRef.child("meta").child("closed").setValue(false);
+        trackerRef.child("meta").child("version").setValue(2);
+        trackerRef.child("meta").child("migratedFrom").setValue("created-directly-in-v2");
+
+        trackerRef.child("participants").setValue(new HashMap<>());
+        trackerRef.child("categories").setValue(new HashMap<>());
+        trackerRef.child("expenses").setValue(new HashMap<>());
+        trackerRef.child("summary").child("expenseCount").setValue(0);
+        trackerRef.child("summary").child("totalAmount").setValue(0);
+        trackerRef.child("summary").child("participantCount").setValue(0);
+        trackerRef.child("summary").child("categoryCount").setValue(0)
+                .addOnSuccessListener(unused -> {
+                    HCardDB.addExpense(hc.getTableID(), hc);
+                    actualFragment.addHCards(0, hc);
+                    Toast.makeText(MainActivity.this, "¡El expense ha sido creado con éxito!", Toast.LENGTH_SHORT).show();
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error creando tracker en trackers_v2", e);
+                    Toast.makeText(MainActivity.this, "No se pudo crear el expense", Toast.LENGTH_SHORT).show();
+                });
+    }
 
     @Override
     public void itemTuchOnMove(int oldPosition, int newPosition) {
-
     }
 
     @Override
     public void onSwiped(RecyclerView.ViewHolder viewHolder, int position) {
-
     }
 
     @Override
     public void onRefresh() {
-
     }
-
 }

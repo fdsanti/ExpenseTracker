@@ -38,26 +38,6 @@ public class SettingsDB {
         }
     }
 
-    /*public static void loadDB(Connection conn) {
-        if (settingsDB == null) initialize();
-        String ql = "SELECT * FROM settings";
-        Statement st = null;
-        try {
-            st = conn.createStatement();
-            ResultSet result = st.executeQuery(ql);
-            while(result.next()) {
-                String tableName = result.getString("tableName");
-                String name1 = result.getString("name1");
-                int sueldo1 = result.getInt("sueldo1");
-                String name2 = result.getString("name2");
-                int sueldo2 = result.getInt("sueldo2");
-                settingsDB.put(tableName, new Settings(tableName, name1, sueldo1, name2, sueldo2));
-            }
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();
-        }
-    }*/
-
     public static HashMap<String,Settings> getHashMap() {
         if (settingsDB == null) initialize();
         return settingsDB;
@@ -155,6 +135,11 @@ public class SettingsDB {
                 throwables.printStackTrace();
             }
         }
+    }
+
+    public static void clear() {
+        if (settingsDB == null) initialize();
+        settingsDB.clear();
     }
 
 }

@@ -11,11 +11,23 @@ public class HomeCard {
     private Boolean cerrado;
 
     public HomeCard(String id, LocalDate creationDate, String name, Boolean cerrado) {
+        this(id, "DATA" + id, creationDate, name, cerrado);
+    }
+
+    public HomeCard(String id, String tableID, LocalDate creationDate, String name, Boolean cerrado) {
         this.name = name;
         this.creationDate = creationDate;
         this.id = id;
-        tableID = "DATA" + id;
+        this.tableID = tableID;
         this.cerrado = cerrado;
+    }
+
+    public static HomeCard fromTrackerId(String trackerId, LocalDate creationDate, String name, Boolean cerrado) {
+        String cleanId = trackerId;
+        if (trackerId != null && trackerId.startsWith("DATA")) {
+            cleanId = trackerId.substring(4);
+        }
+        return new HomeCard(cleanId, trackerId, creationDate, name, cerrado);
     }
 
     public String getTableID() {
