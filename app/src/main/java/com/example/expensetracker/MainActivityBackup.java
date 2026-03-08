@@ -135,7 +135,7 @@ public class MainActivityBackup extends AppCompatActivity implements CallBackIte
 
                     //Find biggest Id and create the new report with id + 1
                     int newID = HCardDB.getBiggestID() + 1;
-                    HomeCard hc = new HomeCard(String.valueOf(newID), LocalDate.now(), editText.getText().toString(),false);
+                    HomeCard hc = new HomeCard(String.valueOf(newID), LocalDate.now(), editText.getText().toString(),false,false);
 
                     //add new card to Firebase DB & update the array
                     FirebaseDatabase database = FirebaseDatabase.getInstance();

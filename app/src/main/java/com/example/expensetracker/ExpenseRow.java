@@ -16,22 +16,13 @@ public class ExpenseRow {
     private String date;
     private Double value;
     private String who;
-    public int id;
+    private String id;
     private String category;
-
-    @RequiresApi(api = Build.VERSION_CODES.O)
-    public ExpenseRow(String description, LocalDate date, double value, String who) {
-        this.description = description;
-        this.date1 = date;
-        this.value = value;
-        this.who = who;
-        this.date = DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG).format(date);
-    }
 
     public ExpenseRow() {
     }
 
-    public void setId(int id) {
+    public void setId(String id) {
         this.id = id;
     }
 
@@ -63,7 +54,7 @@ public class ExpenseRow {
         this.who = who;
     }
 
-    public int getId() {
+    public String getId() {
         return id;
     }
 

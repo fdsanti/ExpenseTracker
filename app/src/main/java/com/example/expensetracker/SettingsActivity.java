@@ -139,51 +139,21 @@ public class SettingsActivity extends AppCompatActivity {
                         }
                         else {
                             //Updating firebase DB
-                            myRef.child("settings").child(newSet.getTableID()).child("name1").setValue(newSet.getName1());
-                            myRef.child("settings").child(newSet.getTableID()).child("name2").setValue(newSet.getName2());
-                            myRef.child("settings").child(newSet.getTableID()).child("sueldo1").setValue(newSet.getIncome1());
-                            myRef.child("settings").child(newSet.getTableID()).child("sueldo2").setValue(newSet.getIncome2());
+                            myRef.child("trackers_v2").child(newSet.getTableID()).child("participants").child("p1").child("name").setValue(newSet.getName1());
+                            myRef.child("trackers_v2").child(newSet.getTableID()).child("participants").child("p2").child("name").setValue(newSet.getName2());
+                            myRef.child("trackers_v2").child(newSet.getTableID()).child("participants").child("p1").child("income").setValue(newSet.getIncome1());
+                            myRef.child("trackers_v2").child(newSet.getTableID()).child("participants").child("p2").child("income").setValue(newSet.getIncome2());
+                            myRef.child("home_index").child(newSet.getTableID()).child("isSetupComplete").setValue(true);
 
                             // 2. NEW: Initialize categories for this tracker if they don't exist
                             // We check if the tracker already has categories (in case the user is just editing settings)
-                            myRef.child("categories").child(newSet.getTableID()).get().addOnCompleteListener(catTask -> {
+                            myRef.child("trackers_v2").child(newSet.getTableID()).child("categories").get().addOnCompleteListener(catTask -> {
                                 if (catTask.isSuccessful() && !catTask.getResult().exists()) {
                                     // No categories found for this ID, so we push the defaults
-                                    myRef.child("categories").child(newSet.getTableID()).setValue(Category.getDefaultCategories());
+                                    myRef.child("trackers_v2").child(newSet.getTableID()).child("categories").setValue(buildDefaultCategoriesMap());
                                 }
                             });
 
-                            //if the name has changed, then we need to iterate over all the rows and update the names
-                            //this still needs to be tested - NOW TESTED. Works good
-                            //create hashmap, and add old name and new name for each name changed to hashmap
-                            //then, if hashmap is not empty (which means that a named has changed), update the name of the rows with the new name which is the value in the hashmap
-                            if (comingFromExpense) {
-                                //check if
-                                HashMap<String, String> oldAndNewNames = new HashMap<String, String>();
-
-                                if (!txtEditNombre1.getText().toString().equals(SettingsDB.getSetting(HCardDB.getSelected()).getName1())) {
-                                    String oldName = SettingsDB.getSetting(HCardDB.getSelected()).getName1();
-                                    String newName = txtEditNombre1.getText().toString();
-                                    oldAndNewNames.put(oldName, newName);
-                                }
-                                if (!txtEditNombre2.getText().toString().equals(SettingsDB.getSetting(HCardDB.getSelected()).getName2())) {
-                                    String oldName = SettingsDB.getSetting(HCardDB.getSelected()).getName2();
-                                    String newName = txtEditNombre2.getText().toString();
-                                    oldAndNewNames.put(oldName, newName);
-                                }
-                                if (!oldAndNewNames.isEmpty()) {
-                                    for (DataSnapshot row : task.getResult().child(HCardDB.getSelected().getTableID()).getChildren()) {
-                                        for (Map.Entry<String, String> entry : oldAndNewNames.entrySet()) {
-                                            String currName = row.child("Who").getValue().toString();
-                                            System.out.println("CurrName: " + currName);
-                                            System.out.println("oldName: " + entry.getKey().toString());
-                                            if (currName.equals(entry.getKey())) {
-                                                myRef.child(HCardDB.getSelected().getTableID().toString()).child(row.getKey().toString()).child("Who").setValue(entry.getValue());
-                                            }
-                                        }
-                                    }
-                                }
-                            }
                             SettingsDB.addToDB(newSet);
                             Intent intent = new Intent(SettingsActivity.this, ExpenseActivity.class);
                             SettingsActivity.this.startActivity(intent);
@@ -255,5 +225,36 @@ public class SettingsActivity extends AppCompatActivity {
         txtEditSueldo1 = findViewById(R.id.txtEditSueldo1);
         txtEditNombre2 = findViewById(R.id.txtEditNombre2);
         txtEditSueldo2 = findViewById(R.id.txtEditSueldo2);
+    }
+
+    private Map<String, Object> buildDefaultCategoriesMap() {
+        Map<String, Object> categoriesMap = new HashMap<>();
+
+        String[] names = {
+                "Salidas",
+                "Delivery",
+                "Super",
+                "Gatitas",
+                "Servicios",
+                "Nafta / Peajes",
+                "Olga",
+                "Auto",
+                "Pago Casa",
+                "Suscripciones",
+                "Compras",
+                "Otros"
+        };
+
+        for (int i = 0; i < names.length; i++) {
+            Map<String, Object> category = new HashMap<>();
+            category.put("name", names[i]);
+            category.put("order", i + 1);
+            category.put("active", true);
+            category.put("system", false);
+
+            categoriesMap.put("c" + (i + 1), category);
+        }
+
+        return categoriesMap;
     }
 }

@@ -19,7 +19,7 @@ public class HomeFirebaseV2Repository {
         void onError(@NonNull Exception e);
     }
 
-    public static final String ROOT = "trackers_v2";
+    public static final String ROOT = "home_index";
 
     public void loadHomeData(@NonNull LoadCallback callback) {
         DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference().child(ROOT);
@@ -38,17 +38,11 @@ public class HomeFirebaseV2Repository {
                     SettingsDB.getHashMap().clear();
 
                     for (DataSnapshot trackerSnapshot : task.getResult().getChildren()) {
-                        String trackerId = trackerSnapshot.getKey();
-                        DataSnapshot metaSnapshot = trackerSnapshot.child("meta");
-                        if (!metaSnapshot.exists() || trackerId == null) {
-                            continue;
-                        }
 
-                        String name = safeString(metaSnapshot.child("name"), "Sin nombre");
-                        String createdAt = safeString(metaSnapshot.child("createdAt"), LocalDate.now().toString());
-                        String status = safeString(metaSnapshot.child("status"), "open");
-                        boolean closed = "closed".equalsIgnoreCase(status)
-                                || Boolean.TRUE.equals(metaSnapshot.child("closed").getValue(Boolean.class));
+                        String trackerId = safeString(trackerSnapshot.child("trackerId"), "");
+                        String name = safeString(trackerSnapshot.child("name"), "Sin nombre");
+                        String createdAt = safeString(trackerSnapshot.child("createdAt"), LocalDate.now().toString());
+                        boolean closed = Boolean.TRUE.equals(trackerSnapshot.child("closed").getValue(Boolean.class));
 
                         LocalDate creationDate;
                         try {
@@ -57,35 +51,9 @@ public class HomeFirebaseV2Repository {
                             creationDate = LocalDate.now();
                         }
 
-                        HomeCard tempCard = HomeCard.fromTrackerId(trackerId, creationDate, name, closed);
+                        boolean isSetupComplete = Boolean.TRUE.equals(trackerSnapshot.child("isSetupComplete").getValue(Boolean.class));
+                        HomeCard tempCard = HomeCard.fromTrackerId(trackerId, creationDate, name, closed, isSetupComplete);
                         tempHCArray.add(tempCard);
-
-                        DataSnapshot participantsSnapshot = trackerSnapshot.child("participants");
-                        if (participantsSnapshot.exists()) {
-                            String name1 = "";
-                            String name2 = "";
-                            int sueldo1 = 0;
-                            int sueldo2 = 0;
-                            int index = 0;
-
-                            for (DataSnapshot participantSnapshot : participantsSnapshot.getChildren()) {
-                                String participantName = safeString(participantSnapshot.child("name"), "");
-                                int income = safeInt(participantSnapshot.child("income"), 0);
-
-                                if (index == 0) {
-                                    name1 = participantName;
-                                    sueldo1 = income;
-                                } else if (index == 1) {
-                                    name2 = participantName;
-                                    sueldo2 = income;
-                                }
-                                index++;
-                            }
-
-                            if (!name1.isEmpty() || !name2.isEmpty()) {
-                                SettingsDB.addToDB(new Settings(trackerId, name1, sueldo1, name2, sueldo2));
-                            }
-                        }
                     }
 
                     Collections.sort(tempHCArray, new HomeCardSortDate());

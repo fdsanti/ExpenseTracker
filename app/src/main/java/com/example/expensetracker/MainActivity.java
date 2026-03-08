@@ -66,6 +66,22 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
 
         AuthGuard.checkAccess(this, () -> {
             setContentView(R.layout.activity_main2);
+            /*FirebaseMigrationHelper.migrateLegacyToTrackersV2(new FirebaseMigrationHelper.MigrationCallback() {
+                @Override
+                public void onSuccess(int migratedTrackers) {
+                    Toast.makeText(MainActivity.this,
+                            "Migración OK. Trackers migrados: " + migratedTrackers,
+                            Toast.LENGTH_LONG).show();
+                }
+
+                @Override
+                public void onError(@NonNull Exception e) {
+                    Toast.makeText(MainActivity.this,
+                            "Error migrando: " + e.getMessage(),
+                            Toast.LENGTH_LONG).show();
+                    Log.e("Migration", "Migration failed", e);
+                }
+            });*/
             initializePage();
         });
     }
@@ -171,7 +187,7 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
         int newID = HCardDB.getBiggestID() + 1;
         String trackerId = "DATA" + newID;
         LocalDate today = LocalDate.now();
-        HomeCard hc = HomeCard.fromTrackerId(trackerId, today, trackerName, false);
+        HomeCard hc = HomeCard.fromTrackerId(trackerId, today, trackerName, false, false);
 
         DatabaseReference trackerRef = FirebaseDatabase.getInstance()
                 .getReference()

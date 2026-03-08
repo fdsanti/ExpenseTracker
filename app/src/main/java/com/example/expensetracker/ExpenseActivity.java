@@ -6,11 +6,13 @@ import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.RelativeLayout;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -24,6 +26,8 @@ import androidx.viewpager.widget.ViewPager;
 
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.tabs.TabLayout;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -66,6 +70,11 @@ public class ExpenseActivity extends AppCompatActivity {
 
         recyclerView = findViewById(R.id.expenseRecycler);
 
+        loadSettingsAndSetupTabs();
+
+    }
+
+    private void setupTabs() {
         gastosFragment = new GastosFragment();
         saldosFragment = new SaldosFragment(this);
         resumenFragment = new ResumenFragment();
@@ -73,18 +82,69 @@ public class ExpenseActivity extends AppCompatActivity {
         gastosFragment.setSaldosFragment(saldosFragment);
         saldosFragment.setGastosFragment(gastosFragment);
 
-
         tabLayout.setupWithViewPager(viewPager);
 
-        ViewPagerAdapter viewPagerAdapter = new ViewPagerAdapter(getSupportFragmentManager(),0);
+        ViewPagerAdapter viewPagerAdapter = new ViewPagerAdapter(getSupportFragmentManager(), 0);
         viewPagerAdapter.addFragment(gastosFragment, "Gastos");
         viewPagerAdapter.addFragment(saldosFragment, "Saldos");
         viewPagerAdapter.addFragment(resumenFragment, "Resumen");
         viewPager.setAdapter(viewPagerAdapter);
         viewPager.setSwipeable(false);
-
     }
 
+    private void loadSettingsAndSetupTabs() {
+        String trackerId = HCardDB.getSelected().getTableID();
+
+        FirebaseDatabase.getInstance()
+                .getReference("trackers_v2")
+                .child(trackerId)
+                .child("participants")
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (!task.isSuccessful()) {
+                        Toast.makeText(this, "Error cargando settings", Toast.LENGTH_SHORT).show();
+                        finish();
+                        return;
+                    }
+
+                    DataSnapshot participantsSnapshot = task.getResult();
+                    String name1 = "";
+                    String name2 = "";
+                    int income1 = 0;
+                    int income2 = 0;
+
+                    DataSnapshot p1 = participantsSnapshot.child("p1");
+                    DataSnapshot p2 = participantsSnapshot.child("p2");
+
+                    if (p1.exists()) {
+                        String p1Name = p1.child("name").getValue(String.class);
+                        Object p1IncomeObj = p1.child("income").getValue();
+
+                        name1 = p1Name != null ? p1Name : "";
+                        if (p1IncomeObj instanceof Long) {
+                            income1 = ((Long) p1IncomeObj).intValue();
+                        } else if (p1IncomeObj instanceof Integer) {
+                            income1 = (Integer) p1IncomeObj;
+                        }
+                    }
+
+                    if (p2.exists()) {
+                        String p2Name = p2.child("name").getValue(String.class);
+                        Object p2IncomeObj = p2.child("income").getValue();
+
+                        name2 = p2Name != null ? p2Name : "";
+                        if (p2IncomeObj instanceof Long) {
+                            income2 = ((Long) p2IncomeObj).intValue();
+                        } else if (p2IncomeObj instanceof Integer) {
+                            income2 = (Integer) p2IncomeObj;
+                        }
+                    }
+
+                    SettingsDB.addToDB(new Settings(trackerId, name1, income1, name2, income2));
+                    Log.d("DEBUG DATA", name1 + name2);
+                    setupTabs();
+                });
+    }
 
     //need to make sure the home page is updated when an expense is closed
 

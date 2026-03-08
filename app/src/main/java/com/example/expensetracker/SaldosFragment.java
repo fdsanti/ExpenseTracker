@@ -104,13 +104,13 @@ public class SaldosFragment extends Fragment {
                             }
                             else {
                                 if (!HCardDB.getSelected().isCerrado()) {
-                                    myRef.child("allTables").child(HCardDB.getSelected().getTableID()).child("cerrado").setValue(true);
+                                    myRef.child("trackers_v2").child(HCardDB.getSelected().getTableID()).child("meta").child("closed").setValue(true);
                                     HCardDB.setCerrado(true);
                                     btn_cerrarExpense.setText("Abrir Expense");
                                     Toast.makeText(context, "Expense Cerrado", Toast.LENGTH_SHORT).show();
                                 }
                                 else {
-                                    myRef.child("allTables").child(HCardDB.getSelected().getTableID()).child("cerrado").setValue(false);
+                                    myRef.child("trackers_v2").child(HCardDB.getSelected().getTableID()).child("meta").child("closed").setValue(false);
                                     HCardDB.setCerrado(false);
                                     btn_cerrarExpense.setText("Cerrar Expense");
                                     Toast.makeText(context, "Expense Abierto", Toast.LENGTH_SHORT).show();

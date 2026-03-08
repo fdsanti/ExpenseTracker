@@ -99,6 +99,8 @@ public final class FirebaseMigrationHelper {
                         nextParticipantOrder = order + 1;
                     }
 
+
+
                     // Categories
                     DataSnapshot categoriesForTracker = categoriesSnapshot.child(trackerId);
                     LinkedHashMap<String, Object> categoryMap = new LinkedHashMap<>();
@@ -160,6 +162,10 @@ public final class FirebaseMigrationHelper {
                         expenseCounter++;
                     }
 
+                    boolean isSetupComplete =
+                            isParticipantConfigured(participants.get("p1")) &&
+                                    isParticipantConfigured(participants.get("p2"));
+
                     updates.put("trackers_v2/" + trackerId + "/participants", participants);
                     updates.put("trackers_v2/" + trackerId + "/categories", categoryMap);
                     updates.put("trackers_v2/" + trackerId + "/expenses", expenses);
@@ -170,6 +176,15 @@ public final class FirebaseMigrationHelper {
                     summary.put("participantCount", participants.size());
                     summary.put("categoryCount", categoryMap.size());
                     updates.put("trackers_v2/" + trackerId + "/summary", summary);
+
+                    Map<String, Object> homeIndexEntry = new LinkedHashMap<>();
+                    homeIndexEntry.put("trackerId", trackerId);
+                    homeIndexEntry.put("name", safeString(trackerSnapshot.child("tableDescription").getValue()));
+                    homeIndexEntry.put("createdAt", safeString(trackerSnapshot.child("creationDate").getValue()));
+                    homeIndexEntry.put("closed", closed);
+                    homeIndexEntry.put("isSetupComplete", isSetupComplete);
+
+                    updates.put("home_index/" + trackerId, homeIndexEntry);
 
                     migratedCount++;
                 }
@@ -233,5 +248,18 @@ public final class FirebaseMigrationHelper {
         } catch (Exception ignored) {
             return 0L;
         }
+    }
+
+    private static boolean isParticipantConfigured(Object participantObj) {
+        if (!(participantObj instanceof Map)) return false;
+
+        Map<?, ?> participant = (Map<?, ?>) participantObj;
+
+        Object nameObj = participant.get("name");
+        Object incomeObj = participant.get("income");
+
+        String name = nameObj == null ? "" : String.valueOf(nameObj).trim();
+
+        return !name.isEmpty() && incomeObj != null;
     }
 }
