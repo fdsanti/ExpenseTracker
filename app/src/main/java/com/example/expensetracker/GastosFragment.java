@@ -7,7 +7,6 @@ import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -16,7 +15,6 @@ import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.LayoutInflater;
-import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -25,7 +23,6 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.ImageView;
-import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -35,8 +32,6 @@ import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.view.menu.MenuBuilder;
 import androidx.appcompat.view.menu.MenuPopupHelper;
-import androidx.core.content.ContextCompat;
-import androidx.core.graphics.drawable.DrawableCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -54,25 +49,16 @@ import com.google.android.material.progressindicator.LinearProgressIndicator;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
-
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-import java.time.format.FormatStyle;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
@@ -82,13 +68,11 @@ public class GastosFragment extends Fragment implements CallBackItemTouch, Swipe
     private Context context;
     private RecyclerView recyclerView;
     private RowViewAdapter adapter;
-    private Connection connection;
-    private DBHandler handler;
     private LinearProgressIndicator progressBar;
-    public static ArrayList<ExpenseRow> rows;
-    public static ArrayList<ExpenseRow> rows1;
-    public static ArrayList<ExpenseRow> rows2;
-    public static ArrayList<ExpenseRow> rowsBoth;
+    public ArrayList<ExpenseRow> rows;
+    public ArrayList<ExpenseRow> rows1;
+    public ArrayList<ExpenseRow> rows2;
+    public ArrayList<ExpenseRow> rowsBoth;
     private Chip chip_1;
     private Chip chip_2;
     private FloatingActionButton btn_fab;
@@ -101,8 +85,11 @@ public class GastosFragment extends Fragment implements CallBackItemTouch, Swipe
     private SwipeRefreshLayout mSwipeRefreshLayout;
     private ImageView icon_sort;
     private int sort_menu_selected = 1;
+    private HashMap<String, String> categoryIdToName = new HashMap<>();
+    private HashMap<String, String> categoryNameToId = new HashMap<>();
     @SuppressLint("RestrictedApi")
     private MenuBuilder menuBuilder;
+
 
     private SaldosFragment saldosFragment;
 
@@ -162,7 +149,7 @@ public class GastosFragment extends Fragment implements CallBackItemTouch, Swipe
             //btn_fab.show();
         }
 
-        loadRows(view);
+        loadCategories(() -> loadRows(view));
         loadNames();
 
         //Al hacer click en los filtros, filtrar
@@ -220,33 +207,9 @@ public class GastosFragment extends Fragment implements CallBackItemTouch, Swipe
 
 
             // 1. Initialize the list
-            List<String> categoryNames = new ArrayList<>();
-            String tableID = HCardDB.getSelected().getTableID();
-
-            // 2. Fetch from Firebase
-            FirebaseDatabase.getInstance().getReference("categories").child(tableID)
-                    .get().addOnCompleteListener(task -> {
-                        if (task.isSuccessful() && task.getResult().exists()) {
-                            for (DataSnapshot ds : task.getResult().getChildren()) {
-                                // Get the name from Firebase
-                                String name = ds.child("name").getValue(String.class);
-                                if (name != null) categoryNames.add(name);
-                            }
-                        }
-
-                        // 3. ENUM FALLBACK/SYNC:
-                        // If Firebase is empty OR if you want to ensure your Enum defaults
-                        // are always available, add them here.
-                        if (categoryNames.isEmpty()) {
-                            for (Category c : Category.values()) {
-                                categoryNames.add(c.getDisplayName());
-                            }
-                        }
-
-                        // 4. Setup the adapter
-                        ArrayAdapter<String> catAdapter = new ArrayAdapter<>(context, R.layout.dropdown_item, categoryNames);
-                        catDropdown.setAdapter(catAdapter);
-                    });
+            List<String> categoryNames = new ArrayList<>(categoryNameToId.keySet());
+            ArrayAdapter<String> catAdapter = new ArrayAdapter<>(context, R.layout.dropdown_item, categoryNames);
+            catDropdown.setAdapter(catAdapter);
 
             //hacer que si hay error, cuando toques de vuelta para escribir otra cosa, el error desaparezca
             dropdown_nombres.setOnClickListener(v1 -> {
@@ -358,12 +321,11 @@ public class GastosFragment extends Fragment implements CallBackItemTouch, Swipe
                     }
 
                     if (!error) {
-                        ExpenseRow newRow = new ExpenseRow(
-                                txt_NombreGasto.getText().toString(),
-                                date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate(),
-                                Double.parseDouble(txt_Gasto.getText().toString()),
-                                dropdown_nombres.getText().toString()
-                        );
+                        ExpenseRow newRow = new ExpenseRow();
+                        newRow.setDescription(txt_NombreGasto.getText().toString());
+                        newRow.setDate(date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
+                        newRow.setValue(Double.parseDouble(txt_Gasto.getText().toString()));
+                        newRow.setWho(dropdown_nombres.getText().toString());
                         newRow.setCategory(catDropdown.getText().toString());
                         alertDialog.dismiss();
                         //show progressBar
@@ -381,23 +343,27 @@ public class GastosFragment extends Fragment implements CallBackItemTouch, Swipe
                                 }
                                 else {
                                     //Upload new row
-                                    //Find biggest id
-                                    int biggest = 0;
-                                    for (DataSnapshot row : task.getResult().child(HCardDB.getSelected().getTableID()).getChildren()) {
-                                        System.out.println(row.getKey());
-                                        Integer intID = Integer.parseInt(row.getKey().toString());
-                                        if (intID > biggest) {
-                                            biggest = intID;
-                                        }
-                                    }
-                                    newRow.setId(biggest+1);
+                                    String newId = myRef.child(HCardDB.getSelected().getTableID()).push().getKey();
+                                    newRow.setId(newId);
                                     System.out.println(newRow);
-                                    myRef.child(HCardDB.getSelected().getTableID().toString()).child(String.valueOf(newRow.getId())).child("Date").setValue(newRow.getLocalDate().toString());
-                                    myRef.child(HCardDB.getSelected().getTableID().toString()).child(String.valueOf(newRow.getId())).child("Description").setValue(newRow.getDescription().toString());
-                                    myRef.child(HCardDB.getSelected().getTableID().toString()).child(String.valueOf(newRow.getId())).child("Value").setValue(newRow.getValue());
-                                    myRef.child(HCardDB.getSelected().getTableID().toString()).child(String.valueOf(newRow.getId())).child("Who").setValue(newRow.getWho().toString());
-                                    myRef.child(HCardDB.getSelected().getTableID().toString()).child(String.valueOf(newRow.getId())).child("Category").setValue(newRow.getCategory().toString());
 
+                                    //add to db
+                                    DatabaseReference newExpenseRef = myRef
+                                            .child("trackers_v2")
+                                            .child(HCardDB.getSelected().getTableID())
+                                            .child("expenses")
+                                            .child(newRow.getId());
+
+                                    newExpenseRef.child("date").setValue(newRow.getLocalDate().toString());
+                                    newExpenseRef.child("description").setValue(newRow.getDescription());
+                                    newExpenseRef.child("amount").setValue(newRow.getValue());
+
+                                    if (newRow.getWho().equals(SettingsDB.getSetting(HCardDB.getSelected()).getName1())) {
+                                        newExpenseRef.child("participantId").setValue("p1");
+                                    } else {
+                                        newExpenseRef.child("participantId").setValue("p2");
+                                    }
+                                    newExpenseRef.child("categoryId").setValue(categoryNameToId.get(newRow.getCategory()));
 
                                     if (dropdown_nombres.getText().toString().equals(SettingsDB.getSetting(HCardDB.getSelected()).getName1())) {
                                         rows1.add(newRow);
@@ -440,7 +406,7 @@ public class GastosFragment extends Fragment implements CallBackItemTouch, Swipe
                                     //Find position of the item added
                                     if (!chip_1.isChecked() && !chip_2.isChecked()) {
                                         for (ExpenseRow currRow : rowsBoth) {
-                                            if (currRow.getId() == newRow.getId()) {
+                                            if (currRow.getId().equals(newRow.getId())) {
                                                 break;
                                             }
                                             currPos += 1;
@@ -448,7 +414,7 @@ public class GastosFragment extends Fragment implements CallBackItemTouch, Swipe
                                     }
                                     if (chip_1.isChecked()) {
                                         for (ExpenseRow currRow : rows1) {
-                                            if (currRow.getId() == newRow.getId()) {
+                                            if (currRow.getId().equals(newRow.getId())) {
                                                 break;
                                             }
                                             currPos += 1;
@@ -456,7 +422,7 @@ public class GastosFragment extends Fragment implements CallBackItemTouch, Swipe
                                     }
                                     if (chip_2.isChecked()){
                                         for (ExpenseRow currRow : rows2) {
-                                            if (currRow.getId() == newRow.getId()) {
+                                            if (currRow.getId().equals(newRow.getId())) {
                                                 break;
                                             }
                                             currPos += 1;
@@ -468,6 +434,8 @@ public class GastosFragment extends Fragment implements CallBackItemTouch, Swipe
                                     if (currPos == 0) {
                                         recyclerView.smoothScrollToPosition(0);
                                     }
+
+                                    notifySummaryDataChanged();
 
                                     //hide progressBar
                                     progressBar.hide();
@@ -557,29 +525,6 @@ public class GastosFragment extends Fragment implements CallBackItemTouch, Swipe
 
         });
 
-        //OnDataChange - Disabled for now. Need to think this through
-        FirebaseDatabase database = FirebaseDatabase.getInstance();
-        DatabaseReference myRef = database.getReference();
-        myRef.child(HCardDB.getSelected().getTableID().toString()).addValueEventListener(new ValueEventListener() {
-            int numberOfChanges = 0;
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                // This method is called once with the initial value and again
-                // whenever data at this location is updated.
-                //String value = dataSnapshot.getValue(String.class);
-                if (numberOfChanges > 0) {
-                    //Toast.makeText(context, "Hay un update", Toast.LENGTH_SHORT).show();
-                }
-                numberOfChanges += 1;
-                //Log.d(TAG, "Value is: " + value);
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                // Failed to read value
-                Log.w(TAG, "Failed to read value.", error.toException());
-            }
-        });
     }
 
     private void loadNames() {
@@ -628,6 +573,7 @@ public class GastosFragment extends Fragment implements CallBackItemTouch, Swipe
         chip_2 = view.findViewById(R.id.chip_2);
         chip_1.setText(SettingsDB.getSetting(HCardDB.getSelected()).getName1());
         chip_2.setText(SettingsDB.getSetting(HCardDB.getSelected()).getName2());
+        Log.d("DEBUG DATA", SettingsDB.getSetting(HCardDB.getSelected()).getName1());
         icon_sort = view.findViewById(R.id.icon_sort);
         progressBar = view.findViewById(R.id.progressBar);
     }
@@ -643,7 +589,7 @@ public class GastosFragment extends Fragment implements CallBackItemTouch, Swipe
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         DatabaseReference myRef = database.getReference();
         //fetch rows from Firebase db
-        myRef.child(HCardDB.getSelected().getTableID()).get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
+        myRef.child("trackers_v2").child(HCardDB.getSelected().getTableID()).child("expenses").get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
             @RequiresApi(api = Build.VERSION_CODES.O)
             @Override
             public void onComplete(@NonNull Task<DataSnapshot> task) {
@@ -653,21 +599,42 @@ public class GastosFragment extends Fragment implements CallBackItemTouch, Swipe
                 else {
                     for (DataSnapshot currRow : task.getResult().getChildren()) {
                         ExpenseRow row = new ExpenseRow();
-                        String categoryFromDB = currRow.child("Category").getValue(String.class);
-                        row.setId(Integer.parseInt(currRow.getKey()));
-                        row.setDescription(currRow.child("Description").getValue(String.class));
-                        LocalDate newDate = LocalDate.parse(currRow.child("Date").getValue(String.class));
+                        row.setId(currRow.getKey());
+                        row.setDescription(currRow.child("description").getValue(String.class));
+                        LocalDate newDate = LocalDate.parse(currRow.child("date").getValue(String.class));
                         row.setDate(newDate);
-                        row.setValue(currRow.child("Value").getValue(Long.class).doubleValue());
-                        row.setWho(currRow.child("Who").getValue(String.class));
-                        row.setCategory(currRow.child("Category").getValue(String.class));
-                        rowsBoth.add(row);
-                        if (currRow.child("Who").getValue().equals(SettingsDB.getSetting(HCardDB.getSelected()).getName1())) {
+                        Long amountLong = currRow.child("amount").getValue(Long.class);
+                        Double amountDouble = currRow.child("amount").getValue(Double.class);
+
+                        if (amountLong != null) {
+                            row.setValue(amountLong.doubleValue());
+                        } else if (amountDouble != null) {
+                            row.setValue(amountDouble);
+                        } else {
+                            row.setValue(0.0);
+                        }
+                        String participantId = currRow.child("participantId").getValue(String.class);
+
+                        if ("p1".equals(participantId)) {
+                            row.setWho(SettingsDB.getSetting(HCardDB.getSelected()).getName1());
                             rows1.add(row);
-                        }
-                        if (currRow.child("Who").getValue().equals(SettingsDB.getSetting(HCardDB.getSelected()).getName2())) {
+                        } else if ("p2".equals(participantId)) {
+                            row.setWho(SettingsDB.getSetting(HCardDB.getSelected()).getName2());
                             rows2.add(row);
+                        } else {
+                            row.setWho("");
                         }
+                        String categoryId = currRow.child("categoryId").getValue(String.class);
+                        Log.d("CAT_DEBUG", "expense categoryId from DB = " + categoryId);
+                        Log.d("CAT_DEBUG", "categoryIdToName map in loadRows = " + categoryIdToName);
+
+                        if (categoryId != null && categoryIdToName.containsKey(categoryId)) {
+                            row.setCategory(categoryIdToName.get(categoryId));
+                        } else {
+                            row.setCategory(categoryId);
+                        }
+                        rowsBoth.add(row);
+
                     }
                     rows = rowsBoth;
                     Collections.sort(rowsBoth, new RowSortDate());
@@ -709,57 +676,6 @@ public class GastosFragment extends Fragment implements CallBackItemTouch, Swipe
                 }
             }
         });
-    }
-
-    @RequiresApi(api = Build.VERSION_CODES.O)
-    private void getRows() {
-        rows = new ArrayList<ExpenseRow>();
-        rows1 = new ArrayList<ExpenseRow>();
-        rows2 = new ArrayList<ExpenseRow>();
-        rowsBoth = new ArrayList<ExpenseRow>();
-
-
-        handler = new DBHandler();
-        connection = handler.getConnection(context);
-
-        String query = "SELECT * FROM " + HCardDB.getSelected().getTableID();
-
-        try {
-            ResultSet set = connection.createStatement().executeQuery(query);
-            while (set.next()) {
-                //Create a row and add it to the arraylist
-                ExpenseRow row = new ExpenseRow();
-                row.setId(set.getInt("id"));
-                row.setDescription(set.getString("Description"));
-                row.setDate(set.getDate("Date"));
-                row.setValue(set.getDouble("Value"));
-                row.setWho(set.getString("Who"));
-                rowsBoth.add(row);
-                if (set.getString("Who").equals(SettingsDB.getSetting(HCardDB.getSelected()).getName1())) {
-                    rows1.add(row);
-                }
-                if (set.getString("Who").equals(SettingsDB.getSetting(HCardDB.getSelected()).getName2())) {
-                    rows2.add(row);
-                }
-            }
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();
-        }
-
-        try {
-            connection.close();
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();
-        }
-        rows = rowsBoth;
-        Collections.sort(rowsBoth, new RowSortDate());
-        if (!rows1.isEmpty()) {
-            Collections.sort(rows1, new RowSortDate());
-        }
-        if (!rows2.isEmpty()) {
-            Collections.sort(rows2, new RowSortDate());
-        }
-
     }
 
     @Override
@@ -816,7 +732,7 @@ public class GastosFragment extends Fragment implements CallBackItemTouch, Swipe
                             Log.e("firebase", "Error getting data", task.getException());
                         }
                         else {
-                            myRef.child(HCardDB.getSelected().getTableID()).child(String.valueOf(rows.get(position).getId())).removeValue();
+                            myRef.child("trackers_v2").child(HCardDB.getSelected().getTableID()).child("expenses").child(rows.get(position).getId()).removeValue();
 
                             ArrayList<ExpenseRow> copyRows;
                             copyRows = (ArrayList<ExpenseRow>) rows.clone();
@@ -825,7 +741,7 @@ public class GastosFragment extends Fragment implements CallBackItemTouch, Swipe
                             if (rows.get(position).getWho().equals(SettingsDB.getSetting(HCardDB.getSelected()).getName1())) {
                                 for (ExpenseRow currRow : rows1) {
                                     //encontrar la row con la misma id que la row seleccionada
-                                    if (currRow.getId() == copyRows.get(position).getId()) {
+                                    if (currRow.getId().equals(copyRows.get(position).getId())) {
                                         rows1.remove(currRow);
                                         break;
                                     }
@@ -835,7 +751,7 @@ public class GastosFragment extends Fragment implements CallBackItemTouch, Swipe
                             if (rows.get(position).getWho().equals(SettingsDB.getSetting(HCardDB.getSelected()).getName2())) {
                                 for (ExpenseRow currRow : rows2) {
                                     //encontrar la row con la misma id que la row seleccionada
-                                    if (currRow.getId() == copyRows.get(position).getId()) {
+                                    if (currRow.getId().equals(copyRows.get(position).getId())) {
                                         rows2.remove(currRow);
                                         break;
                                     }
@@ -843,7 +759,7 @@ public class GastosFragment extends Fragment implements CallBackItemTouch, Swipe
                             }
                             //eliminar de la rowsBoth
                             for (ExpenseRow currRow : rowsBoth) {
-                                if (currRow.getId() == copyRows.get(position).getId()) {
+                                if (currRow.getId().equals(copyRows.get(position).getId())) {
                                     rowsBoth.remove(currRow);
                                     break;
                                 }
@@ -851,6 +767,7 @@ public class GastosFragment extends Fragment implements CallBackItemTouch, Swipe
 
                             adapter.notifyItemRemoved(position);
                             adapter.notifyItemRangeChanged(position,rows.size());
+                            notifySummaryDataChanged();
                             // Now that the lists are updated, tell the activity
                             if (getActivity() != null) {
                                 ((ExpenseActivity) getActivity()).onDataLoaded(rowsBoth);
@@ -868,4 +785,49 @@ public class GastosFragment extends Fragment implements CallBackItemTouch, Swipe
 
         dialog.show();
     }
+
+    public HashMap<String, String> getCategoryIdToName() {
+        return categoryIdToName;
+    }
+
+    public HashMap<String, String> getCategoryNameToId() {
+        return categoryNameToId;
+    }
+
+    private void loadCategories(Runnable onComplete) {
+        categoryIdToName.clear();
+        categoryNameToId.clear();
+
+        String tableID = HCardDB.getSelected().getTableID();
+
+        FirebaseDatabase.getInstance()
+                .getReference("trackers_v2")
+                .child(tableID)
+                .child("categories")
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful() && task.getResult().exists()) {
+                        for (DataSnapshot ds : task.getResult().getChildren()) {
+                            String id = ds.getKey();
+                            String name = ds.child("name").getValue(String.class);
+
+                            if (id != null && name != null) {
+                                categoryIdToName.put(id, name);
+                                categoryNameToId.put(name, id);
+                            }
+                        }
+                    }
+
+                    if (onComplete != null) {
+                        onComplete.run();
+                    }
+                });
+    }
+
+    private void notifySummaryDataChanged() {
+        if (getActivity() instanceof ExpenseActivity) {
+            ((ExpenseActivity) getActivity()).onDataLoaded(new ArrayList<>(rowsBoth));
+        }
+    }
+
 }

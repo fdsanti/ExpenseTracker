@@ -28,7 +28,7 @@ public class AuthGuard {
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         DatabaseReference ref = database.getReference();
 
-        ref.child("allTables") // O alguna ruta segura que tenga sentido leer
+        ref.child("home_index")
                 .limitToFirst(1)
                 .get()
                 .addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {

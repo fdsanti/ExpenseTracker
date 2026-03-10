@@ -1,37 +1,22 @@
 package com.example.expensetracker;
 
 import android.annotation.SuppressLint;
-import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.DialogInterface;
-import android.content.Intent;
-import android.graphics.Color;
-import android.graphics.drawable.Drawable;
 import android.os.Build;
-import android.os.Handler;
 import android.text.InputType;
 import android.util.Log;
-import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
-import android.widget.Button;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.content.res.AppCompatResources;
-import androidx.cardview.widget.CardView;
-import androidx.core.content.ContextCompat;
-import androidx.core.graphics.drawable.DrawableCompat;
 import androidx.recyclerview.widget.RecyclerView;
-
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.card.MaterialCardView;
@@ -43,21 +28,12 @@ import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-import java.time.format.FormatStyle;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Currency;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -66,8 +42,6 @@ import java.util.TimeZone;
 public class RowViewAdapter extends RecyclerView.Adapter<RowViewAdapter.ViewHolder> {
 
     private Context context;
-    private DBHandler handler;
-    private Connection connection;
     private LocalDate date;
     private GastosFragment fragment;
     private ArrayList<ExpenseRow> rows = new ArrayList<ExpenseRow>(), rows1 = new ArrayList<ExpenseRow>(), rows2 = new ArrayList<ExpenseRow>(), rowsBoth = new ArrayList<ExpenseRow>();
@@ -176,28 +150,23 @@ public class RowViewAdapter extends RecyclerView.Adapter<RowViewAdapter.ViewHold
             TextInputEditText txt_Gasto = dialogView.findViewById(R.id.editText_Gasto);
             txt_Gasto.setText(String.valueOf(rows.get(position).getValue()));
             AutoCompleteTextView cat_dropdown = dialogView.findViewById(R.id.cat_dropdown);
-            cat_dropdown.setText(rows.get(position).getCategory(), false);
 
-            // Load categories for the dropdown
-            String tableID = HCardDB.getSelected().getTableID();
-            List<String> categoryNames = new ArrayList<>();
+            List<String> categoryNames = new ArrayList<>(fragment.getCategoryNameToId().keySet());
+            ArrayAdapter<String> catAdapter = new ArrayAdapter<>(context, R.layout.dropdown_item, categoryNames);
+            cat_dropdown.setAdapter(catAdapter);
 
-            FirebaseDatabase.getInstance().getReference("categories").child(tableID)
-                .get().addOnCompleteListener(task -> {
-                    if (task.isSuccessful() && task.getResult().exists()) {
-                        for (DataSnapshot ds : task.getResult().getChildren()) {
-                            String name = ds.child("name").getValue(String.class);
-                            if (name != null) categoryNames.add(name);
-                        }
-                    } else {
-                        // Fallback to defaults if not in DB
-                        for (Category c : Category.getDefaultCategories()) {
-                            categoryNames.add(c.getName());
-                        }
-                    }
-                    ArrayAdapter<String> catAdapter = new ArrayAdapter<>(context, R.layout.dropdown_item, categoryNames);
-                    cat_dropdown.setAdapter(catAdapter);
-                });
+            String currentCategory = rows.get(position).getCategory();
+            String resolvedCategoryName = fragment.getCategoryIdToName().get(currentCategory);
+            Log.d("CAT_DEBUG", "resolvedCategoryName = " + resolvedCategoryName);
+
+            if (resolvedCategoryName != null) {
+                cat_dropdown.setText(resolvedCategoryName, false);
+            } else {
+                cat_dropdown.setText(currentCategory, false);
+                Log.d("CAT_DEBUG", "row category raw = " + rows.get(position).getCategory());
+                Log.d("CAT_DEBUG", "fragment idToName = " + fragment.getCategoryIdToName());
+                Log.d("CAT_DEBUG", "fragment nameToId = " + fragment.getCategoryNameToId());
+            }
 
             //hacer que si hay error, cuando toques de vuelta para escribir otra cosa, el error desaparezca
             dropdown_nombres.setOnFocusChangeListener(new View.OnFocusChangeListener() {
@@ -314,7 +283,11 @@ public class RowViewAdapter extends RecyclerView.Adapter<RowViewAdapter.ViewHold
                             && !txt_Gasto.getText().toString().isEmpty()
                             && !dropdown_nombres.getText().toString().isEmpty()) {
 
-                        ExpenseRow newRow = new ExpenseRow(txt_NombreGasto.getText().toString(), date, Double.parseDouble(txt_Gasto.getText().toString()), dropdown_nombres.getText().toString());
+                        ExpenseRow newRow = new ExpenseRow();
+                        newRow.setId(rows.get(position).getId());
+                        newRow.setDate(date);
+                        newRow.setValue(Double.parseDouble(txt_Gasto.getText().toString()));
+                        newRow.setWho(dropdown_nombres.getText().toString());
                         newRow.setCategory(cat_dropdown.getText().toString());
 
 
@@ -331,11 +304,24 @@ public class RowViewAdapter extends RecyclerView.Adapter<RowViewAdapter.ViewHold
                                     //Upload new row
                                     //Find biggest id
 
-                                    myRef.child(HCardDB.getSelected().getTableID().toString()).child(String.valueOf(rows.get(position).getId())).child("Date").setValue(newRow.getLocalDate().toString());
-                                    myRef.child(HCardDB.getSelected().getTableID().toString()).child(String.valueOf(rows.get(position).getId())).child("Description").setValue(newRow.getDescription().toString());
-                                    myRef.child(HCardDB.getSelected().getTableID().toString()).child(String.valueOf(rows.get(position).getId())).child("Value").setValue(newRow.getValue());
-                                    myRef.child(HCardDB.getSelected().getTableID().toString()).child(String.valueOf(rows.get(position).getId())).child("Who").setValue(newRow.getWho().toString());
-                                    myRef.child(HCardDB.getSelected().getTableID().toString()).child(String.valueOf(rows.get(position).getId())).child("Category").setValue(newRow.getCategory().toString());
+                                    DatabaseReference expenseRef = myRef
+                                            .child("trackers_v2")
+                                            .child(HCardDB.getSelected().getTableID())
+                                            .child("expenses")
+                                            .child(rows.get(position).getId());
+
+                                    expenseRef.child("date").setValue(newRow.getLocalDate().toString());
+                                    expenseRef.child("description").setValue(txt_NombreGasto.getText().toString());
+                                    expenseRef.child("amount").setValue(newRow.getValue());
+
+                                    if (dropdown_nombres.getText().toString().equals(SettingsDB.getSetting(HCardDB.getSelected()).getName1())) {
+                                        expenseRef.child("participantId").setValue("p1");
+                                    } else {
+                                        expenseRef.child("participantId").setValue("p2");
+                                    }
+
+                                    String selectedCategoryId = fragment.getCategoryNameToId().get(newRow.getCategory());
+                                    expenseRef.child("categoryId").setValue(selectedCategoryId != null ? selectedCategoryId : newRow.getCategory());
 
                                     //since the array list within the adapter is referencing the arraylist in this class, we
                                     //just need to add the new row to the arraylists in this class
@@ -344,7 +330,7 @@ public class RowViewAdapter extends RecyclerView.Adapter<RowViewAdapter.ViewHold
                                     if (dropdown_nombres.getText().toString().equals(SettingsDB.getSetting(HCardDB.getSelected()).getName1())) {
                                         for (ExpenseRow currRow : rows1) {
                                             //encontrar la row con la misma id que la row seleccionada
-                                            if (currRow.getId() == rows.get(position).getId()) {
+                                            if (currRow.getId().equals(rows.get(position).getId())) {
                                                 currRow.setDescription(txt_NombreGasto.getText().toString());
                                                 currRow.setDate(java.sql.Date.valueOf(date.toString()));
                                                 currRow.setValue(Double.parseDouble(txt_Gasto.getText().toString()));
@@ -358,7 +344,7 @@ public class RowViewAdapter extends RecyclerView.Adapter<RowViewAdapter.ViewHold
                                     else {
                                         for (ExpenseRow currRow : rows2) {
                                             //encontrar la row con la misma id que la row seleccionada
-                                            if (currRow.getId() == rows.get(position).getId()) {
+                                            if (currRow.getId().equals(rows.get(position).getId())) {
                                                 currRow.setDescription(txt_NombreGasto.getText().toString());
                                                 currRow.setDate(java.sql.Date.valueOf(date.toString()));
                                                 currRow.setValue(Double.parseDouble(txt_Gasto.getText().toString()));
@@ -371,17 +357,17 @@ public class RowViewAdapter extends RecyclerView.Adapter<RowViewAdapter.ViewHold
 
                                     //editar la row de rowsBoth
                                     for (ExpenseRow currRow : rowsBoth) {
-                                        if (currRow.getId() == rows.get(position).getId()) {
-                                            rowsBoth.get(position).setDescription(txt_NombreGasto.getText().toString());
-                                            rowsBoth.get(position).setDate(java.sql.Date.valueOf(date.toString()));
-                                            rowsBoth.get(position).setValue(Double.parseDouble(txt_Gasto.getText().toString()));
-                                            rowsBoth.get(position).setWho(dropdown_nombres.getText().toString());
+                                        if (currRow.getId().equals(rows.get(position).getId())) {
+                                            currRow.setDescription(txt_NombreGasto.getText().toString());
+                                            currRow.setDate(java.sql.Date.valueOf(date.toString()));
+                                            currRow.setValue(Double.parseDouble(txt_Gasto.getText().toString()));
+                                            currRow.setWho(dropdown_nombres.getText().toString());
                                             currRow.setCategory(newRow.getCategory());
                                         }
                                     }
                                     Collections.sort(rowsBoth, new RowSortDate());
                                     if (context instanceof ExpenseActivity) {
-                                        ((ExpenseActivity) context).onDataLoaded(rowsBoth);
+                                        ((ExpenseActivity) context).onDataLoaded(new ArrayList<>(rowsBoth));
                                     }
                                     notifyDataSetChanged();
                                     fragment.loadTotals();

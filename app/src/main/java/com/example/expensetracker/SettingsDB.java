@@ -1,12 +1,4 @@
 package com.example.expensetracker;
-
-import android.content.Context;
-
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -37,26 +29,6 @@ public class SettingsDB {
             }
         }
     }
-
-    /*public static void loadDB(Connection conn) {
-        if (settingsDB == null) initialize();
-        String ql = "SELECT * FROM settings";
-        Statement st = null;
-        try {
-            st = conn.createStatement();
-            ResultSet result = st.executeQuery(ql);
-            while(result.next()) {
-                String tableName = result.getString("tableName");
-                String name1 = result.getString("name1");
-                int sueldo1 = result.getInt("sueldo1");
-                String name2 = result.getString("name2");
-                int sueldo2 = result.getInt("sueldo2");
-                settingsDB.put(tableName, new Settings(tableName, name1, sueldo1, name2, sueldo2));
-            }
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();
-        }
-    }*/
 
     public static HashMap<String,Settings> getHashMap() {
         if (settingsDB == null) initialize();
@@ -91,24 +63,6 @@ public class SettingsDB {
         return false;
     }
 
-    public static void save(Connection connection, Settings set){
-        System.out.println("Trying to add table data to settings");
-        String replace = "INSERT INTO settings(tableName,name1,sueldo1,name2,sueldo2)" + "VALUES (?,?,?,?,?)"
-                + "ON DUPLICATE KEY UPDATE name1 = VALUES(name1), sueldo1 = VALUES(sueldo1), name2 = VALUES(name2), sueldo2 = VALUES(sueldo2)";
-        try {
-            PreparedStatement pst = connection.prepareStatement(replace);
-            pst.setString(1, set.getTableID());
-            pst.setString(2, set.getName1());
-            pst.setInt(3, set.getIncome1());
-            pst.setString(4, set.getName2());
-            pst.setInt(5, set.getIncome2());
-            pst.executeUpdate();
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();
-        }
-        System.out.println("Added data to settings");
-    }
-
     public static Boolean isInDB(HomeCard hc) {
         if (settingsDB != null) {
             for (String s : settingsDB.keySet()) {
@@ -125,36 +79,9 @@ public class SettingsDB {
         settingsDB.put(set.getTableID(), set);
     }
 
-    public static void removeSettings(HomeCard hc, Context context) {
-        if (isInDB(hc)) {
-            System.out.println("Expense is in db and trying to delete it from settings table");
-            DBHandler handler = new DBHandler();
-            Connection connection = handler.getConnection(context);
-            String id = hc.getId();
-
-            //remove row from settings table
-            String ql = "DELETE FROM settings WHERE tableName = ?";
-            String name = "DATA" + id;
-            try {
-                PreparedStatement pst = connection.prepareStatement(ql);
-                pst.setString(1, name);
-                pst.executeUpdate();
-            } catch (SQLException throwables) {
-                throwables.printStackTrace();
-            }
-
-            //remove expenseReport from hashmap
-            System.out.println("Deleting from Map");
-            settingsDB.remove(name);
-
-            //close connection
-            try {
-                connection.close();
-                System.out.println("Connection closed");
-            } catch (SQLException throwables) {
-                throwables.printStackTrace();
-            }
-        }
+    public static void clear() {
+        if (settingsDB == null) initialize();
+        settingsDB.clear();
     }
 
 }

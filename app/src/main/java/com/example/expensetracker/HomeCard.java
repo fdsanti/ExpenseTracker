@@ -9,13 +9,25 @@ public class HomeCard {
     private String id;
     private String tableID;
     private Boolean cerrado;
+    private boolean isSetupComplete;
 
-    public HomeCard(String id, LocalDate creationDate, String name, Boolean cerrado) {
-        this.name = name;
+
+    public HomeCard(String tableID, LocalDate creationDate, String name, boolean cerrado, boolean isSetupComplete) {
+        this.tableID = tableID;
         this.creationDate = creationDate;
-        this.id = id;
-        tableID = "DATA" + id;
+        this.name = name;
         this.cerrado = cerrado;
+        this.isSetupComplete = isSetupComplete;
+
+        if (tableID != null && tableID.startsWith("DATA")) {
+            this.id = tableID.substring(4);
+        } else {
+            this.id = tableID;
+        }
+    }
+
+    public static HomeCard fromTrackerId(String trackerId, LocalDate creationDate, String name, Boolean cerrado, boolean isSetupComplete) {
+        return new HomeCard(trackerId, creationDate, name, cerrado, isSetupComplete);
     }
 
     public String getTableID() {
@@ -56,5 +68,13 @@ public class HomeCard {
 
     public void setCerrado(Boolean cerrado) {
         this.cerrado = cerrado;
+    }
+
+    public boolean isSetupComplete() {
+        return isSetupComplete;
+    }
+
+    public void setSetupComplete(boolean setupComplete) {
+        isSetupComplete = setupComplete;
     }
 }

@@ -10,7 +10,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
-
+import java.util.HashMap;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
@@ -103,20 +103,43 @@ public class SaldosFragment extends Fragment {
                                 Log.e("firebase", "Error getting data", task.getException());
                             }
                             else {
+                                String trackerId = HCardDB.getSelected().getTableID();
+                                HashMap<String, Object> updates = new HashMap<>();
+
                                 if (!HCardDB.getSelected().isCerrado()) {
-                                    myRef.child("allTables").child(HCardDB.getSelected().getTableID()).child("cerrado").setValue(true);
-                                    HCardDB.setCerrado(true);
-                                    btn_cerrarExpense.setText("Abrir Expense");
-                                    Toast.makeText(context, "Expense Cerrado", Toast.LENGTH_SHORT).show();
+                                    updates.put("trackers_v2/" + trackerId + "/meta/closed", true);
+                                    updates.put("home_index/" + trackerId + "/closed", true);
+
+                                    myRef.updateChildren(updates).addOnCompleteListener(updateTask -> {
+                                        if (!updateTask.isSuccessful()) {
+                                            Toast.makeText(context, "Error actualizando el estado", Toast.LENGTH_SHORT).show();
+                                            Log.e("firebase", "Error updating tracker state", updateTask.getException());
+                                            return;
+                                        }
+
+                                        HCardDB.setCerrado(true);
+                                        btn_cerrarExpense.setText("Abrir Expense");
+                                        Toast.makeText(context, "Expense Cerrado", Toast.LENGTH_SHORT).show();
+                                        expenseActivity.updateCerrado();
+                                    });
                                 }
                                 else {
-                                    myRef.child("allTables").child(HCardDB.getSelected().getTableID()).child("cerrado").setValue(false);
-                                    HCardDB.setCerrado(false);
-                                    btn_cerrarExpense.setText("Cerrar Expense");
-                                    Toast.makeText(context, "Expense Abierto", Toast.LENGTH_SHORT).show();
-                                }
+                                    updates.put("trackers_v2/" + trackerId + "/meta/closed", false);
+                                    updates.put("home_index/" + trackerId + "/closed", false);
 
-                                expenseActivity.updateCerrado();
+                                    myRef.updateChildren(updates).addOnCompleteListener(updateTask -> {
+                                        if (!updateTask.isSuccessful()) {
+                                            Toast.makeText(context, "Error actualizando el estado", Toast.LENGTH_SHORT).show();
+                                            Log.e("firebase", "Error updating tracker state", updateTask.getException());
+                                            return;
+                                        }
+
+                                        HCardDB.setCerrado(false);
+                                        btn_cerrarExpense.setText("Cerrar Expense");
+                                        Toast.makeText(context, "Expense Abierto", Toast.LENGTH_SHORT).show();
+                                        expenseActivity.updateCerrado();
+                                    });
+                                }
 
                             }
                         }

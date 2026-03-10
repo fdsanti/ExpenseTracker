@@ -1,13 +1,4 @@
 package com.example.expensetracker;
-
-import android.content.Context;
-import android.os.Build;
-
-import androidx.annotation.RequiresApi;
-
-import java.sql.*;
-import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -20,7 +11,7 @@ public class HCardDB {
 
     public static void initialize() {
         if (expensesMap == null) {
-            expensesMap = new LinkedHashMap<String, HomeCard>();
+            expensesMap = new LinkedHashMap<>();
         }
     }
 
@@ -29,129 +20,56 @@ public class HCardDB {
     }
 
     public static void setCerrado(Boolean cerradoValue) {
-        for(String s : expensesMap.keySet()) {
-             if(expensesMap.get(s).getId() == selected.getId()) {
-                 expensesMap.get(s).setCerrado(cerradoValue);
-             }
+        if (selected == null || expensesMap == null) return;
+
+        for (String s : expensesMap.keySet()) {
+            HomeCard current = expensesMap.get(s);
+            if (current != null && current.getTableID().equals(selected.getTableID())) {
+                current.setCerrado(cerradoValue);
+            }
         }
         selected.setCerrado(cerradoValue);
     }
+
     public static void setSelected(HomeCard selected) {
         HCardDB.selected = selected;
     }
 
     public static void clearMap() {
-        if (expensesMap != null) {
-            expensesMap.clear();
+        if (expensesMap == null) {
+            initialize();
         }
-    }
-
-
-/*
-    @RequiresApi(api = Build.VERSION_CODES.O)
-    public static void loadDB(Connection conn) {
-        if (expensesMap == null) initialize();
         expensesMap.clear();
-        String ql = "SELECT * FROM allTables";
-        Statement st = null;
-        try {
-            st = conn.createStatement();
-            ResultSet result = st.executeQuery(ql);
-            while(result.next()) {
-                String id = result.getString("tableName").substring(4);
-                LocalDate date = (result.getDate("creationDate")).toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-                String reportName = result.getString("tableDescription");
-                if(!expensesMap.containsKey(id)){
-                    expensesMap.put(id, new HomeCard(id, date, reportName));
-                }
-            }
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();
-        }
-
-        if (st!=null) {
-            try {
-                st.close();
-            } catch (SQLException throwables) {
-                throwables.printStackTrace();
-            }
-        }
     }
-*/
 
-    public static void setDB(LinkedHashMap<String, HomeCard> newMap) {
+    public static void addExpense(String key, HomeCard hc) {
         if (expensesMap == null) initialize();
-        expensesMap = newMap;
-    }
-
-    public static void createDBTable(HomeCard hc, Context context) {
-        DBHandler handler = new DBHandler();
-        System.out.println("Connecting to a selected database...");
-        Connection connection = handler.getConnection(context);
-        System.out.println("Connected database successfully...");
-
-        int id = getBiggestID() + 1;
-
-        try {
-            Statement st = connection.createStatement();
-            System.out.println("Creating table in given database...");
-            String ql = "CREATE TABLE DATA" + id + " " +
-                    "(id INT NOT NULL AUTO_INCREMENT, " +
-                    " Description VARCHAR(45) not NULL, " +
-                    " Date DATE not NULL, " +
-                    " Value DOUBLE not NULL, " +
-                    " Who VARCHAR(45) not NULL, " +
-                    " primary key (id))";
-            st.executeUpdate(ql);
-            System.out.println("Created table in given database...");
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();
-        }
-
-        //Adding the data from this table to the allTables table
-        try {
-            System.out.println("Trying to add table data to allTables");
-            String insert = "INSERT INTO allTables(tableName,creationDate,tableDescription)" + "VALUES (?,?,?)";
-            PreparedStatement pst = connection.prepareStatement(insert);
-            pst.setString(1, hc.getTableID());
-            pst.setDate(2, Date.valueOf(String.valueOf(hc.getCreationDate())));
-            pst.setString(3,hc.getName());
-            pst.executeUpdate();
-            System.out.println("Added data to allTables");
-
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();
-        }
-
-        // close connection
-        try {
-            connection.close();
-            System.out.println("Connection closed");
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();
-        }
-    }
-
-    public static Boolean containsID(String id) {
-        if (expensesMap == null) initialize();
-        return expensesMap.containsKey(id);
-    }
-
-    public static void addExpense(String id, HomeCard hc) {
-        if (expensesMap == null) initialize();
-        if(!expensesMap.containsKey(id)) {
-            expensesMap.put(id, hc);
+        if (!expensesMap.containsKey(key)) {
+            expensesMap.put(key, hc);
         }
     }
 
     public static int getBiggestID() {
         int biggest = 0;
-        if(!expensesMap.isEmpty()) {
-            for (String id : expensesMap.keySet()) {
-                int intID = Integer.parseInt(id);
+        if (expensesMap == null) initialize();
+
+        for (String key : expensesMap.keySet()) {
+            HomeCard homeCard = expensesMap.get(key);
+            if (homeCard == null) continue;
+
+            String rawId = homeCard.getId();
+            if (rawId == null || rawId.isEmpty()) {
+                rawId = homeCard.getTableID();
+            }
+            if (rawId == null) continue;
+
+            String numericPart = rawId.startsWith("DATA") ? rawId.substring(4) : rawId;
+            try {
+                int intID = Integer.parseInt(numericPart);
                 if (intID > biggest) {
                     biggest = intID;
                 }
+            } catch (NumberFormatException ignored) {
             }
         }
         return biggest;
@@ -163,104 +81,54 @@ public class HCardDB {
     }
 
     public static Boolean isNull() {
-        if(expensesMap == null) return true;
-        return false;
+        return expensesMap == null;
     }
 
-    public static HashMap<String, HomeCard> getDB() {
-        if (expensesMap == null) initialize();
-        return expensesMap;
-    }
-
-    public static ArrayList<HomeCard> getReports() {
-        ArrayList<HomeCard> answer = new ArrayList<HomeCard>();
-        for(String s : expensesMap.keySet()) {
-            answer.add(0, expensesMap.get(s));
-        }
-        return answer;
-    }
 
     public static ArrayList<HomeCard> getReportsActuals() {
-        ArrayList<HomeCard> answer = new ArrayList<HomeCard>();
-        for(String s : expensesMap.keySet()) {
+        ArrayList<HomeCard> answer = new ArrayList<>();
+        if (expensesMap == null) initialize();
+        for (String s : expensesMap.keySet()) {
             if (!expensesMap.get(s).isCerrado()) answer.add(0, expensesMap.get(s));
         }
         return answer;
     }
 
     public static ArrayList<HomeCard> getReportsPast() {
-        ArrayList<HomeCard> answer = new ArrayList<HomeCard>();
-        for(String s : expensesMap.keySet()) {
+        ArrayList<HomeCard> answer = new ArrayList<>();
+        if (expensesMap == null) initialize();
+        for (String s : expensesMap.keySet()) {
             if (expensesMap.get(s).isCerrado()) answer.add(0, expensesMap.get(s));
         }
         return answer;
     }
 
     public static void removeReportFromArrayList(String tableID) {
+        if (expensesMap == null) initialize();
+
+        String keyToRemove = null;
         for (Map.Entry<String, HomeCard> entry : expensesMap.entrySet()) {
-            String key = entry.getKey();
             HomeCard value = entry.getValue();
-            if (value.getTableID().toString().equals(tableID)) {
-                expensesMap.remove(key);
+            if (value != null && value.getTableID().equals(tableID)) {
+                keyToRemove = entry.getKey();
                 break;
             }
+        }
+
+        if (keyToRemove != null) {
+            expensesMap.remove(keyToRemove);
         }
     }
 
     public static Boolean containsDescription(String name) {
         if (expensesMap == null) initialize();
-        for(String s : expensesMap.keySet()) {
+        for (String s : expensesMap.keySet()) {
             HomeCard hc = expensesMap.get(s);
             String currName = hc.getName();
-            if(currName.equals(name)) {
+            if (currName.equals(name)) {
                 return true;
             }
         }
         return false;
     }
-
-    public static void removeReport(Connection connection, String id) {
-        //remove table from database
-        if (expensesMap == null) initialize();
-        String ql = "DROP TABLE DATA" + id + " ;";
-        Statement st = null;
-        try {
-            st = connection.createStatement();
-            st.executeUpdate(ql);
-            System.out.println("Table deleted");
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();
-        }
-
-        if (st!=null) {
-            try {
-                st.close();
-            } catch (SQLException throwables) {
-                throwables.printStackTrace();
-            }
-        }
-
-        //remove row from allTables table
-        ql = "DELETE FROM allTables WHERE tableName = ?";
-        String name = "DATA" + id;
-        PreparedStatement pst = null;
-        try {
-            pst = connection.prepareStatement(ql);
-            pst.setString(1,name);
-            pst.executeUpdate();
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();
-        }
-
-        if (pst!=null) {
-            try {
-                pst.close();
-            } catch (SQLException throwables) {
-                throwables.printStackTrace();
-            }
-        }
-        //remove expenseReport from hashmap
-        expensesMap.remove(id);
-    }
-
 }

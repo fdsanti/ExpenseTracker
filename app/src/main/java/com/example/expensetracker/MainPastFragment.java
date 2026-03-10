@@ -2,7 +2,6 @@ package com.example.expensetracker;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -22,19 +21,13 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.progressindicator.LinearProgressIndicator;
-import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
-import java.sql.Date;
-import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.HashMap;
 
 public class MainPastFragment extends Fragment implements CallBackItemTouch, SwipeRefreshLayout.OnRefreshListener {
 
@@ -45,17 +38,14 @@ public class MainPastFragment extends Fragment implements CallBackItemTouch, Swi
     private ArrayList<HomeCard> hCards;
     private HCardsViewAdapter adapter;
     private MainActualFragment mainActualFragment;
+    private final HomeFirebaseV2Repository repository = new HomeFirebaseV2Repository();
 
-    public MainPastFragment() {}
+    public MainPastFragment() {
+    }
 
     @Override
     public void onRefresh() {
-        new Handler().postDelayed(new Runnable() {
-            @Override public void run() {
-                mSwipeRefreshLayout.setRefreshing(false);
-            }
-        }, 50);
-
+        new Handler().postDelayed(() -> mSwipeRefreshLayout.setRefreshing(false), 50);
         progressBar.show();
         progressBar.setVisibility(View.VISIBLE);
         loadReportsFromFirebase();
@@ -69,16 +59,14 @@ public class MainPastFragment extends Fragment implements CallBackItemTouch, Swi
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.main_past_fragments,container,false);
+        View rootView = inflater.inflate(R.layout.main_past_fragments, container, false);
 
-        // SwipeRefreshLayout
-        mSwipeRefreshLayout = (SwipeRefreshLayout) rootView.findViewById(R.id.swipe_containerMainPast);
+        mSwipeRefreshLayout = rootView.findViewById(R.id.swipe_containerMainPast);
         mSwipeRefreshLayout.setOnRefreshListener(this);
         mSwipeRefreshLayout.setColorSchemeResources(R.color.colorPrimary,
                 android.R.color.holo_green_dark,
                 android.R.color.holo_orange_dark,
                 android.R.color.holo_blue_dark);
-
 
         return rootView;
     }
@@ -88,15 +76,12 @@ public class MainPastFragment extends Fragment implements CallBackItemTouch, Swi
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        System.out.println("Test");
         loadVariables(view);
         if (HCardDB.isNull()) {
             progressBar.show();
             progressBar.setVisibility(View.VISIBLE);
-            System.out.println("Test");
             loadReportsFromFirebase();
-        }
-        if (!HCardDB.isNull()) {
+        } else {
             loadReportsFromArrayList();
         }
         ItemTouchHelper.Callback callback = new MainItemDragSwipeCallback(this);
@@ -106,7 +91,6 @@ public class MainPastFragment extends Fragment implements CallBackItemTouch, Swi
 
     @Override
     public void itemTuchOnMove(int oldPosition, int newPosition) {
-
     }
 
     @Override
@@ -114,40 +98,31 @@ public class MainPastFragment extends Fragment implements CallBackItemTouch, Swi
         int position = viewHolder.getAdapterPosition();
 
         MaterialAlertDialogBuilder dialog = getMaterialAlertDialogBuilder(position);
-        //OnClickListener para el boton de Eliminar (dentro del popup)
-        dialog.setPositiveButton("Eliminar", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
+        dialog.setPositiveButton("Eliminar", (dialogInterface, which) -> {
+            String trackerId = hCards.get(position).getTableID();
 
-                FirebaseDatabase database = FirebaseDatabase.getInstance();
-                DatabaseReference myRef = database.getReference();
-                myRef.child("allTables").get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<DataSnapshot> task) {
-                        if (!task.isSuccessful()) {
-                            Log.e("firebase", "Error getting data", task.getException());
-                        }
-                        else {
-                            //remove table in "allTables", the table with all the rows & the data in "settings"
-                            //then, remove it from the local array & notify the changes
-                            myRef.child("allTables").child(hCards.get(position).getTableID()).removeValue();
-                            myRef.child(hCards.get(position).getTableID()).removeValue();
-                            myRef.child("settings").child(hCards.get(position).getTableID()).removeValue();
-                            HCardDB.removeReportFromArrayList(hCards.get(position).getTableID());
-                            SettingsDB.removeReportFromArrayList(hCards.get(position).getTableID());
-                            hCards.remove(position);
-                            adapter.notifyItemRemoved(position);
-                            adapter.notifyItemRangeChanged(position,hCards.size());
-                            Toast.makeText(context, "El reporte se ha eliminado", Toast.LENGTH_SHORT).show();
-                            Log.d("firebase", String.valueOf(task.getResult().getValue()));
-                        }
-                    }
-                });
-            }
+            DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference();
+            HashMap<String, Object> updates = new HashMap<>();
+            updates.put("home_index/" + trackerId, null);
+            updates.put("trackers_v2/" + trackerId, null);
+
+            rootRef.updateChildren(updates)
+                    .addOnSuccessListener(unused -> {
+                        HCardDB.removeReportFromArrayList(trackerId);
+                        SettingsDB.removeReportFromArrayList(trackerId);
+                        hCards.remove(position);
+                        adapter.notifyItemRemoved(position);
+                        adapter.notifyItemRangeChanged(position, hCards.size());
+                        Toast.makeText(context, "El reporte se ha eliminado", Toast.LENGTH_SHORT).show();
+                    })
+                    .addOnFailureListener(e -> {
+                        adapter.notifyDataSetChanged();
+                        Toast.makeText(context, "No se pudo eliminar el reporte", Toast.LENGTH_SHORT).show();
+                        Log.e("firebase", "Error deleting tracker", e);
+                    });
         });
 
         dialog.show();
-
     }
 
     @NonNull
@@ -156,14 +131,7 @@ public class MainPastFragment extends Fragment implements CallBackItemTouch, Swi
         dialog.setTitle("¿Eliminar reporte?");
         dialog.setMessage("¿Estás seguro que querés eliminar el reporte " + hCards.get(position).getName() + "?");
         dialog.setIcon(R.drawable.ic_delete);
-
-
-        dialog.setNegativeButton("Cancelar", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                adapter.notifyDataSetChanged();
-            }
-        });
+        dialog.setNegativeButton("Cancelar", (dialog1, which) -> adapter.notifyDataSetChanged());
         return dialog;
     }
 
@@ -177,87 +145,49 @@ public class MainPastFragment extends Fragment implements CallBackItemTouch, Swi
         this.mainActualFragment = mainActualFragment;
     }
 
-    public void loadReportsFromFirebase(){
-        ArrayList<HomeCard> tempHCArray = new ArrayList<HomeCard>();
-        FirebaseDatabase database = FirebaseDatabase.getInstance();
-        DatabaseReference myRef = database.getReference();
-        //fetch homecards from Firebase db
-        myRef.child("allTables").get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
-            @RequiresApi(api = Build.VERSION_CODES.O)
+    public void loadReportsFromFirebase() {
+        repository.loadHomeData(new HomeFirebaseV2Repository.LoadCallback() {
             @Override
-            public void onComplete(@NonNull Task<DataSnapshot> task) {
-                if (!task.isSuccessful()) {
-                    Log.e("firebase", "Error getting data", task.getException());
-                }
-                else {
-                    for (DataSnapshot child : task.getResult().getChildren()) {
-                        String id = child.child("tableName").getValue().toString().substring(4);
-                        LocalDate date = Date.valueOf(child.child("creationDate").getValue(String.class)).toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-                        String reportName = child.child("tableDescription").getValue().toString();
-                        Boolean cerrado = Boolean.valueOf((Boolean) child.child("cerrado").getValue());
-                        HomeCard tempCard = new HomeCard(id, date, reportName, cerrado);
-                        tempHCArray.add(tempCard);
-                    }
-                    //sort the array so that the new hashmap is ordered from newest to oldest
-                    Collections.sort(tempHCArray, new HomeCardSortDate());
-                    //add expense to the hashmap in HCardDB
-                    HCardDB.clearMap();
-                    for (HomeCard hc : tempHCArray) {
-                        HCardDB.addExpense(hc.getId(), hc);
-                    }
-                    //load reports in the UI
-                    loadReportsFromArrayList();
-                    Log.d("firebase", String.valueOf(task.getResult().getValue()));
-                }
+            public void onSuccess() {
+                if (getActivity() == null) return;
+                getActivity().runOnUiThread(() -> loadReportsFromArrayList());
             }
-        });
-        //fetch settings from Firebase db
-        myRef.child("settings").get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
-            @RequiresApi(api = Build.VERSION_CODES.O)
+
             @Override
-            public void onComplete(@NonNull Task<DataSnapshot> task) {
-                if (!task.isSuccessful()) {
-                    Log.e("firebase", "Error getting data", task.getException());
-                }
-                else {
-                    for (DataSnapshot child : task.getResult().getChildren()) {
-                        String tableName = child.getKey().toString();
-                        String name1 = child.child("name1").getValue().toString();
-                        String name2 = child.child("name2").getValue().toString();
-                        Integer sueldo1 = Integer.parseInt(child.child("sueldo1").getValue().toString());
-                        Integer sueldo2 = Integer.parseInt(child.child("sueldo2").getValue().toString());
-                        Settings tempSettings = new Settings(tableName, name1, sueldo1, name2, sueldo2);
-                        SettingsDB.addToDB(tempSettings);
-                    }
-                    Log.d("firebase", String.valueOf(task.getResult().getValue()));
-                }
+            public void onError(@NonNull Exception e) {
+                if (getActivity() == null) return;
+                getActivity().runOnUiThread(() -> {
+                    progressBar.hide();
+                    progressBar.setVisibility(View.INVISIBLE);
+                    Toast.makeText(context, "Error cargando trackers_v2", Toast.LENGTH_SHORT).show();
+                    Log.e("firebase", "Error getting trackers_v2", e);
+                });
             }
         });
     }
 
     private void loadReportsFromArrayList() {
-        if(!HCardDB.isEmpty()) {
-            System.out.println("HCardDB not empty");
-            //hide progressBar
-            progressBar.hide();
-            progressBar.setVisibility(View.INVISIBLE);
-            hCards = HCardDB.getReportsPast();
+        progressBar.hide();
+        progressBar.setVisibility(View.INVISIBLE);
+
+        hCards = HCardDB.getReportsPast();
+        if (adapter == null) {
             adapter = new HCardsViewAdapter(context);
-            adapter.setCards(hCards);
-            actualRecycler.setAdapter(adapter);
             actualRecycler.setLayoutManager(new LinearLayoutManager(context));
+            actualRecycler.setAdapter(adapter);
         }
-        else {
+        adapter.setCards(hCards);
+
+        if (hCards.isEmpty()) {
             TextView txtEmpty = new TextView(context);
             txtEmpty.setText("There are no reports yet!");
-            System.out.println("HCardDB empty");
         }
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        if(adapter != null) {
+        if (adapter != null) {
             hCards = HCardDB.getReportsPast();
             adapter.setCards(hCards);
             adapter.notifyDataSetChanged();

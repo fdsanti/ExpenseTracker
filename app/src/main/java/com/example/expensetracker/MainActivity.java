@@ -2,7 +2,6 @@ package com.example.expensetracker;
 
 import com.google.firebase.auth.FirebaseAuth;
 import android.util.Log;
-import android.view.Gravity;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -23,11 +22,7 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.TextView;
-import android.widget.Toast;
 
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
@@ -35,28 +30,15 @@ import com.google.android.material.progressindicator.LinearProgressIndicator;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 
-import com.example.expensetracker.AuthGuard;
-
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.sql.Connection;
-
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Set;
 
-public class MainActivity extends AppCompatActivity implements CallBackItemTouch, SwipeRefreshLayout.OnRefreshListener{
+public class MainActivity extends AppCompatActivity implements CallBackItemTouch, SwipeRefreshLayout.OnRefreshListener {
 
     private Toolbar toolbar;
     private TabLayout tabLayout;
@@ -84,9 +66,25 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
 
         AuthGuard.checkAccess(this, () -> {
             setContentView(R.layout.activity_main2);
+            //Code for migrating to firebase trackers_v2
+            /*FirebaseMigrationHelper.migrateLegacyToTrackersV2(new FirebaseMigrationHelper.MigrationCallback() {
+                @Override
+                public void onSuccess(int migratedTrackers) {
+                    Toast.makeText(MainActivity.this,
+                            "Migración OK. Trackers migrados: " + migratedTrackers,
+                            Toast.LENGTH_LONG).show();
+                }
+
+                @Override
+                public void onError(@NonNull Exception e) {
+                    Toast.makeText(MainActivity.this,
+                            "Error migrando: " + e.getMessage(),
+                            Toast.LENGTH_LONG).show();
+                    Log.e("Migration", "Migration failed", e);
+                }
+            });*/
             initializePage();
         });
-
     }
 
     public void redirectToLogin() {
@@ -94,9 +92,8 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
         finish();
     }
 
-
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.main_menu,menu);
+        getMenuInflater().inflate(R.menu.main_menu, menu);
         return true;
     }
 
@@ -105,8 +102,6 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
         setSupportActionBar(toolbar);
 
         progressBar = findViewById(R.id.progressBar);
-
-        //homeRecycler = findViewById(R.id.homeRecycler);
 
         viewPager = findViewById(R.id.viewPagerMain);
         tabLayout = findViewById(R.id.homeTabsComponent);
@@ -118,7 +113,7 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
         actualFragment.setPastFragment(pastFragment);
         pastFragment.setActualFragment(actualFragment);
 
-        ExpenseActivity.ViewPagerAdapter viewPagerAdapter = new ExpenseActivity.ViewPagerAdapter(getSupportFragmentManager(),0);
+        ExpenseActivity.ViewPagerAdapter viewPagerAdapter = new ExpenseActivity.ViewPagerAdapter(getSupportFragmentManager(), 0);
         viewPagerAdapter.addFragment(actualFragment, "Abiertos");
         viewPagerAdapter.addFragment(pastFragment, "Cerrados");
         viewPager.setAdapter(viewPagerAdapter);
@@ -130,7 +125,6 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
         int id = item.getItemId();
 
         if (id == R.id.btnRefresh) {
-            // Crear diálogo para agregar reporte
             MaterialAlertDialogBuilder dialog = new MaterialAlertDialogBuilder(this);
             dialog.setCancelable(false);
             dialog.setTitle("Agregar reporte");
@@ -145,48 +139,22 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
             AlertDialog alertDialog = dialog.create();
             alertDialog.show();
 
-            alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
-                @RequiresApi(api = Build.VERSION_CODES.O)
-                @Override
-                public void onClick(View v) {
-                    TextInputEditText editText = dialogView.findViewById(R.id.edit_text);
-                    TextInputLayout inputField = dialogView.findViewById(R.id.filledTextField);
+            alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
+                TextInputEditText editText = dialogView.findViewById(R.id.edit_text);
+                TextInputLayout inputField = dialogView.findViewById(R.id.filledTextField);
 
-                    String input = editText.getText().toString().trim();
-                    if (HCardDB.containsDescription(input)) {
-                        inputField.setErrorEnabled(true);
-                        inputField.setError("El nombre ya existe. Elija otro.");
-                        inputField.setErrorIconDrawable(R.drawable.ic_info);
-                    } else if (input.isEmpty()) {
-                        inputField.setErrorEnabled(true);
-                        inputField.setError("Es necesario elegir un nombre.");
-                        inputField.setErrorIconDrawable(R.drawable.ic_info);
-                    } else {
-                        alertDialog.dismiss();
-                        int newID = HCardDB.getBiggestID() + 1;
-                        HomeCard hc = new HomeCard(String.valueOf(newID), LocalDate.now(), input, false);
-
-                        FirebaseDatabase database = FirebaseDatabase.getInstance();
-                        DatabaseReference myRef = database.getReference();
-
-                        myRef.child("allTables").get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
-                            @Override
-                            public void onComplete(@NonNull Task<DataSnapshot> task) {
-                                if (task.isSuccessful()) {
-                                    myRef.child("allTables").child(hc.getTableID()).child("creationDate").setValue(String.valueOf(hc.getCreationDate()));
-                                    myRef.child("allTables").child(hc.getTableID()).child("tableDescription").setValue(hc.getName());
-                                    myRef.child("allTables").child(hc.getTableID()).child("tableName").setValue(hc.getTableID());
-                                    myRef.child("allTables").child(hc.getTableID()).child("cerrado").setValue(hc.isCerrado());
-
-                                    HCardDB.addExpense(String.valueOf(newID), hc);
-                                    actualFragment.addHCards(0, hc);
-                                    Toast.makeText(MainActivity.this, "¡El expense ha sido creado con éxito!", Toast.LENGTH_SHORT).show();
-                                } else {
-                                    Log.e("firebase", "Error getting data", task.getException());
-                                }
-                            }
-                        });
-                    }
+                String input = editText.getText() != null ? editText.getText().toString().trim() : "";
+                if (HCardDB.containsDescription(input)) {
+                    inputField.setErrorEnabled(true);
+                    inputField.setError("El nombre ya existe. Elija otro.");
+                    inputField.setErrorIconDrawable(R.drawable.ic_info);
+                } else if (input.isEmpty()) {
+                    inputField.setErrorEnabled(true);
+                    inputField.setError("Es necesario elegir un nombre.");
+                    inputField.setErrorIconDrawable(R.drawable.ic_info);
+                } else {
+                    alertDialog.dismiss();
+                    createTrackerV2(input);
                 }
             });
 
@@ -209,7 +177,6 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
                 });
 
                 popup.show();
-
             }
             return true;
         }
@@ -217,20 +184,61 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
         return super.onOptionsItemSelected(item);
     }
 
+    private void createTrackerV2(@NonNull String trackerName) {
+        int newID = HCardDB.getBiggestID() + 1;
+        String trackerId = "DATA" + newID;
+        LocalDate today = LocalDate.now();
+        HomeCard hc = HomeCard.fromTrackerId(trackerId, today, trackerName, false, false);
+
+        DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference();
+
+        HashMap<String, Object> updates = new HashMap<>();
+
+        // trackers_v2
+        updates.put("trackers_v2/" + trackerId + "/meta/legacyId", trackerId);
+        updates.put("trackers_v2/" + trackerId + "/meta/name", trackerName);
+        updates.put("trackers_v2/" + trackerId + "/meta/createdAt", today.toString());
+        updates.put("trackers_v2/" + trackerId + "/meta/updatedAt", today.toString());
+        updates.put("trackers_v2/" + trackerId + "/meta/closed", false);
+        updates.put("trackers_v2/" + trackerId + "/meta/version", 2);
+        updates.put("trackers_v2/" + trackerId + "/meta/migratedFrom", "created-directly-in-v2");
+
+        updates.put("trackers_v2/" + trackerId + "/participants", new HashMap<>());
+        updates.put("trackers_v2/" + trackerId + "/categories", new HashMap<>());
+        updates.put("trackers_v2/" + trackerId + "/expenses", new HashMap<>());
+        updates.put("trackers_v2/" + trackerId + "/summary/expenseCount", 0);
+        updates.put("trackers_v2/" + trackerId + "/summary/totalAmount", 0);
+        updates.put("trackers_v2/" + trackerId + "/summary/participantCount", 0);
+        updates.put("trackers_v2/" + trackerId + "/summary/categoryCount", 0);
+
+        // home_index
+        updates.put("home_index/" + trackerId + "/trackerId", trackerId);
+        updates.put("home_index/" + trackerId + "/name", trackerName);
+        updates.put("home_index/" + trackerId + "/createdAt", today.toString());
+        updates.put("home_index/" + trackerId + "/closed", false);
+        updates.put("home_index/" + trackerId + "/isSetupComplete", false);
+
+        rootRef.updateChildren(updates)
+                .addOnSuccessListener(unused -> {
+                    HCardDB.addExpense(hc.getTableID(), hc);
+                    actualFragment.addHCards(0, hc);
+                    Toast.makeText(MainActivity.this, "¡El expense ha sido creado con éxito!", Toast.LENGTH_SHORT).show();
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error creando tracker", e);
+                    Toast.makeText(MainActivity.this, "No se pudo crear el expense", Toast.LENGTH_SHORT).show();
+                });
+    }
 
     @Override
     public void itemTuchOnMove(int oldPosition, int newPosition) {
-
     }
 
     @Override
     public void onSwiped(RecyclerView.ViewHolder viewHolder, int position) {
-
     }
 
     @Override
     public void onRefresh() {
-
     }
-
 }
