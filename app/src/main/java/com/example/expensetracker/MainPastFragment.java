@@ -23,9 +23,11 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.progressindicator.LinearProgressIndicator;
+import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class MainPastFragment extends Fragment implements CallBackItemTouch, SwipeRefreshLayout.OnRefreshListener {
 
@@ -98,11 +100,13 @@ public class MainPastFragment extends Fragment implements CallBackItemTouch, Swi
         MaterialAlertDialogBuilder dialog = getMaterialAlertDialogBuilder(position);
         dialog.setPositiveButton("Eliminar", (dialogInterface, which) -> {
             String trackerId = hCards.get(position).getTableID();
-            FirebaseDatabase.getInstance()
-                    .getReference()
-                    .child(HomeFirebaseV2Repository.ROOT)
-                    .child(trackerId)
-                    .removeValue()
+
+            DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference();
+            HashMap<String, Object> updates = new HashMap<>();
+            updates.put("home_index/" + trackerId, null);
+            updates.put("trackers_v2/" + trackerId, null);
+
+            rootRef.updateChildren(updates)
                     .addOnSuccessListener(unused -> {
                         HCardDB.removeReportFromArrayList(trackerId);
                         SettingsDB.removeReportFromArrayList(trackerId);
@@ -114,7 +118,7 @@ public class MainPastFragment extends Fragment implements CallBackItemTouch, Swi
                     .addOnFailureListener(e -> {
                         adapter.notifyDataSetChanged();
                         Toast.makeText(context, "No se pudo eliminar el reporte", Toast.LENGTH_SHORT).show();
-                        Log.e("firebase", "Error deleting tracker_v2", e);
+                        Log.e("firebase", "Error deleting tracker", e);
                     });
         });
 

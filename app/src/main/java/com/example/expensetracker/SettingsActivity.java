@@ -1,24 +1,13 @@
 package com.example.expensetracker;
 
 import android.annotation.SuppressLint;
-import android.app.ProgressDialog;
 import android.content.Intent;
-import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
 import android.util.Log;
-import android.view.MotionEvent;
 import android.view.View;
-import android.widget.Switch;
-import android.widget.TextView;
-import android.widget.Toast;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.LinearLayoutManager;
-
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.appbar.MaterialToolbar;
@@ -28,18 +17,10 @@ import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
 public class SettingsActivity extends AppCompatActivity {
-    private ProgressDialog progressDialog;
-    private DBHandler handler;
-    private Connection connection;
     private MaterialToolbar toolbar;
     private TextInputLayout txtFieldNombre1;
     private TextInputLayout txtFieldSueldo1;
@@ -51,7 +32,6 @@ public class SettingsActivity extends AppCompatActivity {
     private TextInputEditText txtEditSueldo2;
     private MaterialButton btnContinuar;
     private Boolean comingFromExpense;
-    private MaterialButton btnTest;
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
@@ -71,8 +51,6 @@ public class SettingsActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 finish();
-                //Intent intent = new Intent(SettingsActivity.this, MainActivity.class);
-                //SettingsActivity.this.startActivity(intent);
             }
         });
 
@@ -144,6 +122,7 @@ public class SettingsActivity extends AppCompatActivity {
                             myRef.child("trackers_v2").child(newSet.getTableID()).child("participants").child("p1").child("income").setValue(newSet.getIncome1());
                             myRef.child("trackers_v2").child(newSet.getTableID()).child("participants").child("p2").child("income").setValue(newSet.getIncome2());
                             myRef.child("home_index").child(newSet.getTableID()).child("isSetupComplete").setValue(true);
+                            HCardDB.getSelected().setSetupComplete(true);
 
                             // 2. NEW: Initialize categories for this tracker if they don't exist
                             // We check if the tracker already has categories (in case the user is just editing settings)
@@ -193,25 +172,6 @@ public class SettingsActivity extends AppCompatActivity {
             }
         });
     }
-
-    private void updateNamesOnRows(String oldName, String newName, Connection connection) {
-        String update = "UPDATE " + SettingsDB.getSetting(HCardDB.getSelected()).getTableID() + " SET Who=? WHERE Who=?";
-
-        try {
-            PreparedStatement pst = connection.prepareStatement(update);
-            pst.setString(1,newName);
-            pst.setString(2,oldName);
-            pst.executeUpdate();
-        }
-        catch (SQLException throwables) {
-            throwables.printStackTrace();
-        }
-
-    }
-
-    private void updateNameOnSettings(String name1, String toString, Connection connection) {
-    }
-
     private void loadIDs() {
         btnContinuar = findViewById(R.id.btnContinuar);
         //btnTest = findViewById(R.id.btnTest);

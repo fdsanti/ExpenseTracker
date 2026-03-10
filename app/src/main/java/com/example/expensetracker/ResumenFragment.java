@@ -96,10 +96,23 @@ public class ResumenFragment extends Fragment {
     private static final String TAG = "ResumenFragment";
 
     public void updateData(List<ExpenseRow> rows) {
-        if (rows == null || rows.isEmpty()) return;
-
         this.pendingRows = rows;
+
         if (pieChart == null) return;
+
+        if (rows == null || rows.isEmpty()) {
+            analysisData.clear();
+
+            if (adapter != null) {
+                adapter.notifyDataSetChanged();
+            }
+
+            pieChart.clear();
+            pieChart.setNoDataText("");
+            pieChart.setCenterText("$0.00");
+            pieChart.invalidate();
+            return;
+        }
 
         // 1. Group totals by category
         java.util.Map<String, Double> categoryTotals = new java.util.HashMap<>();
@@ -233,6 +246,7 @@ public class ResumenFragment extends Fragment {
             adapter.notifyDataSetChanged();
         }
     }
+
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -256,7 +270,7 @@ public class ResumenFragment extends Fragment {
         // Check if Activity already has data loaded
         if (getActivity() instanceof ExpenseActivity) {
             List<ExpenseRow> rows = ((ExpenseActivity) getActivity()).getAllRows();
-            if (rows != null && !rows.isEmpty()) {
+            if (rows != null) {
                 android.util.Log.d("ResumenFragment", "Data pulled from Activity in onResume");
                 updateData(rows);
             }

@@ -89,6 +89,7 @@ public class ExpenseActivity extends AppCompatActivity {
         viewPagerAdapter.addFragment(saldosFragment, "Saldos");
         viewPagerAdapter.addFragment(resumenFragment, "Resumen");
         viewPager.setAdapter(viewPagerAdapter);
+        viewPager.setOffscreenPageLimit(3);
         viewPager.setSwipeable(false);
     }
 

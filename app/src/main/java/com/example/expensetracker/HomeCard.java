@@ -73,4 +73,8 @@ public class HomeCard {
     public boolean isSetupComplete() {
         return isSetupComplete;
     }
+
+    public void setSetupComplete(boolean setupComplete) {
+        isSetupComplete = setupComplete;
+    }
 }

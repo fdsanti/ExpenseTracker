@@ -5,7 +5,6 @@ import android.content.Context;
 import android.os.Build;
 import android.text.InputType;
 import android.util.Log;
-
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -14,12 +13,10 @@ import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.RecyclerView;
-
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.card.MaterialCardView;
@@ -31,7 +28,6 @@ import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import java.sql.Connection;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -39,7 +35,6 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
@@ -47,12 +42,8 @@ import java.util.TimeZone;
 public class RowViewAdapter extends RecyclerView.Adapter<RowViewAdapter.ViewHolder> {
 
     private Context context;
-    private DBHandler handler;
-    private Connection connection;
     private LocalDate date;
     private GastosFragment fragment;
-    private HashMap<String, String> categoryIdToName = new HashMap<>();
-    private HashMap<String, String> categoryNameToId = new HashMap<>();
     private ArrayList<ExpenseRow> rows = new ArrayList<ExpenseRow>(), rows1 = new ArrayList<ExpenseRow>(), rows2 = new ArrayList<ExpenseRow>(), rowsBoth = new ArrayList<ExpenseRow>();
 
     public RowViewAdapter(Context context) {
@@ -367,16 +358,16 @@ public class RowViewAdapter extends RecyclerView.Adapter<RowViewAdapter.ViewHold
                                     //editar la row de rowsBoth
                                     for (ExpenseRow currRow : rowsBoth) {
                                         if (currRow.getId().equals(rows.get(position).getId())) {
-                                            rowsBoth.get(position).setDescription(txt_NombreGasto.getText().toString());
-                                            rowsBoth.get(position).setDate(java.sql.Date.valueOf(date.toString()));
-                                            rowsBoth.get(position).setValue(Double.parseDouble(txt_Gasto.getText().toString()));
-                                            rowsBoth.get(position).setWho(dropdown_nombres.getText().toString());
+                                            currRow.setDescription(txt_NombreGasto.getText().toString());
+                                            currRow.setDate(java.sql.Date.valueOf(date.toString()));
+                                            currRow.setValue(Double.parseDouble(txt_Gasto.getText().toString()));
+                                            currRow.setWho(dropdown_nombres.getText().toString());
                                             currRow.setCategory(newRow.getCategory());
                                         }
                                     }
                                     Collections.sort(rowsBoth, new RowSortDate());
                                     if (context instanceof ExpenseActivity) {
-                                        ((ExpenseActivity) context).onDataLoaded(rowsBoth);
+                                        ((ExpenseActivity) context).onDataLoaded(new ArrayList<>(rowsBoth));
                                     }
                                     notifyDataSetChanged();
                                     fragment.loadTotals();
@@ -424,27 +415,6 @@ public class RowViewAdapter extends RecyclerView.Adapter<RowViewAdapter.ViewHold
             txtPrecio = itemView.findViewById(R.id.txtPrecio);
             row_fg = itemView.findViewById(R.id.row_card);
             row_bg = itemView.findViewById(R.id.row_delete);
-        }
-    }
-
-
-    private String getCategoryNameFromId(String categoryId) {
-        if (categoryId == null) return "";
-
-        switch (categoryId) {
-            case "c1": return "Salidas";
-            case "c2": return "Delivery";
-            case "c3": return "Super";
-            case "c4": return "Gatitas";
-            case "c5": return "Servicios";
-            case "c6": return "Nafta / Peajes";
-            case "c7": return "Olga";
-            case "c8": return "Auto";
-            case "c9": return "Pago Casa";
-            case "c10": return "Suscripciones";
-            case "c11": return "Compras";
-            case "c12": return "Otros";
-            default: return categoryId;
         }
     }
 

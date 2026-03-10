@@ -1,8 +1,4 @@
 package com.example.expensetracker;
-
-import android.content.Context;
-
-import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -44,55 +40,6 @@ public class HCardDB {
             initialize();
         }
         expensesMap.clear();
-    }
-
-    public static void setDB(LinkedHashMap<String, HomeCard> newMap) {
-        if (expensesMap == null) initialize();
-        expensesMap = newMap;
-    }
-
-    public static void createDBTable(HomeCard hc, Context context) {
-        DBHandler handler = new DBHandler();
-        Connection connection = handler.getConnection(context);
-
-        int id = getBiggestID() + 1;
-
-        try {
-            Statement st = connection.createStatement();
-            String ql = "CREATE TABLE DATA" + id + " " +
-                    "(id INT NOT NULL AUTO_INCREMENT, " +
-                    " Description VARCHAR(45) not NULL, " +
-                    " Date DATE not NULL, " +
-                    " Value DOUBLE not NULL, " +
-                    " Who VARCHAR(45) not NULL, " +
-                    " primary key (id))";
-            st.executeUpdate(ql);
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();
-        }
-
-        try {
-            String insert = "INSERT INTO allTables(tableName,creationDate,tableDescription)" + "VALUES (?,?,?)";
-            PreparedStatement pst = connection.prepareStatement(insert);
-            pst.setString(1, hc.getTableID());
-            pst.setDate(2, Date.valueOf(String.valueOf(hc.getCreationDate())));
-            pst.setString(3, hc.getName());
-            pst.executeUpdate();
-
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();
-        }
-
-        try {
-            connection.close();
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();
-        }
-    }
-
-    public static Boolean containsID(String id) {
-        if (expensesMap == null) initialize();
-        return expensesMap.containsKey(id);
     }
 
     public static void addExpense(String key, HomeCard hc) {
@@ -137,19 +84,6 @@ public class HCardDB {
         return expensesMap == null;
     }
 
-    public static HashMap<String, HomeCard> getDB() {
-        if (expensesMap == null) initialize();
-        return expensesMap;
-    }
-
-    public static ArrayList<HomeCard> getReports() {
-        ArrayList<HomeCard> answer = new ArrayList<>();
-        if (expensesMap == null) initialize();
-        for (String s : expensesMap.keySet()) {
-            answer.add(0, expensesMap.get(s));
-        }
-        return answer;
-    }
 
     public static ArrayList<HomeCard> getReportsActuals() {
         ArrayList<HomeCard> answer = new ArrayList<>();

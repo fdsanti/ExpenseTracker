@@ -7,7 +7,6 @@ import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -16,7 +15,6 @@ import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.LayoutInflater;
-import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -25,7 +23,6 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.ImageView;
-import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -35,8 +32,6 @@ import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.view.menu.MenuBuilder;
 import androidx.appcompat.view.menu.MenuPopupHelper;
-import androidx.core.content.ContextCompat;
-import androidx.core.graphics.drawable.DrawableCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -54,22 +49,12 @@ import com.google.android.material.progressindicator.LinearProgressIndicator;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
-
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-import java.time.format.FormatStyle;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -83,13 +68,11 @@ public class GastosFragment extends Fragment implements CallBackItemTouch, Swipe
     private Context context;
     private RecyclerView recyclerView;
     private RowViewAdapter adapter;
-    private Connection connection;
-    private DBHandler handler;
     private LinearProgressIndicator progressBar;
-    public static ArrayList<ExpenseRow> rows;
-    public static ArrayList<ExpenseRow> rows1;
-    public static ArrayList<ExpenseRow> rows2;
-    public static ArrayList<ExpenseRow> rowsBoth;
+    public ArrayList<ExpenseRow> rows;
+    public ArrayList<ExpenseRow> rows1;
+    public ArrayList<ExpenseRow> rows2;
+    public ArrayList<ExpenseRow> rowsBoth;
     private Chip chip_1;
     private Chip chip_2;
     private FloatingActionButton btn_fab;
@@ -452,6 +435,8 @@ public class GastosFragment extends Fragment implements CallBackItemTouch, Swipe
                                         recyclerView.smoothScrollToPosition(0);
                                     }
 
+                                    notifySummaryDataChanged();
+
                                     //hide progressBar
                                     progressBar.hide();
                                     progressBar.setVisibility(View.INVISIBLE);
@@ -540,29 +525,6 @@ public class GastosFragment extends Fragment implements CallBackItemTouch, Swipe
 
         });
 
-        //OnDataChange - Disabled for now. Need to think this through
-        FirebaseDatabase database = FirebaseDatabase.getInstance();
-        DatabaseReference myRef = database.getReference();
-        myRef.child(HCardDB.getSelected().getTableID().toString()).addValueEventListener(new ValueEventListener() {
-            int numberOfChanges = 0;
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                // This method is called once with the initial value and again
-                // whenever data at this location is updated.
-                //String value = dataSnapshot.getValue(String.class);
-                if (numberOfChanges > 0) {
-                    //Toast.makeText(context, "Hay un update", Toast.LENGTH_SHORT).show();
-                }
-                numberOfChanges += 1;
-                //Log.d(TAG, "Value is: " + value);
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                // Failed to read value
-                Log.w(TAG, "Failed to read value.", error.toException());
-            }
-        });
     }
 
     private void loadNames() {
@@ -611,6 +573,7 @@ public class GastosFragment extends Fragment implements CallBackItemTouch, Swipe
         chip_2 = view.findViewById(R.id.chip_2);
         chip_1.setText(SettingsDB.getSetting(HCardDB.getSelected()).getName1());
         chip_2.setText(SettingsDB.getSetting(HCardDB.getSelected()).getName2());
+        Log.d("DEBUG DATA", SettingsDB.getSetting(HCardDB.getSelected()).getName1());
         icon_sort = view.findViewById(R.id.icon_sort);
         progressBar = view.findViewById(R.id.progressBar);
     }
@@ -636,7 +599,6 @@ public class GastosFragment extends Fragment implements CallBackItemTouch, Swipe
                 else {
                     for (DataSnapshot currRow : task.getResult().getChildren()) {
                         ExpenseRow row = new ExpenseRow();
-                        String categoryFromDB = currRow.child("Category").getValue(String.class);
                         row.setId(currRow.getKey());
                         row.setDescription(currRow.child("description").getValue(String.class));
                         LocalDate newDate = LocalDate.parse(currRow.child("date").getValue(String.class));
@@ -805,6 +767,7 @@ public class GastosFragment extends Fragment implements CallBackItemTouch, Swipe
 
                             adapter.notifyItemRemoved(position);
                             adapter.notifyItemRangeChanged(position,rows.size());
+                            notifySummaryDataChanged();
                             // Now that the lists are updated, tell the activity
                             if (getActivity() != null) {
                                 ((ExpenseActivity) getActivity()).onDataLoaded(rowsBoth);
@@ -859,6 +822,12 @@ public class GastosFragment extends Fragment implements CallBackItemTouch, Swipe
                         onComplete.run();
                     }
                 });
+    }
+
+    private void notifySummaryDataChanged() {
+        if (getActivity() instanceof ExpenseActivity) {
+            ((ExpenseActivity) getActivity()).onDataLoaded(new ArrayList<>(rowsBoth));
+        }
     }
 
 }

@@ -189,34 +189,43 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
         LocalDate today = LocalDate.now();
         HomeCard hc = HomeCard.fromTrackerId(trackerId, today, trackerName, false, false);
 
-        DatabaseReference trackerRef = FirebaseDatabase.getInstance()
-                .getReference()
-                .child(HomeFirebaseV2Repository.ROOT)
-                .child(trackerId);
+        DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference();
 
-        trackerRef.child("meta").child("legacyId").setValue(trackerId);
-        trackerRef.child("meta").child("name").setValue(trackerName);
-        trackerRef.child("meta").child("createdAt").setValue(today.toString());
-        trackerRef.child("meta").child("updatedAt").setValue(today.toString());
-        trackerRef.child("meta").child("status").setValue("open");
-        trackerRef.child("meta").child("closed").setValue(false);
-        trackerRef.child("meta").child("version").setValue(2);
-        trackerRef.child("meta").child("migratedFrom").setValue("created-directly-in-v2");
+        HashMap<String, Object> updates = new HashMap<>();
 
-        trackerRef.child("participants").setValue(new HashMap<>());
-        trackerRef.child("categories").setValue(new HashMap<>());
-        trackerRef.child("expenses").setValue(new HashMap<>());
-        trackerRef.child("summary").child("expenseCount").setValue(0);
-        trackerRef.child("summary").child("totalAmount").setValue(0);
-        trackerRef.child("summary").child("participantCount").setValue(0);
-        trackerRef.child("summary").child("categoryCount").setValue(0)
+        // trackers_v2
+        updates.put("trackers_v2/" + trackerId + "/meta/legacyId", trackerId);
+        updates.put("trackers_v2/" + trackerId + "/meta/name", trackerName);
+        updates.put("trackers_v2/" + trackerId + "/meta/createdAt", today.toString());
+        updates.put("trackers_v2/" + trackerId + "/meta/updatedAt", today.toString());
+        updates.put("trackers_v2/" + trackerId + "/meta/status", "open");
+        updates.put("trackers_v2/" + trackerId + "/meta/closed", false);
+        updates.put("trackers_v2/" + trackerId + "/meta/version", 2);
+        updates.put("trackers_v2/" + trackerId + "/meta/migratedFrom", "created-directly-in-v2");
+
+        updates.put("trackers_v2/" + trackerId + "/participants", new HashMap<>());
+        updates.put("trackers_v2/" + trackerId + "/categories", new HashMap<>());
+        updates.put("trackers_v2/" + trackerId + "/expenses", new HashMap<>());
+        updates.put("trackers_v2/" + trackerId + "/summary/expenseCount", 0);
+        updates.put("trackers_v2/" + trackerId + "/summary/totalAmount", 0);
+        updates.put("trackers_v2/" + trackerId + "/summary/participantCount", 0);
+        updates.put("trackers_v2/" + trackerId + "/summary/categoryCount", 0);
+
+        // home_index
+        updates.put("home_index/" + trackerId + "/trackerId", trackerId);
+        updates.put("home_index/" + trackerId + "/name", trackerName);
+        updates.put("home_index/" + trackerId + "/createdAt", today.toString());
+        updates.put("home_index/" + trackerId + "/closed", false);
+        updates.put("home_index/" + trackerId + "/isSetupComplete", false);
+
+        rootRef.updateChildren(updates)
                 .addOnSuccessListener(unused -> {
                     HCardDB.addExpense(hc.getTableID(), hc);
                     actualFragment.addHCards(0, hc);
                     Toast.makeText(MainActivity.this, "¡El expense ha sido creado con éxito!", Toast.LENGTH_SHORT).show();
                 })
                 .addOnFailureListener(e -> {
-                    Log.e(TAG, "Error creando tracker en trackers_v2", e);
+                    Log.e(TAG, "Error creando tracker", e);
                     Toast.makeText(MainActivity.this, "No se pudo crear el expense", Toast.LENGTH_SHORT).show();
                 });
     }
