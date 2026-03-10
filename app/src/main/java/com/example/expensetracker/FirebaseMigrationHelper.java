@@ -67,7 +67,6 @@ public final class FirebaseMigrationHelper {
                     meta.put("legacyId", trackerId);
                     meta.put("name", safeString(trackerSnapshot.child("tableDescription").getValue()));
                     meta.put("createdAt", safeString(trackerSnapshot.child("creationDate").getValue()));
-                    meta.put("status", closed ? "closed" : "open");
                     meta.put("closed", closed);
                     meta.put("version", 2);
                     meta.put("migratedFrom", "legacy-root-structure");

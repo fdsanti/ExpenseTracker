@@ -108,7 +108,6 @@ public class SaldosFragment extends Fragment {
 
                                 if (!HCardDB.getSelected().isCerrado()) {
                                     updates.put("trackers_v2/" + trackerId + "/meta/closed", true);
-                                    updates.put("trackers_v2/" + trackerId + "/meta/status", "closed");
                                     updates.put("home_index/" + trackerId + "/closed", true);
 
                                     myRef.updateChildren(updates).addOnCompleteListener(updateTask -> {
@@ -126,7 +125,6 @@ public class SaldosFragment extends Fragment {
                                 }
                                 else {
                                     updates.put("trackers_v2/" + trackerId + "/meta/closed", false);
-                                    updates.put("trackers_v2/" + trackerId + "/meta/status", "open");
                                     updates.put("home_index/" + trackerId + "/closed", false);
 
                                     myRef.updateChildren(updates).addOnCompleteListener(updateTask -> {

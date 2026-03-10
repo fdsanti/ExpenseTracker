@@ -66,6 +66,7 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
 
         AuthGuard.checkAccess(this, () -> {
             setContentView(R.layout.activity_main2);
+            //Code for migrating to firebase trackers_v2
             /*FirebaseMigrationHelper.migrateLegacyToTrackersV2(new FirebaseMigrationHelper.MigrationCallback() {
                 @Override
                 public void onSuccess(int migratedTrackers) {
@@ -198,7 +199,6 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
         updates.put("trackers_v2/" + trackerId + "/meta/name", trackerName);
         updates.put("trackers_v2/" + trackerId + "/meta/createdAt", today.toString());
         updates.put("trackers_v2/" + trackerId + "/meta/updatedAt", today.toString());
-        updates.put("trackers_v2/" + trackerId + "/meta/status", "open");
         updates.put("trackers_v2/" + trackerId + "/meta/closed", false);
         updates.put("trackers_v2/" + trackerId + "/meta/version", 2);
         updates.put("trackers_v2/" + trackerId + "/meta/migratedFrom", "created-directly-in-v2");
