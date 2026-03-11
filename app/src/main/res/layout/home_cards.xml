@@ -16,7 +16,7 @@
         android:elevation="0dp"
         app:cardElevation="0dp"
         app:strokeWidth="1dp"
-        android:backgroundTint="?attr/colorBackgroundCards"
+        app:cardBackgroundColor="?attr/colorBackgroundCards"
         app:strokeColor="?attr/colorBorderCards"
         android:id="@+id/trackerCard"
         >
