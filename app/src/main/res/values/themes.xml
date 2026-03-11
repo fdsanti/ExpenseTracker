@@ -19,7 +19,7 @@
         <item name="colorBorderCards">@color/colorPrimary</item>
         <item name="colorBgResumenRows">@color/bgOnWhite</item>
         <item name="textColorPrimary">@color/colorSurface</item>
-
+        <item name="colorSurface">@color/colorSurface</item>
         <item name="greyBackground">@color/purple_500</item>
         <item name="onGreyBackground">@color/white</item>
         <item name="filtrarPorBg">@color/white</item>

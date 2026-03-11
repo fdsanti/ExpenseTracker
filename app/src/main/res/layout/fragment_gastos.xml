@@ -15,7 +15,7 @@
         android:layout_height="wrap_content"
         android:elevation="4dp"
         android:paddingTop="12dp"
-        app:background="?attr/filtrarPorBg"
+        android:background="?attr/filtrarPorBg"
         app:layout_constraintTop_toTopOf="parent">
 
         <TextView
