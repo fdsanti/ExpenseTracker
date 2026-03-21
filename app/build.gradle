@@ -68,8 +68,6 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
     androidTestImplementation 'androidx.test:core:1.5.0'
     androidTestImplementation 'androidx.test:runner:1.5.2'
-    //implementation group: 'org.apache.commons', name: 'commons-dbcp2', version: '2.8.0'
-    //implementation group: 'org.apache.commons', name: 'commons-pool2', version: '2.8.0'
     implementation 'androidx.multidex:multidex:2.0.1'
     implementation platform('com.google.firebase:firebase-bom:32.2.3')
     implementation ('com.google.firebase:firebase-analytics')

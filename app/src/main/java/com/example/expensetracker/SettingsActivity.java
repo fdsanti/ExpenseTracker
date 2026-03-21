@@ -5,6 +5,8 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -19,6 +21,10 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import java.util.HashMap;
 import java.util.Map;
+import com.example.expensetracker.data.TrackerRepository;
+import com.example.expensetracker.model.Member;
+import java.util.List;
+import com.example.expensetracker.ExpenseActivityV2;
 
 public class SettingsActivity extends AppCompatActivity {
     private MaterialToolbar toolbar;
@@ -32,6 +38,7 @@ public class SettingsActivity extends AppCompatActivity {
     private TextInputEditText txtEditSueldo2;
     private MaterialButton btnContinuar;
     private Boolean comingFromExpense;
+    private String trackerId;
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
@@ -39,11 +46,11 @@ public class SettingsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
 
-        Bundle b = getIntent().getExtras();
-        if (b != null) {
-            comingFromExpense = true;
-        } else {
-            comingFromExpense = false;
+        trackerId = getIntent().getStringExtra("trackerId");
+        comingFromExpense = getIntent().getBooleanExtra("fromExpenseV2", false);
+
+        if (trackerId == null && HCardDB.getSelected() != null) {
+            trackerId = HCardDB.getSelected().getTableID();
         }
         toolbar = findViewById(R.id.toolbarBack_widget);
         //Al hacer click en back button
@@ -56,14 +63,7 @@ public class SettingsActivity extends AppCompatActivity {
 
         loadIDs();
 
-        if (SettingsDB.isInDB(HCardDB.getSelected())) {
-            HomeCard hcSelected = HCardDB.getSelected();
-            Settings selectedSetting = SettingsDB.getSetting(hcSelected);
-            txtEditNombre1.setText(selectedSetting.getName1());
-            txtEditSueldo1.setText(String.valueOf(selectedSetting.getIncome1()));
-            txtEditNombre2.setText(selectedSetting.getName2());
-            txtEditSueldo2.setText(String.valueOf(selectedSetting.getIncome2()));
-        }
+        loadInitialData();
 
         txtEditNombre1.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
@@ -99,72 +99,96 @@ public class SettingsActivity extends AppCompatActivity {
         });
 
         btnContinuar.setOnClickListener(v -> {
-            //si todos los fields estan completos, entonces guardar setting en la base de datos
-            if (!txtEditNombre1.getText().toString().isEmpty()
-                    & !txtEditSueldo1.getText().toString().isEmpty()
-                    & !txtEditNombre2.getText().toString().isEmpty()
-                    & !txtEditSueldo2.getText().toString().isEmpty()) {
+            String name1 = txtEditNombre1.getText().toString().trim();
+            String salary1Text = txtEditSueldo1.getText().toString().trim();
+            String name2 = txtEditNombre2.getText().toString().trim();
+            String salary2Text = txtEditSueldo2.getText().toString().trim();
 
-                Settings newSet = new Settings(HCardDB.getSelected().getTableID(), txtEditNombre1.getText().toString(), Integer.parseInt(txtEditSueldo1.getText().toString()), txtEditNombre2.getText().toString(), Integer.parseInt(txtEditSueldo2.getText().toString()));
+            if (!name1.isEmpty()
+                    && !salary1Text.isEmpty()
+                    && !name2.isEmpty()
+                    && !salary2Text.isEmpty()) {
+
+                if (trackerId == null || trackerId.trim().isEmpty()) {
+                    Toast.makeText(SettingsActivity.this, "No se pudo guardar la configuración", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                double salary1;
+                double salary2;
+
+                try {
+                    salary1 = Double.parseDouble(salary1Text);
+                    salary2 = Double.parseDouble(salary2Text);
+                } catch (NumberFormatException e) {
+                    Toast.makeText(SettingsActivity.this, "Los sueldos deben ser numéricos", Toast.LENGTH_SHORT).show();
+                    return;
+                }
 
                 FirebaseDatabase database = FirebaseDatabase.getInstance();
                 DatabaseReference myRef = database.getReference();
-                myRef.get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<DataSnapshot> task) {
-                        if (!task.isSuccessful()) {
-                            Log.e("firebase", "Error getting data", task.getException());
-                        }
-                        else {
-                            //Updating firebase DB
-                            myRef.child("trackers_v2").child(newSet.getTableID()).child("participants").child("p1").child("name").setValue(newSet.getName1());
-                            myRef.child("trackers_v2").child(newSet.getTableID()).child("participants").child("p2").child("name").setValue(newSet.getName2());
-                            myRef.child("trackers_v2").child(newSet.getTableID()).child("participants").child("p1").child("income").setValue(newSet.getIncome1());
-                            myRef.child("trackers_v2").child(newSet.getTableID()).child("participants").child("p2").child("income").setValue(newSet.getIncome2());
-                            myRef.child("home_index").child(newSet.getTableID()).child("isSetupComplete").setValue(true);
-                            HCardDB.getSelected().setSetupComplete(true);
 
-                            // 2. NEW: Initialize categories for this tracker if they don't exist
-                            // We check if the tracker already has categories (in case the user is just editing settings)
-                            myRef.child("trackers_v2").child(newSet.getTableID()).child("categories").get().addOnCompleteListener(catTask -> {
-                                if (catTask.isSuccessful() && !catTask.getResult().exists()) {
-                                    // No categories found for this ID, so we push the defaults
-                                    myRef.child("trackers_v2").child(newSet.getTableID()).child("categories").setValue(buildDefaultCategoriesMap());
-                                }
-                            });
+                Map<String, Object> participant1 = new HashMap<>();
+                participant1.put("active", true);
+                participant1.put("income", salary1);
+                participant1.put("name", name1);
+                participant1.put("order", 1);
 
-                            SettingsDB.addToDB(newSet);
-                            Intent intent = new Intent(SettingsActivity.this, ExpenseActivity.class);
-                            SettingsActivity.this.startActivity(intent);
-                            finish();
-                            Log.d("firebase", String.valueOf(task.getResult().getValue()));
+                Map<String, Object> participant2 = new HashMap<>();
+                participant2.put("active", true);
+                participant2.put("income", salary2);
+                participant2.put("name", name2);
+                participant2.put("order", 2);
+
+                Map<String, Object> updates = new HashMap<>();
+                updates.put("trackers_v2/" + trackerId + "/participants/p1", participant1);
+                updates.put("trackers_v2/" + trackerId + "/participants/p2", participant2);
+                updates.put("home_index/" + trackerId + "/isSetupComplete", true);
+
+                myRef.updateChildren(updates).addOnCompleteListener(task -> {
+                    if (!task.isSuccessful()) {
+                        Log.e("SettingsActivity", "Error saving settings", task.getException());
+                        Toast.makeText(SettingsActivity.this, "Error al guardar la configuración", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    HCardDB.setSetupComplete(trackerId, true);
+                    myRef.child("trackers_v2").child(trackerId).child("categories").get().addOnCompleteListener(catTask -> {
+                        if (catTask.isSuccessful() && !catTask.getResult().exists()) {
+                            myRef.child("trackers_v2").child(trackerId).child("categories").setValue(buildDefaultCategoriesMap());
                         }
+                    });
+
+                    if (comingFromExpense != null && comingFromExpense) {
+                        finish();
+                    } else {
+                        Intent intent = new Intent(SettingsActivity.this, ExpenseActivityV2.class);
+                        intent.putExtra("trackerId", trackerId);
+                        SettingsActivity.this.startActivity(intent);
+                        finish();
                     }
                 });
-            }
-
-            //si falta algun dato, pedir de completar los input fields
-            else {
+            } else {
                 txtEditNombre1.clearFocus();
                 txtEditNombre2.clearFocus();
                 txtEditSueldo1.clearFocus();
                 txtEditSueldo2.clearFocus();
-                if (txtEditNombre1.getText().toString().isEmpty()) {
+
+                if (name1.isEmpty()) {
                     txtFieldNombre1.setErrorEnabled(true);
                     txtFieldNombre1.setError("Es necesario completar este campo.");
                     txtFieldNombre1.setErrorIconDrawable(R.drawable.ic_info);
                 }
-                if (txtEditSueldo1.getText().toString().isEmpty()) {
+                if (salary1Text.isEmpty()) {
                     txtFieldSueldo1.setErrorEnabled(true);
                     txtFieldSueldo1.setError("Es necesario completar este campo.");
                     txtFieldSueldo1.setErrorIconDrawable(R.drawable.ic_info);
                 }
-                if (txtEditNombre2.getText().toString().isEmpty()) {
+                if (name2.isEmpty()) {
                     txtFieldNombre2.setErrorEnabled(true);
                     txtFieldNombre2.setError("Es necesario completar este campo.");
                     txtFieldNombre2.setErrorIconDrawable(R.drawable.ic_info);
                 }
-                if (txtEditSueldo2.getText().toString().isEmpty()) {
+                if (salary2Text.isEmpty()) {
                     txtFieldSueldo2.setErrorEnabled(true);
                     txtFieldSueldo2.setError("Es necesario completar este campo.");
                     txtFieldSueldo2.setErrorIconDrawable(R.drawable.ic_info);
@@ -216,5 +240,67 @@ public class SettingsActivity extends AppCompatActivity {
         }
 
         return categoriesMap;
+    }
+
+    private void loadInitialData() {
+        if (trackerId == null) {
+            if (HCardDB.getSelected() != null && SettingsDB.isInDB(HCardDB.getSelected())) {
+                HomeCard hcSelected = HCardDB.getSelected();
+                Settings selectedSetting = SettingsDB.getSetting(hcSelected);
+                txtEditNombre1.setText(selectedSetting.getName1());
+                txtEditSueldo1.setText(String.valueOf(selectedSetting.getIncome1()));
+                txtEditNombre2.setText(selectedSetting.getName2());
+                txtEditSueldo2.setText(String.valueOf(selectedSetting.getIncome2()));
+            }
+            return;
+        }
+
+        TrackerRepository repository = new TrackerRepository();
+        repository.loadParticipants(trackerId, new TrackerRepository.RepositoryCallback<List<Member>>() {
+            @Override
+            public void onSuccess(List<Member> result) {
+                Member member1 = findMemberById(result, "p1");
+                Member member2 = findMemberById(result, "p2");
+
+                if (member1 == null && result.size() > 0) {
+                    member1 = result.get(0);
+                }
+
+                if (member2 == null && result.size() > 1) {
+                    member2 = result.get(1);
+                }
+
+                if (member1 != null) {
+                    txtEditNombre1.setText(member1.getName());
+                    txtEditSueldo1.setText(formatIncome(member1.getSalary()));
+                }
+
+                if (member2 != null) {
+                    txtEditNombre2.setText(member2.getName());
+                    txtEditSueldo2.setText(formatIncome(member2.getSalary()));
+                }
+            }
+
+            @Override
+            public void onError(Exception exception) {
+                Log.e("SettingsActivity", "Error loading participants", exception);
+            }
+        });
+    }
+
+    private Member findMemberById(List<Member> members, String memberId) {
+        for (Member member : members) {
+            if (memberId.equals(member.getId())) {
+                return member;
+            }
+        }
+        return null;
+    }
+
+    private String formatIncome(double income) {
+        if (income == (long) income) {
+            return String.valueOf((long) income);
+        }
+        return String.valueOf(income);
     }
 }
