@@ -2,19 +2,23 @@ package com.example.expensetracker.ui.expense.components;
 
 import android.content.Context;
 import android.util.AttributeSet;
-import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import com.google.android.material.button.MaterialButton;
 
 import androidx.annotation.Nullable;
 
 import com.example.expensetracker.R;
 import com.example.expensetracker.calculator.DebtSummary;
 
+import java.text.NumberFormat;
+import java.util.Locale;
+
 public class BalanceCardView extends LinearLayout {
 
-    private TextView txtDebt;
-    private Button btnReviewBalance;
+    private TextView txtDebtLabel;
+    private TextView txtDebtAmount;
+    private MaterialButton btnReviewBalance;
 
     public BalanceCardView(Context context) {
         super(context);
@@ -32,34 +36,38 @@ public class BalanceCardView extends LinearLayout {
     }
 
     private void init(Context context) {
-
         inflate(context, R.layout.view_balance_card, this);
 
-        txtDebt = findViewById(R.id.txtDebt);
+        txtDebtLabel = findViewById(R.id.txtDebtLabel);
+        txtDebtAmount = findViewById(R.id.txtDebtAmount);
         btnReviewBalance = findViewById(R.id.btnReviewBalance);
     }
 
     public void render(DebtSummary debtSummary) {
-
         if (debtSummary != null
                 && debtSummary.getFromMemberName() != null
                 && debtSummary.getToMemberName() != null
                 && debtSummary.getAmount() > 0) {
 
-            txtDebt.setText(
+            txtDebtLabel.setText(
                     debtSummary.getFromMemberName()
-                            + " debe "
-                            + debtSummary.getAmount()
-                            + " a "
+                            + " le debe a "
                             + debtSummary.getToMemberName()
             );
 
+            txtDebtAmount.setText(formatCurrency(debtSummary.getAmount()));
         } else {
-            txtDebt.setText("Debt: -");
+            txtDebtLabel.setText("-");
+            txtDebtAmount.setText("-");
         }
     }
 
     public void setOnReviewBalanceClickListener(OnClickListener listener) {
         btnReviewBalance.setOnClickListener(listener);
+    }
+
+    private String formatCurrency(double amount) {
+        NumberFormat format = NumberFormat.getCurrencyInstance(new Locale("es", "AR"));
+        return format.format(amount);
     }
 }

@@ -29,7 +29,61 @@
         <item name="bgwhitegrey">@color/white</item>
         <item name="whiteBlack">@color/background</item>
         <item name="popupbg">@color/white</item>
+        <item name="cardElevationHome">1dp</item>
+        <item name="homeTabBackgroundColor">@color/white</item>
+        <item name="homeTabTextSelectedColor">?attr/colorInteractivePrimary</item>
+        <item name="homeTabIndicatorColor">?attr/colorInteractivePrimary</item>
+        <item name="homeTabTextUnselectedColor">#66000000</item>
+        <item name="colorInteractivePrimary">@color/interactive_primary_light</item>
+        <item name="primary_text">@color/primary_text_light</item>
+        <item name="background">@color/app_background_light</item>
+        <item name="homeToolbarBackgroundColor">@color/home_header_background_light</item>
+        <item name="homeTabsBottomBorderColor">@color/home_tabs_border_light</item>
+        <item name="colorInteractiveSecondaryBg">#DFF3EE</item>
+        <item name="colorInteractiveSecondaryIcon">?attr/colorInteractivePrimary</item>
+        <item name="textPrimary">@color/primary_text_light</item>
+        <item name="textSecondary">@color/primary_text_light</item>
+        <item name="balanceDividerColor">#D7D7D7</item>
+        <item name="contentTabActiveBg">#00806F</item>
+        <item name="contentTabInactiveText">#334B46</item>
+        <item name="filterChipActiveBg">#E6FAF5</item>
+        <item name="filterChipActiveText">#016B5D</item>
+        <item name="filterChipActiveIcon">#016B5D</item>
+        <item name="filterChipInactiveBorder">#CAC4D0</item>
+        <item name="filterChipInactiveText">#49454F</item>
+        <item name="filterLabelText">#252525</item>
+        <item name="filterChipInactiveBg">#F1F1F1</item>
+    </style>
 
+    <style name="ActivityTitle" parent="TextAppearance.MaterialComponents.Headline6">
+        <item name="android:textSize">28sp</item>
+        <item name="android:textColor">?attr/primary_text</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:typeface">sans</item>
+    </style>
+
+    <style name="CardBodyText">
+        <item name="android:textSize">18sp</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:textColor">?attr/textPrimary</item>
+    </style>
+
+    <style name="CardTitleText">
+        <item name="android:textSize">22sp</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:textColor">?attr/textPrimary</item>
+    </style>
+
+    <style name="CardNameText">
+        <item name="android:textSize">14sp</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:textColor">?attr/textSecondary</item>
+    </style>
+
+    <style name="CardAmountText">
+        <item name="android:textSize">14sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">?attr/textSecondary</item>
     </style>
 
     <style name="CustomChipStyle" parent="Widget.MaterialComponents.Chip.Filter">

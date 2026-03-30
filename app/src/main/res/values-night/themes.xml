@@ -35,9 +35,38 @@
         <item name="bgwhitegrey">@color/background</item>
         <item name="whiteBlack">@color/white</item>
         <item name="popupbg">@color/darkPopUpBg</item>
-
+        <item name="cardElevationHome">0dp</item>
+        <item name="homeTabBackgroundColor">@color/background</item>
+        <item name="homeTabTextSelectedColor">?attr/colorInteractivePrimary</item>
+        <item name="homeTabIndicatorColor">?attr/colorInteractivePrimary</item>
+        <item name="homeTabTextUnselectedColor">#99FFFFFF</item>
+        <item name="colorInteractivePrimary">@color/interactive_primary_dark</item>
+        <item name="primary_text">@color/primary_text_dark</item>
+        <item name="background">@color/app_background_dark</item>
+        <item name="homeToolbarBackgroundColor">@color/home_header_background_dark</item>
+        <item name="homeTabsBottomBorderColor">@color/home_tabs_border_dark</item>
+        <item name="colorInteractiveSecondaryBg">#1E3A36</item>
+        <item name="colorInteractiveSecondaryIcon">?attr/colorInteractivePrimary</item>
+        <item name="textPrimary">@color/primary_text_dark</item>
+        <item name="textSecondary">@color/primary_text_dark</item>
+        <item name="balanceDividerColor">#484848</item>
+        <item name="contentTabActiveBg">#003C34</item>
+        <item name="contentTabInactiveText">#C0C0C0</item>
+        <item name="filterChipActiveBg">#1A00CA9F</item>
+        <item name="filterChipActiveText">#CDE8E1</item>
+        <item name="filterChipActiveIcon">#CDE8E1</item>
+        <item name="filterChipInactiveBorder">#49454F</item>
+        <item name="filterChipInactiveText">#CAC4D0</item>
+        <item name="filterLabelText">#FFFFFF</item>
+        <item name="filterChipInactiveBg">#242524</item>
     </style>
 
+    <style name="ActivityTitle" parent="TextAppearance.MaterialComponents.Headline6">
+        <item name="android:textSize">28sp</item>
+        <item name="android:textColor">?attr/primary_text</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:typeface">sans</item>
+    </style>
 
     <style name="CustomChipStyle" parent="Widget.MaterialComponents.Chip.Filter">
         <item name="chipBackgroundColor">@color/chip_background_color</item>

@@ -1,7 +1,9 @@
 package com.example.expensetracker.ui.expense.components;
 
 import android.content.Context;
+import android.graphics.Typeface;
 import android.util.AttributeSet;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.View;
@@ -175,8 +177,8 @@ public class ContentCardView extends LinearLayout {
         }
     }
 
-    private Button btnTabCategories;
-    private Button btnTabExpenses;
+    private TextView btnTabCategories;
+    private TextView btnTabExpenses;
     private LinearLayout filtersContainer;
     private ChipGroup chipGroupMembers;
     private ImageView btnSort;
@@ -267,13 +269,10 @@ public class ContentCardView extends LinearLayout {
     }
 
     private void renderTabs(@NonNull Tab selectedTab) {
-        boolean categoriesSelected = selectedTab == Tab.CATEGORIES;
+        boolean isCategories = selectedTab == Tab.CATEGORIES;
 
-        btnTabCategories.setEnabled(!categoriesSelected);
-        btnTabExpenses.setEnabled(categoriesSelected);
-
-        btnTabCategories.setAlpha(categoriesSelected ? 1f : 0.6f);
-        btnTabExpenses.setAlpha(categoriesSelected ? 0.6f : 1f);
+        updateTabStyle(btnTabCategories, isCategories);
+        updateTabStyle(btnTabExpenses, !isCategories);
     }
 
     private void renderFilters(
@@ -325,11 +324,27 @@ public class ContentCardView extends LinearLayout {
             Chip chip = new Chip(getContext());
             chip.setId(View.generateViewId());
             chip.setText(option.label);
-            chip.setCheckable(true);
+            chip.setCheckable(false);
             chip.setClickable(true);
-            chip.setCheckedIconVisible(false);
+            chip.setCloseIconVisible(false);
+            chip.setEnsureMinTouchTargetSize(false);
+            chip.setChipMinHeight(dpToPx(32));
+            chip.setChipCornerRadius(dpToPx(8));
+            chip.setChipStrokeWidth(dpToPx(1));
+            chip.setChipStartPadding(dpToPx(0));
+            chip.setTextStartPadding(dpToPx(0));
+            chip.setTextEndPadding(dpToPx(0));
+            chip.setChipEndPadding(dpToPx(0));
+            chip.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
+            chip.setTypeface(Typeface.DEFAULT, Typeface.NORMAL);
+            chip.setChipIconResource(com.google.android.material.R.drawable.ic_mtrl_chip_checked_black);
+            chip.setChipIconVisible(false);
+            chip.setChipIconSize(dpToPx(18));
+            chip.setIconStartPadding(dpToPx(8));
+            chip.setIconEndPadding(dpToPx(8));
 
             final String optionId = option.id;
+            chip.setTag(optionId);
 
             chip.setOnClickListener(v -> {
                 if (onMemberFilterChangeListener == null) {
@@ -347,13 +362,18 @@ public class ContentCardView extends LinearLayout {
                 checkedChipId = chip.getId();
             }
 
+
             chipGroupMembers.addView(chip);
         }
 
-        if (checkedChipId != null) {
-            chipGroupMembers.check(checkedChipId);
-        } else {
-            chipGroupMembers.clearCheck();
+        for (int i = 0; i < chipGroupMembers.getChildCount(); i++) {
+            View child = chipGroupMembers.getChildAt(i);
+            if (child instanceof Chip) {
+                Chip chip = (Chip) child;
+                String chipOptionId = (String) chip.getTag();
+                boolean isChecked = equalsNullable(chipOptionId, selectedMemberFilterId);
+                applyFilterChipStyle(chip, isChecked);
+            }
         }
     }
 
@@ -677,5 +697,63 @@ public class ContentCardView extends LinearLayout {
         };
         return colors[index % colors.length];
     }
+    private void updateTabStyle(TextView tab, boolean isActive) {
+        if (isActive) {
+            tab.setBackgroundResource(R.drawable.bg_tab_active);
+            tab.setTextColor(Color.WHITE);
+            tab.setTypeface(tab.getTypeface(), Typeface.BOLD);
+        } else {
+            tab.setBackgroundResource(R.drawable.bg_tab_inactive);
+            tab.setTextColor(getAttrColor(R.attr.contentTabInactiveText));
+            tab.setTypeface(tab.getTypeface(), Typeface.NORMAL);
+        }
+    }
+    private int getAttrColor(int attr) {
+        TypedValue typedValue = new TypedValue();
+        getContext().getTheme().resolveAttribute(attr, typedValue, true);
+
+        if (typedValue.resourceId != 0) {
+            return androidx.core.content.ContextCompat.getColor(getContext(), typedValue.resourceId);
+        }
+
+        return typedValue.data;
+    }
+    private void applyFilterChipStyle(@NonNull Chip chip, boolean isChecked) {
+        if (isChecked) {
+            chip.setChipIconVisible(true);
+
+            chip.setChipBackgroundColorResource(android.R.color.transparent);
+            chip.setChipBackgroundColor(android.content.res.ColorStateList.valueOf(getAttrColor(R.attr.filterChipActiveBg)));
+            chip.setTextColor(getAttrColor(R.attr.filterChipActiveText));
+            chip.setChipIconTint(android.content.res.ColorStateList.valueOf(getAttrColor(R.attr.filterChipActiveIcon)));
+            chip.setChipStrokeColor(android.content.res.ColorStateList.valueOf(getAttrColor(R.attr.filterChipActiveBg)));
+
+            chip.setChipStartPadding(dpToPx(8));
+            chip.setIconStartPadding(dpToPx(0));
+            chip.setIconEndPadding(dpToPx(8));
+            chip.setTextStartPadding(dpToPx(0));
+            chip.setTextEndPadding(dpToPx(0));
+            chip.setChipEndPadding(dpToPx(16));
+        } else {
+            chip.setChipIconVisible(false);
+
+            chip.setChipBackgroundColorResource(android.R.color.transparent);
+            chip.setChipBackgroundColor(android.content.res.ColorStateList.valueOf(Color.TRANSPARENT));
+            chip.setChipBackgroundColor(android.content.res.ColorStateList.valueOf(getAttrColor(R.attr.filterChipInactiveBg)));
+            chip.setChipStrokeWidth(0f);
+            chip.setChipStrokeColor(android.content.res.ColorStateList.valueOf(Color.TRANSPARENT));
+            chip.setTextColor(getAttrColor(R.attr.filterChipInactiveText));
+            chip.setChipStartPadding(dpToPx(16));
+            chip.setIconStartPadding(dpToPx(0));
+            chip.setIconEndPadding(dpToPx(0));
+            chip.setTextStartPadding(dpToPx(0));
+            chip.setTextEndPadding(dpToPx(0));
+            chip.setChipEndPadding(dpToPx(16));
+        }
+    }
+    private int dpToPx(int dp) {
+        return Math.round(dp * getResources().getDisplayMetrics().density);
+    }
+
 
 }

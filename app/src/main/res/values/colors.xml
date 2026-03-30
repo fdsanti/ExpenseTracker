@@ -8,6 +8,11 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="purple_primary">#BB86FC</color>
+    <color name="interactive_primary_light">#004B41</color>
+    <color name="primary_text_light">#252525</color>
+    <color name="home_header_background_light">#FFFFFF</color>
+    <color name="home_tabs_border_light">#D0D0D0</color>
+    <color name="app_background_light">#EFEFEF</color>
 
     <!--Colors for dark theme here-->
     <color name="background">#292929</color>
@@ -15,7 +20,7 @@
     <color name="colorPrimary">#BB86FC</color>
     <color name="colorSurface">#121212</color>
     <color name="title_dark">#FFFFFF</color>
-    <color name="cards_background">#1E1E1E</color>
+    <color name="cards_background">#1D1D1D</color>
     <color name="cards_background2">#DEDEDE</color>
     <color name="cards_border">#393939</color>
     <color name="gray_bg">#292929</color>
@@ -26,6 +31,11 @@
     <color name="rowsBorderLight">#969696</color>
     <color name="darkPopUpBg">#2C2C2C</color>
     <color name="transparent_100">#00000000</color>
+    <color name="interactive_primary_dark">#00A18C</color>
+    <color name="primary_text_dark">#FFFFFF</color>
 
+    <color name="app_background_dark">#242524</color>
+    <color name="home_header_background_dark">#1D1D1D</color>
+    <color name="home_tabs_border_dark">#414141</color>
 
 </resources>

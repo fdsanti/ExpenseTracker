@@ -38,6 +38,11 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import android.graphics.Color;
+import android.util.TypedValue;
+
+import androidx.core.graphics.drawable.DrawableCompat;
+
 public class MainActivity extends AppCompatActivity implements CallBackItemTouch, SwipeRefreshLayout.OnRefreshListener {
 
     private Toolbar toolbar;
@@ -92,8 +97,26 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
         finish();
     }
 
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main_menu, menu);
+
+        int iconColor = resolveThemeColor(R.attr.primary_text);
+
+        MenuItem addItem = menu.findItem(R.id.btnRefresh);
+        if (addItem != null && addItem.getIcon() != null) {
+            Drawable addIcon = DrawableCompat.wrap(addItem.getIcon().mutate());
+            DrawableCompat.setTint(addIcon, iconColor);
+            addItem.setIcon(addIcon);
+        }
+
+        MenuItem moreItem = menu.findItem(R.id.btnMore);
+        if (moreItem != null && moreItem.getIcon() != null) {
+            Drawable moreIcon = DrawableCompat.wrap(moreItem.getIcon().mutate());
+            DrawableCompat.setTint(moreIcon, iconColor);
+            moreItem.setIcon(moreIcon);
+        }
+
         return true;
     }
 
@@ -118,6 +141,22 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
         viewPagerAdapter.addFragment(pastFragment, "Cerrados");
         viewPager.setAdapter(viewPagerAdapter);
         viewPager.setSwipeable(false);
+    }
+
+    private int resolveThemeColor(int attrResId) {
+        TypedValue typedValue = new TypedValue();
+        boolean resolved = getTheme().resolveAttribute(attrResId, typedValue, true);
+        if (!resolved) {
+            return Color.WHITE;
+        }
+
+        if (typedValue.resourceId != 0) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                return getColor(typedValue.resourceId);
+            }
+        }
+
+        return typedValue.data;
     }
 
     @Override

@@ -2,15 +2,17 @@
 <com.google.android.material.card.MaterialCardView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/hc_delete"
     android:layout_width="match_parent"
-    android:layout_height="115dp"
-    app:cardCornerRadius="6dp"
-    android:layout_marginBottom="20dp"
+    android:layout_height="113dp"
+    android:layout_marginStart="24dp"
+    android:layout_marginTop="10dp"
+    android:layout_marginEnd="24dp"
+    android:layout_marginBottom="12dp"
     android:elevation="0dp"
     app:cardElevation="0dp"
-    android:backgroundTint="?attr/deleteRed"
-    android:id="@+id/hc_delete"
-    >
+    app:cardCornerRadius="20dp"
+    android:backgroundTint="?attr/deleteRed">
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -24,6 +26,5 @@
             android:layout_marginEnd="24dp"
             android:src="@drawable/ic_delete" />
     </RelativeLayout>
-
 
 </com.google.android.material.card.MaterialCardView>

@@ -1,14 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginTop="24dp">
+    android:layout_marginTop="24dp"
+    android:elevation="?attr/cardElevationHome"
+    app:cardBackgroundColor="?attr/colorBackgroundCards"
+    app:cardCornerRadius="20dp"
+    app:cardElevation="?attr/cardElevationHome">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="16dp">
+        android:paddingVertical="20dp"
+        android:paddingHorizontal="16dp">
 
         <TextView
             android:id="@+id/txtMembersTitle"
@@ -43,4 +49,4 @@
 
     </LinearLayout>
 
-</androidx.cardview.widget.CardView>
+</com.google.android.material.card.MaterialCardView>
