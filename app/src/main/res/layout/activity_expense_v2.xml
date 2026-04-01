@@ -20,7 +20,7 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:paddingVertical="24dp"
-            android:paddingHorizontal="16dp"
+            android:paddingHorizontal="20dp"
             android:clipChildren="false"
             android:clipToPadding="false">
 
@@ -50,13 +50,13 @@
                         android:layout_weight="1" />
 
                     <ImageButton
-                        android:id="@+id/btnSettingsTop"
+                        android:id="@+id/btnMoreOptions"
                         android:layout_width="40dp"
                         android:layout_height="40dp"
                         android:background="?attr/selectableItemBackgroundBorderless"
-                        android:contentDescription="Configuración"
+                        android:contentDescription="Más opciones"
                         android:padding="8dp"
-                        android:src="@drawable/settings"
+                        android:src="@drawable/more_options"
                         app:tint="?attr/primary_text" />
                 </LinearLayout>
 
@@ -74,28 +74,6 @@
                         android:layout_height="wrap_content"
                         android:text="Tracker" />
 
-                    <com.google.android.material.card.MaterialCardView
-                        android:id="@+id/btnEditTrackerName"
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:layout_marginStart="20dp"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:foreground="?attr/selectableItemBackgroundBorderless"
-                        app:cardBackgroundColor="?attr/colorInteractiveSecondaryBg"
-                        app:cardCornerRadius="20dp"
-                        app:cardElevation="0dp"
-                        app:rippleColor="?attr/colorInteractivePrimary">
-
-                        <androidx.appcompat.widget.AppCompatImageView
-                            android:layout_width="20dp"
-                            android:layout_height="20dp"
-                            android:layout_gravity="center"
-                            android:contentDescription="Editar nombre"
-                            android:src="@drawable/edit"
-                            app:tint="?attr/colorInteractiveSecondaryIcon" />
-
-                    </com.google.android.material.card.MaterialCardView>
                 </LinearLayout>
 
             </LinearLayout>
@@ -127,23 +105,32 @@
                 android:text="Cargando..."
                 android:textSize="16sp" />
 
-            <Button
-                android:id="@+id/btnCloseTracker"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Cerrar Expense" />
-
         </LinearLayout>
 
     </ScrollView>
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
+    <com.google.android.material.card.MaterialCardView
         android:id="@+id/fabAddExpense"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
         android:layout_margin="16dp"
         android:layout_gravity="bottom|end"
-        android:contentDescription="Agregar gasto"
-        app:srcCompat="@drawable/ic_add" />
+        android:clickable="true"
+        android:focusable="true"
+        android:foreground="?attr/selectableItemBackgroundBorderless"
+        app:cardBackgroundColor="?attr/fabBackground"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="6dp"
+        app:rippleColor="?attr/fabBackground">
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_gravity="center"
+            android:contentDescription="Agregar gasto"
+            android:src="@drawable/ic_add"
+            app:tint="@android:color/white" />
+
+    </com.google.android.material.card.MaterialCardView>
 
 </FrameLayout>

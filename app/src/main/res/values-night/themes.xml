@@ -55,10 +55,23 @@
         <item name="filterChipActiveBg">#1A00CA9F</item>
         <item name="filterChipActiveText">#CDE8E1</item>
         <item name="filterChipActiveIcon">#CDE8E1</item>
-        <item name="filterChipInactiveBorder">#49454F</item>
+        <item name="filterChipInactiveBorder">#4E4E4E</item>
         <item name="filterChipInactiveText">#CAC4D0</item>
         <item name="filterLabelText">#FFFFFF</item>
-        <item name="filterChipInactiveBg">#242524</item>
+        <item name="filterChipInactiveBg">#1B1D21</item>
+        <item name="iconsColor">#E3E3E3</item>
+        <item name="sortDropdownBg">#1B201C</item>
+        <item name="sortDropdownItemSelectedBg">#0B312A</item>
+        <item name="sortDropdownText">#DFDFDF</item>
+        <item name="sortDropdownTextSelected">#CBFFFB</item>
+        <item name="contentCategoryRowBg">#1B1D21</item>
+        <item name="contentCategoryPercentageBg">#363744</item>
+        <item name="contentCategoryPercentageText">#FFFFFF</item>
+        <item name="contentCategoryChevronColor">#FFFFFF</item>
+        <item name="contentCategoryTexts">#FFFFFF</item>
+        <item name="membersRowTextColor">#B6B6B6</item>
+        <item name="fabBackground">#004B41</item>
+        <item name="expensePrimaryTextColor">#FFFFFF</item>
     </style>
 
     <style name="ActivityTitle" parent="TextAppearance.MaterialComponents.Headline6">

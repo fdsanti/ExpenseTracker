@@ -36,4 +36,17 @@
     <attr name="filterChipInactiveText" format="color" />
     <attr name="filterLabelText" format="color" />
     <attr name="filterChipInactiveBg" format="color" />
+    <attr name ="iconsColor" format="color" />
+    <attr name ="sortDropdownBg" format="color" />
+    <attr name ="sortDropdownItemSelectedBg" format="color" />
+    <attr name ="sortDropdownText" format="color" />
+    <attr name ="sortDropdownTextSelected" format="color" />
+    <attr name="contentCategoryRowBg" format="color" />
+    <attr name="contentCategoryPercentageBg" format="color" />
+    <attr name="contentCategoryPercentageText" format="color" />
+    <attr name="contentCategoryChevronColor" format="color" />
+    <attr name="contentCategoryTexts" format="color" />
+    <attr name="membersRowTextColor" format="color" />
+    <attr name="fabBackground" format="color" />
+    <attr name="expensePrimaryTextColor" format="color" />
 </resources>

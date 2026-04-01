@@ -1,17 +1,21 @@
 package com.example.expensetracker.ui.expense.components;
 
 import android.content.Context;
+import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.util.AttributeSet;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
-import android.view.Menu;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.PopupMenu;
 import android.widget.TextView;
+import android.widget.FrameLayout;
+
+import android.graphics.drawable.ColorDrawable;
+import android.view.ViewGroup;
+import android.widget.PopupWindow;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -39,6 +43,7 @@ import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import androidx.core.content.ContextCompat;
 import com.github.mikephil.charting.utils.MPPointF;
+import android.view.Gravity;
 
 import android.util.Log;
 
@@ -196,6 +201,8 @@ public class ContentCardView extends LinearLayout {
     private List<SortOptionUi> currentSortOptions = new ArrayList<>();
     @Nullable
     private String currentSelectedMemberFilterId;
+    @Nullable
+    private String currentSelectedSortTypeValue;
 
     public ContentCardView(Context context) {
         super(context);
@@ -304,6 +311,7 @@ public class ContentCardView extends LinearLayout {
         currentMemberFilterOptions = new ArrayList<>(memberFilterOptions);
         currentSortOptions = new ArrayList<>(sortOptions);
         currentSelectedMemberFilterId = selectedMemberFilterId;
+        currentSelectedSortTypeValue = selectedSortTypeValue;
 
         renderMemberChips(memberFilterOptions, selectedMemberFilterId);
         updateSortButtonContentDescription(sortOptions, selectedSortTypeValue);
@@ -335,7 +343,7 @@ public class ContentCardView extends LinearLayout {
             chip.setTextStartPadding(dpToPx(0));
             chip.setTextEndPadding(dpToPx(0));
             chip.setChipEndPadding(dpToPx(0));
-            chip.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
+            chip.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
             chip.setTypeface(Typeface.DEFAULT, Typeface.NORMAL);
             chip.setChipIconResource(com.google.android.material.R.drawable.ic_mtrl_chip_checked_black);
             chip.setChipIconVisible(false);
@@ -382,27 +390,68 @@ public class ContentCardView extends LinearLayout {
             return;
         }
 
-        PopupMenu popupMenu = new PopupMenu(getContext(), btnSort);
-        Menu menu = popupMenu.getMenu();
+        LayoutInflater inflater = LayoutInflater.from(getContext());
+        View popupView = inflater.inflate(R.layout.view_sort_dropdown, null);
+        LinearLayout container = popupView.findViewById(R.id.sortDropdownContainer);
+
+        PopupWindow popupWindow = new PopupWindow(
+                popupView,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                true
+        );
 
         for (int i = 0; i < currentSortOptions.size(); i++) {
             SortOptionUi option = currentSortOptions.get(i);
-            menu.add(Menu.NONE, i, i, option.label);
-        }
+            boolean isSelected = equalsNullable(option.value, currentSelectedSortTypeValue);
 
-        popupMenu.setOnMenuItemClickListener(item -> {
-            int index = item.getItemId();
-            if (index < 0 || index >= currentSortOptions.size()) {
-                return false;
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+            );
+
+            if (i > 0) {
+                params.topMargin = dpToPx(8);
             }
 
-            onSortTypeChangeListener.onSortTypeChanged(
-                    currentSortOptions.get(index).value
+            TextView itemView = new TextView(getContext());
+            itemView.setLayoutParams(params);
+            itemView.setText(option.label);
+            itemView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
+            itemView.setTypeface(
+                    Typeface.DEFAULT,
+                    isSelected ? Typeface.BOLD : Typeface.NORMAL
             );
-            return true;
-        });
+            itemView.setTextColor(getAttrColor(
+                    isSelected ? R.attr.sortDropdownTextSelected : R.attr.sortDropdownText
+            ));
+            itemView.setPadding(dpToPx(16), dpToPx(14), dpToPx(16), dpToPx(14));
 
-        popupMenu.show();
+            if (isSelected) {
+                itemView.setBackgroundResource(R.drawable.bg_sort_dropdown_item_selected);
+            }
+
+            itemView.setOnClickListener(v -> {
+                popupWindow.dismiss();
+                onSortTypeChangeListener.onSortTypeChanged(option.value);
+            });
+
+            container.addView(itemView);
+        }
+
+        popupWindow.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        popupWindow.setOutsideTouchable(true);
+        popupWindow.setElevation(dpToPx(8));
+
+        popupView.measure(
+                MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED),
+                MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED)
+        );
+
+        int popupWidth = popupView.getMeasuredWidth();
+        int xOff = btnSort.getWidth() - popupWidth;
+
+        popupWindow.showAsDropDown(btnSort, xOff, dpToPx(8));
     }
 
     private void updateSortButtonContentDescription(
@@ -440,19 +489,36 @@ public class ContentCardView extends LinearLayout {
 
         LayoutInflater inflater = LayoutInflater.from(getContext());
 
+        double totalAmount = 0d;
+        for (CategoryItemUi item : items) {
+            totalAmount += item.amount;
+        }
+
         for (CategoryItemUi item : items) {
             View row = inflater.inflate(R.layout.item_content_category, categoriesContainer, false);
 
+            LinearLayout categoryRow = row.findViewById(R.id.categoryRow);
+            FrameLayout categoryIconContainer = row.findViewById(R.id.categoryIconContainer);
+            ImageView ivCategoryIcon = row.findViewById(R.id.ivCategoryIcon);
             TextView tvCategoryName = row.findViewById(R.id.tvCategoryName);
+            TextView tvCategoryPercentage = row.findViewById(R.id.tvCategoryPercentage);
             TextView tvCategoryAmount = row.findViewById(R.id.tvCategoryAmount);
-            TextView tvCategoryIndicator = row.findViewById(R.id.tvCategoryIndicator);
+            ImageView ivCategoryChevron = row.findViewById(R.id.ivCategoryChevron);
             LinearLayout categoryExpensesContainer = row.findViewById(R.id.categoryExpensesContainer);
+
+            com.example.expensetracker.Category category =
+                    com.example.expensetracker.Category.fromString(item.categoryName);
 
             tvCategoryName.setText(item.categoryName);
             tvCategoryAmount.setText(formatAmount(item.amount));
-            tvCategoryIndicator.setText(item.expanded ? "▼" : "▶");
+            tvCategoryPercentage.setText(formatCategoryPercentage(item.amount, totalAmount));
 
-            row.setOnClickListener(v -> {
+            ivCategoryIcon.setImageResource(category.getIconRes());
+            categoryIconContainer.setBackground(createCategoryIconBackground(category.getColor()));
+
+            ivCategoryChevron.setRotation(item.expanded ? 180f : 0f);
+
+            categoryRow.setOnClickListener(v -> {
                 if (onCategoryClickListener != null) {
                     onCategoryClickListener.onCategoryClick(item.categoryId);
                 }
@@ -482,13 +548,9 @@ public class ContentCardView extends LinearLayout {
             View row = inflater.inflate(R.layout.item_content_category_expense, container, false);
 
             TextView tvExpenseTitle = row.findViewById(R.id.tvExpenseTitle);
-            TextView tvExpenseMeta = row.findViewById(R.id.tvExpenseMeta);
             TextView tvExpenseAmount = row.findViewById(R.id.tvExpenseAmount);
 
             tvExpenseTitle.setText(safeString(expense.getDescription()));
-            tvExpenseMeta.setText(
-                    formatDate(expense.getDate()) + " • " + safeString(expense.getMemberName())
-            );
             tvExpenseAmount.setText(formatAmount(expense.getAmount()));
 
             row.setOnClickListener(v -> {
@@ -520,11 +582,13 @@ public class ContentCardView extends LinearLayout {
             View row = inflater.inflate(R.layout.item_content_expense, expensesContainer, false);
 
             TextView tvExpenseTitle = row.findViewById(R.id.tvExpenseTitle);
-            TextView tvExpenseMeta = row.findViewById(R.id.tvExpenseMeta);
+            TextView tvExpenseDate = row.findViewById(R.id.tvExpenseDate);
+            TextView tvExpenseMember = row.findViewById(R.id.tvExpenseMember);
             TextView tvExpenseAmount = row.findViewById(R.id.tvExpenseAmount);
 
             tvExpenseTitle.setText(item.title);
-            tvExpenseMeta.setText(item.date + " • " + item.memberName + " • " + item.categoryName);
+            tvExpenseDate.setText(item.date);
+            tvExpenseMember.setText(item.memberName);
             tvExpenseAmount.setText(formatAmount(item.amount));
 
             row.setOnClickListener(v -> {
@@ -537,6 +601,27 @@ public class ContentCardView extends LinearLayout {
         }
     }
 
+    private String formatCategoryPercentage(double amount, double totalAmount) {
+        if (totalAmount <= 0d) {
+            return "0%";
+        }
+
+        int percentage = (int) Math.round((amount * 100d) / totalAmount);
+        return percentage + "%";
+    }
+
+    private Drawable createCategoryIconBackground(int color) {
+        android.graphics.drawable.GradientDrawable drawable =
+                new android.graphics.drawable.GradientDrawable();
+        drawable.setColor(color);
+        drawable.setCornerRadii(new float[] {
+                dpToPx(8), dpToPx(8),
+                0, 0,
+                0, 0,
+                dpToPx(8), dpToPx(8)
+        });
+        return drawable;
+    }
     private String formatAmount(double amount) {
         NumberFormat format = NumberFormat.getCurrencyInstance(new Locale("es", "AR"));
         return format.format(amount);
@@ -569,6 +654,9 @@ public class ContentCardView extends LinearLayout {
         pieChartCategories.setHoleRadius(75f);
         pieChartCategories.setTransparentCircleRadius(0f);
         pieChartCategories.setDrawCenterText(true);
+        pieChartCategories.setCenterTextSize(24f);
+        pieChartCategories.setCenterTextTypeface(Typeface.DEFAULT_BOLD);
+        pieChartCategories.setCenterTextColor(getAttrColor(R.attr.textPrimary));
         pieChartCategories.getLegend().setEnabled(false);
         pieChartCategories.setDrawEntryLabels(true);
         pieChartCategories.setEntryLabelColor(Color.TRANSPARENT);
@@ -577,7 +665,7 @@ public class ContentCardView extends LinearLayout {
         pieChartCategories.setTouchEnabled(false);
         pieChartCategories.setHighlightPerTapEnabled(false);
         pieChartCategories.setDrawRoundedSlices(false);
-        pieChartCategories.setExtraOffsets(0, 5f, 0, 5f);
+        pieChartCategories.setExtraOffsets(0, 4, 0, 4);
     }
 
     private void renderPieChart(
@@ -667,17 +755,32 @@ public class ContentCardView extends LinearLayout {
 
         PieDataSet dataSet = new PieDataSet(entries, "");
         dataSet.setColors(colors);
-        dataSet.setSliceSpace(12f);
+        dataSet.setSliceSpace(16f);
         dataSet.setSelectionShift(0f);
         dataSet.setDrawValues(false);
         dataSet.setDrawIcons(true);
         dataSet.setIconsOffset(new MPPointF(8f, 0f));
 
+
         PieData data = new PieData(dataSet);
+        pieChartCategories.setData(data);
+
+// 🔥 Rounded slices (traído de ResumenFragment)
+        Paint paint = pieChartCategories.getRenderer().getPaintRender();
+        paint.setStrokeJoin(Paint.Join.ROUND);
+        paint.setStrokeCap(Paint.Cap.ROUND);
+        paint.setStyle(Paint.Style.FILL_AND_STROKE);
+        paint.setStrokeWidth(25f);
+        paint.setPathEffect(null);
+        paint.setAntiAlias(true);
+
+// Ajuste para que no se desborde visualmente
+        pieChartCategories.setHoleRadius(77f);
+
+// Center text (lo dejamos como lo tenías)
+        pieChartCategories.setCenterText(formatAmount(total));
 
         pieChartCategories.setVisibility(View.VISIBLE);
-        pieChartCategories.setData(data);
-        pieChartCategories.setCenterText(formatAmount(total));
         pieChartCategories.notifyDataSetChanged();
         pieChartCategories.invalidate();
     }
@@ -740,8 +843,8 @@ public class ContentCardView extends LinearLayout {
             chip.setChipBackgroundColorResource(android.R.color.transparent);
             chip.setChipBackgroundColor(android.content.res.ColorStateList.valueOf(Color.TRANSPARENT));
             chip.setChipBackgroundColor(android.content.res.ColorStateList.valueOf(getAttrColor(R.attr.filterChipInactiveBg)));
-            chip.setChipStrokeWidth(0f);
-            chip.setChipStrokeColor(android.content.res.ColorStateList.valueOf(Color.TRANSPARENT));
+            chip.setChipStrokeWidth(1f);
+            chip.setChipStrokeColor(android.content.res.ColorStateList.valueOf(getAttrColor(R.attr.filterChipInactiveBorder)));
             chip.setTextColor(getAttrColor(R.attr.filterChipInactiveText));
             chip.setChipStartPadding(dpToPx(16));
             chip.setIconStartPadding(dpToPx(0));

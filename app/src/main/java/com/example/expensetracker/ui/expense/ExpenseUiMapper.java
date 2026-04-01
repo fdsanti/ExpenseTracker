@@ -114,28 +114,33 @@ public final class ExpenseUiMapper {
     private static List<ContentCardView.SortOptionUi> mapSortOptions() {
         List<ContentCardView.SortOptionUi> items = new ArrayList<>();
 
-        for (ExpenseListQuery.SortType sortType : ExpenseListQuery.SortType.values()) {
-            items.add(new ContentCardView.SortOptionUi(
-                    sortType.name(),
-                    mapSortLabel(sortType.name())
-            ));
-        }
+        items.add(new ContentCardView.SortOptionUi(
+                ExpenseListQuery.SortType.DATE_DESC.name(),
+                "Más recientes"
+        ));
+
+        items.add(new ContentCardView.SortOptionUi(
+                ExpenseListQuery.SortType.AMOUNT_DESC.name(),
+                "Precio: Mayor a menor"
+        ));
+
+        items.add(new ContentCardView.SortOptionUi(
+                ExpenseListQuery.SortType.AMOUNT_ASC.name(),
+                "Precio: Menor a mayor"
+        ));
 
         return items;
     }
 
     private static String mapSortLabel(String sortTypeName) {
         if ("DATE_DESC".equals(sortTypeName)) {
-            return "Fecha ↓";
-        }
-        if ("DATE_ASC".equals(sortTypeName)) {
-            return "Fecha ↑";
+            return "Más recientes";
         }
         if ("AMOUNT_DESC".equals(sortTypeName)) {
-            return "Monto ↓";
+            return "Precio: Mayor a menor";
         }
         if ("AMOUNT_ASC".equals(sortTypeName)) {
-            return "Monto ↑";
+            return "Precio: Menor a mayor";
         }
         return sortTypeName;
     }

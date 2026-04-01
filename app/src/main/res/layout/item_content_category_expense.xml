@@ -2,35 +2,33 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginStart="24dp"
-    android:orientation="vertical"
-    android:paddingTop="8dp"
-    android:paddingBottom="8dp">
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-
-        <TextView
-            android:id="@+id/tvExpenseTitle"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Compra Coto" />
-
-        <TextView
-            android:id="@+id/tvExpenseAmount"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="$ 0,00" />
-    </LinearLayout>
+    android:orientation="horizontal"
+    android:paddingStart="64dp"
+    android:paddingTop="10dp"
+    android:paddingEnd="48dp"
+    android:paddingBottom="10dp"
+    android:background="@drawable/bg_content_category_expense_click"
+    android:clickable="true"
+    android:focusable="true">
 
     <TextView
-        android:id="@+id/tvExpenseMeta"
-        android:layout_width="match_parent"
+        android:id="@+id/tvExpenseTitle"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:text="12/03/2026 • Fede" />
+        android:layout_weight="1"
+        android:text="Compra Coto"
+        android:textColor="?attr/contentCategoryTexts"
+        android:textSize="14sp"
+        android:textStyle="normal" />
+
+    <TextView
+        android:id="@+id/tvExpenseAmount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:text="$ 0,00"
+        android:textColor="?attr/contentCategoryTexts"
+        android:textSize="14sp"
+        android:textStyle="normal" />
 
 </LinearLayout>

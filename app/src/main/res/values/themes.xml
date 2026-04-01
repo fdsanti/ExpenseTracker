@@ -53,6 +53,19 @@
         <item name="filterChipInactiveText">#49454F</item>
         <item name="filterLabelText">#252525</item>
         <item name="filterChipInactiveBg">#F1F1F1</item>
+        <item name="iconsColor">#252525</item>
+        <item name="sortDropdownBg">#F9FFFA</item>
+        <item name="sortDropdownItemSelectedBg">#B8E9DA</item>
+        <item name="sortDropdownText">#334B46</item>
+        <item name="sortDropdownTextSelected">#003F36</item>
+        <item name="contentCategoryRowBg">#F1F1F1</item>
+        <item name="contentCategoryPercentageBg">#C6C6C6</item>
+        <item name="contentCategoryPercentageText">#2E2E2E</item>
+        <item name="contentCategoryChevronColor">#252525</item>
+        <item name="contentCategoryTexts">#252525</item>
+        <item name="membersRowTextColor">#6D6D6D</item>
+        <item name="fabBackground">#00806F</item>
+        <item name="expensePrimaryTextColor">#252525</item>
     </style>
 
     <style name="ActivityTitle" parent="TextAppearance.MaterialComponents.Headline6">

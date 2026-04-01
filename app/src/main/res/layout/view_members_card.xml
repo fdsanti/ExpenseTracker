@@ -13,39 +13,138 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:paddingVertical="20dp"
-        android:paddingHorizontal="16dp">
+        android:paddingHorizontal="16dp"
+        android:paddingTop="20dp"
+        android:paddingBottom="20dp">
 
         <TextView
             android:id="@+id/txtMembersTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Miembros"
+            android:textColor="?attr/textPrimary"
             android:textSize="20sp"
-            android:textStyle="bold" />
+            android:textStyle="normal" />
 
-        <TextView
-            android:id="@+id/txtMemberSalary1"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:text="User 1 - $ -"
-            android:textSize="18sp" />
+            android:layout_marginTop="22dp"
+            android:orientation="horizontal">
 
-        <TextView
-            android:id="@+id/txtMemberSalary2"
+            <TextView
+                android:id="@+id/txtUserHeader"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="User"
+                android:textColor="?attr/textPrimary"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/txtSalaryHeader"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Sueldo"
+                android:textColor="?attr/textPrimary"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <View
+            android:id="@+id/spaceHeadersToMember1"
+            android:layout_width="match_parent"
+            android:layout_height="12dp" />
+
+        <LinearLayout
+            android:id="@+id/rowMember1"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="User 2 - $ -"
-            android:textSize="18sp" />
+            android:orientation="horizontal">
 
-        <Button
+            <TextView
+                android:id="@+id/txtMemberName1"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Fede (60%)"
+                android:textColor="?attr/membersRowTextColor"
+                android:textSize="16sp"
+                android:textStyle="normal" />
+
+            <TextView
+                android:id="@+id/txtMemberSalary1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="$ 5.448.394,93"
+                android:textColor="?attr/membersRowTextColor"
+                android:textSize="16sp"
+                android:textStyle="normal" />
+        </LinearLayout>
+
+        <View
+            android:id="@+id/spaceMember1ToMember2"
+            android:layout_width="match_parent"
+            android:layout_height="8dp" />
+
+        <LinearLayout
+            android:id="@+id/rowMember2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/txtMemberName2"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Clari (40%)"
+                android:textColor="?attr/membersRowTextColor"
+                android:textSize="16sp"
+                android:textStyle="normal" />
+
+            <TextView
+                android:id="@+id/txtMemberSalary2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="$ 3.448.394,93"
+                android:textColor="?attr/membersRowTextColor"
+                android:textSize="16sp"
+                android:textStyle="normal" />
+        </LinearLayout>
+
+        <View
+            android:id="@+id/membersDivider"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="22dp"
+            android:background="?attr/balanceDividerColor" />
+
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnEditMembers"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:text="Editar datos" />
+            android:insetLeft="0dp"
+            android:insetTop="0dp"
+            android:insetRight="0dp"
+            android:insetBottom="0dp"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
+            android:padding="0dp"
+            android:text="Editar datos"
+            android:textAllCaps="false"
+            android:textColor="?attr/colorInteractivePrimary"
+            android:textSize="15sp"
+            android:textStyle="normal"
+            app:backgroundTint="@android:color/transparent"
+            app:icon="@drawable/ic_arrow_forward"
+            app:iconGravity="textEnd"
+            app:iconPadding="8dp"
+            app:iconTint="?attr/colorInteractivePrimary"
+            app:rippleColor="?attr/colorInteractivePrimary" />
 
     </LinearLayout>
 
