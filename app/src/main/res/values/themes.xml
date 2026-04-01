@@ -59,8 +59,8 @@
         <item name="sortDropdownText">#334B46</item>
         <item name="sortDropdownTextSelected">#003F36</item>
         <item name="contentCategoryRowBg">#F1F1F1</item>
-        <item name="contentCategoryPercentageBg">#C6C6C6</item>
-        <item name="contentCategoryPercentageText">#2E2E2E</item>
+        <item name="contentCategoryPercentageBg">#D9D9D9</item>
+        <item name="contentCategoryPercentageText">#3D3D3D</item>
         <item name="contentCategoryChevronColor">#252525</item>
         <item name="contentCategoryTexts">#252525</item>
         <item name="membersRowTextColor">#6D6D6D</item>

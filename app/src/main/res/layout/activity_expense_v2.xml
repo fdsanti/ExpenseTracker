@@ -83,13 +83,13 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
 
-            <com.example.expensetracker.ui.expense.components.BalanceCardView
-                android:id="@+id/balanceCard"
+            <com.example.expensetracker.ui.expense.components.ContentCardView
+                android:id="@+id/contentCard"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
 
-            <com.example.expensetracker.ui.expense.components.ContentCardView
-                android:id="@+id/contentCard"
+            <com.example.expensetracker.ui.expense.components.BalanceCardView
+                android:id="@+id/balanceCard"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
 
