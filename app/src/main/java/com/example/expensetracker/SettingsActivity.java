@@ -151,21 +151,32 @@ public class SettingsActivity extends AppCompatActivity {
                         Toast.makeText(SettingsActivity.this, "Error al guardar la configuración", Toast.LENGTH_SHORT).show();
                         return;
                     }
+
                     HCardDB.setSetupComplete(trackerId, true);
-                    myRef.child("trackers_v2").child(trackerId).child("categories").get().addOnCompleteListener(catTask -> {
-                        if (catTask.isSuccessful() && !catTask.getResult().exists()) {
-                            myRef.child("trackers_v2").child(trackerId).child("categories").setValue(buildDefaultCategoriesMap());
+
+                    DatabaseReference categoriesRef = myRef.child("trackers_v2").child(trackerId).child("categories");
+
+                    categoriesRef.get().addOnCompleteListener(catTask -> {
+                        if (!catTask.isSuccessful()) {
+                            Log.e("SettingsActivity", "Error checking categories", catTask.getException());
+                            Toast.makeText(SettingsActivity.this, "Error al guardar las categorías", Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+
+                        if (!catTask.getResult().exists()) {
+                            categoriesRef.setValue(buildDefaultCategoriesMap()).addOnCompleteListener(saveCategoriesTask -> {
+                                if (!saveCategoriesTask.isSuccessful()) {
+                                    Log.e("SettingsActivity", "Error saving categories", saveCategoriesTask.getException());
+                                    Toast.makeText(SettingsActivity.this, "Error al guardar las categorías", Toast.LENGTH_SHORT).show();
+                                    return;
+                                }
+
+                                openNextScreen();
+                            });
+                        } else {
+                            openNextScreen();
                         }
                     });
-
-                    if (comingFromExpense != null && comingFromExpense) {
-                        finish();
-                    } else {
-                        Intent intent = new Intent(SettingsActivity.this, ExpenseActivityV2.class);
-                        intent.putExtra("trackerId", trackerId);
-                        SettingsActivity.this.startActivity(intent);
-                        finish();
-                    }
                 });
             } else {
                 txtEditNombre1.clearFocus();
@@ -302,5 +313,16 @@ public class SettingsActivity extends AppCompatActivity {
             return String.valueOf((long) income);
         }
         return String.valueOf(income);
+    }
+
+    private void openNextScreen() {
+        if (comingFromExpense != null && comingFromExpense) {
+            finish();
+        } else {
+            Intent intent = new Intent(SettingsActivity.this, ExpenseActivityV2.class);
+            intent.putExtra("trackerId", trackerId);
+            SettingsActivity.this.startActivity(intent);
+            finish();
+        }
     }
 }
