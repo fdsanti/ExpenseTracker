@@ -168,7 +168,6 @@ public class EditExpenseDialog {
         }
 
         AlertDialog dialog = builder.create();
-
         dialog.show();
 
         if (isEditMode) {
@@ -440,6 +439,7 @@ public class EditExpenseDialog {
         public void afterTextChanged(Editable s) {
         }
     }
+
 
     private static List<Category> getDefaultCategories() {
         List<Category> list = new ArrayList<>();

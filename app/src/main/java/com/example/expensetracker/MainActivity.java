@@ -38,6 +38,9 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import android.graphics.drawable.ColorDrawable;
+import androidx.core.content.ContextCompat;
+
 import android.graphics.Color;
 import android.util.TypedValue;
 
@@ -226,7 +229,10 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
     private void createTrackerV2(@NonNull String trackerName) {
         int newID = HCardDB.getBiggestID() + 1;
         String trackerId = "DATA" + newID;
-        LocalDate today = LocalDate.now();
+        LocalDate today = null;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            today = LocalDate.now();
+        }
         HomeCard hc = HomeCard.fromTrackerId(trackerId, today, trackerName, false, false);
 
         DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference();
@@ -280,4 +286,5 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
     @Override
     public void onRefresh() {
     }
+
 }

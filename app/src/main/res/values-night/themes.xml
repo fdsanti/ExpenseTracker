@@ -10,7 +10,7 @@
         <item name="colorSecondary">@color/colorPrimary</item>
         <item name="colorSecondaryVariant">@color/teal_200</item>
         <item name="colorOnSecondary">@color/black</item>
-        <item name="colorSurface">@color/colorSurface</item>
+        <item name="colorSurface">@color/material_surface_dark</item>
 
         <item name="windowActionBar">false</item>
         <item name="android:colorBackground">@color/gray_bg</item>
@@ -72,6 +72,10 @@
         <item name="membersRowTextColor">#B6B6B6</item>
         <item name="fabBackground">#004B41</item>
         <item name="expensePrimaryTextColor">#FFFFFF</item>
+        <item name="materialAlertDialogTheme">@style/ThemeOverlay.ExpenseTracker.MaterialAlertDialog</item>
+    </style>
+    <style name="ThemeOverlay.ExpenseTracker.MaterialAlertDialog" parent="ThemeOverlay.MaterialComponents.MaterialAlertDialog">
+        <item name="backgroundTint">@color/cards_background</item>
     </style>
 
     <style name="ActivityTitle" parent="TextAppearance.MaterialComponents.Headline6">

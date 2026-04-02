@@ -38,4 +38,7 @@
     <color name="home_header_background_dark">#21262F</color>
     <color name="home_tabs_border_dark">#414141</color>
 
+    <color name="material_surface_light">#FFFFFF</color>
+    <color name="material_surface_dark">#121212</color>
+
 </resources>

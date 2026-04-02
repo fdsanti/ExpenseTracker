@@ -19,7 +19,7 @@
         <item name="colorBorderCards">@color/colorPrimary</item>
         <item name="colorBgResumenRows">@color/bgOnWhite</item>
         <item name="textColorPrimary">@color/colorSurface</item>
-        <item name="colorSurface">@color/colorSurface</item>
+        <item name="colorSurface">@color/material_surface_light</item>
         <item name="greyBackground">@color/purple_500</item>
         <item name="onGreyBackground">@color/white</item>
         <item name="filtrarPorBg">@color/white</item>
@@ -66,6 +66,11 @@
         <item name="membersRowTextColor">#6D6D6D</item>
         <item name="fabBackground">#00806F</item>
         <item name="expensePrimaryTextColor">#252525</item>
+        <item name="materialAlertDialogTheme">@style/ThemeOverlay.ExpenseTracker.MaterialAlertDialog</item>
+    </style>
+
+    <style name="ThemeOverlay.ExpenseTracker.MaterialAlertDialog" parent="ThemeOverlay.MaterialComponents.MaterialAlertDialog">
+        <item name="backgroundTint">@color/white</item>
     </style>
 
     <style name="ActivityTitle" parent="TextAppearance.MaterialComponents.Headline6">

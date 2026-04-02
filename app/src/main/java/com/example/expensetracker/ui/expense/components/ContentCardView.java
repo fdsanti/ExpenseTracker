@@ -653,10 +653,6 @@ public class ContentCardView extends LinearLayout {
         pieChartCategories.setHoleColor(Color.TRANSPARENT);
         pieChartCategories.setHoleRadius(75f);
         pieChartCategories.setTransparentCircleRadius(0f);
-        pieChartCategories.setDrawCenterText(true);
-        pieChartCategories.setCenterTextSize(24f);
-        pieChartCategories.setCenterTextTypeface(Typeface.DEFAULT_BOLD);
-        pieChartCategories.setCenterTextColor(getAttrColor(R.attr.textPrimary));
         pieChartCategories.getLegend().setEnabled(false);
         pieChartCategories.setDrawEntryLabels(true);
         pieChartCategories.setEntryLabelColor(Color.TRANSPARENT);
@@ -666,6 +662,19 @@ public class ContentCardView extends LinearLayout {
         pieChartCategories.setHighlightPerTapEnabled(false);
         pieChartCategories.setDrawRoundedSlices(false);
         pieChartCategories.setExtraOffsets(0, 4, 0, 4);
+        pieChartCategories.setRenderer(
+                new SliceIconPieChartRenderer(
+                        pieChartCategories,
+                        pieChartCategories.getAnimator(),
+                        pieChartCategories.getViewPortHandler(),
+                        1f,
+                        0f
+                )
+        );
+        pieChartCategories.setDrawCenterText(true);
+        pieChartCategories.setCenterTextSize(24f);
+        pieChartCategories.setCenterTextTypeface(Typeface.DEFAULT_BOLD);
+        pieChartCategories.setCenterTextColor(getAttrColor(R.attr.textPrimary));
     }
 
     private void renderPieChart(
@@ -744,7 +753,7 @@ public class ContentCardView extends LinearLayout {
                 if (icon != null) {
                     icon = icon.mutate();
                     icon.setColorFilter(Color.WHITE, PorterDuff.Mode.SRC_IN);
-                    icon.setBounds(4, -32, -4, 32);
+                    //icon.setBounds(2, -26, -2, 26);
                     entry.setIcon(icon);
                 }
             }
@@ -755,11 +764,11 @@ public class ContentCardView extends LinearLayout {
 
         PieDataSet dataSet = new PieDataSet(entries, "");
         dataSet.setColors(colors);
-        dataSet.setSliceSpace(16f);
+        dataSet.setSliceSpace(8f);
         dataSet.setSelectionShift(0f);
         dataSet.setDrawValues(false);
         dataSet.setDrawIcons(true);
-        dataSet.setIconsOffset(new MPPointF(8f, 0f));
+        dataSet.setIconsOffset(new MPPointF(0f, 0f));
 
 
         PieData data = new PieData(dataSet);
@@ -769,8 +778,8 @@ public class ContentCardView extends LinearLayout {
         Paint paint = pieChartCategories.getRenderer().getPaintRender();
         paint.setStrokeJoin(Paint.Join.ROUND);
         paint.setStrokeCap(Paint.Cap.ROUND);
-        paint.setStyle(Paint.Style.FILL_AND_STROKE);
-        paint.setStrokeWidth(25f);
+        paint.setStyle(Paint.Style.FILL);
+        paint.setStrokeWidth(0f);
         paint.setPathEffect(null);
         paint.setAntiAlias(true);
 
