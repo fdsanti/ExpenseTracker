@@ -649,8 +649,6 @@ public class ContentCardView extends LinearLayout {
     private void setupPieChart() {
         pieChartCategories.setUsePercentValues(false);
         pieChartCategories.getDescription().setEnabled(false);
-        pieChartCategories.setDrawHoleEnabled(true);
-        pieChartCategories.setHoleColor(Color.TRANSPARENT);
         pieChartCategories.setHoleRadius(75f);
         pieChartCategories.setTransparentCircleRadius(0f);
         pieChartCategories.getLegend().setEnabled(false);
@@ -671,6 +669,8 @@ public class ContentCardView extends LinearLayout {
                         0f
                 )
         );
+        pieChartCategories.setDrawHoleEnabled(true);
+        pieChartCategories.setHoleColor(Color.TRANSPARENT);
         pieChartCategories.setDrawCenterText(true);
         pieChartCategories.setCenterTextSize(24f);
         pieChartCategories.setCenterTextTypeface(Typeface.DEFAULT_BOLD);
