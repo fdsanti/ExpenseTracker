@@ -659,7 +659,7 @@ public class ContentCardView extends LinearLayout {
         pieChartCategories.setTouchEnabled(false);
         pieChartCategories.setHighlightPerTapEnabled(false);
         pieChartCategories.setDrawRoundedSlices(false);
-        pieChartCategories.setExtraOffsets(0, 4, 0, 4);
+        //pieChartCategories.setExtraOffsets(0, 4, 0, 4);
         pieChartCategories.setRenderer(
                 new SliceIconPieChartRenderer(
                         pieChartCategories,
