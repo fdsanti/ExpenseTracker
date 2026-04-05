@@ -13,4 +13,40 @@
     <attr name="whiteBlack" format="color" />
     <attr name="popupbg" format="color" />
     <attr name="textColorPrimary" format="color" />
+    <attr name="cardElevationHome" format="dimension" />
+    <attr name="homeTabTextSelectedColor" format="color" />
+    <attr name="homeTabTextUnselectedColor" format="color" />
+    <attr name="homeTabIndicatorColor" format="color" />
+    <attr name="homeTabBackgroundColor" format="color" />
+    <attr name="colorInteractivePrimary" format="color" />
+    <attr name="homeToolbarBackgroundColor" format="color" />
+    <attr name="homeTabsBottomBorderColor" format="color" />
+    <attr name="primary_text" format="color" />
+    <attr name="colorInteractiveSecondaryBg" format="color" />
+    <attr name="colorInteractiveSecondaryIcon" format="color" />
+    <attr name="textPrimary" format="color" />
+    <attr name="textSecondary" format="color" />
+    <attr name="balanceDividerColor" format="color" />
+    <attr name="contentTabActiveBg" format="color" />
+    <attr name="contentTabInactiveText" format="color" />
+    <attr name="filterChipActiveBg" format="color" />
+    <attr name="filterChipActiveText" format="color" />
+    <attr name="filterChipActiveIcon" format="color" />
+    <attr name="filterChipInactiveBorder" format="color" />
+    <attr name="filterChipInactiveText" format="color" />
+    <attr name="filterLabelText" format="color" />
+    <attr name="filterChipInactiveBg" format="color" />
+    <attr name ="iconsColor" format="color" />
+    <attr name ="sortDropdownBg" format="color" />
+    <attr name ="sortDropdownItemSelectedBg" format="color" />
+    <attr name ="sortDropdownText" format="color" />
+    <attr name ="sortDropdownTextSelected" format="color" />
+    <attr name="contentCategoryRowBg" format="color" />
+    <attr name="contentCategoryPercentageBg" format="color" />
+    <attr name="contentCategoryPercentageText" format="color" />
+    <attr name="contentCategoryChevronColor" format="color" />
+    <attr name="contentCategoryTexts" format="color" />
+    <attr name="membersRowTextColor" format="color" />
+    <attr name="fabBackground" format="color" />
+    <attr name="expensePrimaryTextColor" format="color" />
 </resources>

@@ -69,7 +69,10 @@ public class HCardsViewAdapter extends RecyclerView.Adapter<HCardsViewAdapter.Vi
                 context.startActivity(intent);
             }
             else {
-                Intent intent = new Intent(context, ExpenseActivity.class);
+                //Intent intent = new Intent(context, ExpenseActivity.class);
+                //context.startActivity(intent);
+                Intent intent = new Intent(context, ExpenseActivityV2.class);
+                intent.putExtra("trackerId", hCards.get(position).getTableID());
                 context.startActivity(intent);
             }
         });

@@ -9,17 +9,19 @@
     <com.google.android.material.card.MaterialCardView
         xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/trackerCard"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:cardCornerRadius="6dp"
-        android:layout_marginBottom="20dp"
-        android:elevation="0dp"
-        app:cardElevation="0dp"
-        app:strokeWidth="1dp"
-        app:cardBackgroundColor="?attr/colorBackgroundCards"
-        app:strokeColor="?attr/colorBorderCards"
-        android:id="@+id/trackerCard"
-        >
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="6dp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginBottom="12dp"
+        android:elevation="?attr/cardElevationHome"
+        app:cardElevation="?attr/cardElevationHome"
+        app:cardUseCompatPadding="true"
+        app:cardPreventCornerOverlap="false"
+        app:cardCornerRadius="20dp"
+        app:cardBackgroundColor="?attr/colorBackgroundCards">
 
         <RelativeLayout
             android:layout_width="match_parent"

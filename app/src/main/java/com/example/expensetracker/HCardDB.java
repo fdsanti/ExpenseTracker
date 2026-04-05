@@ -131,4 +131,34 @@ public class HCardDB {
         }
         return false;
     }
+
+    public static void setSetupComplete(String tableID, boolean setupComplete) {
+        if (tableID == null || expensesMap == null) return;
+
+        for (String s : expensesMap.keySet()) {
+            HomeCard current = expensesMap.get(s);
+            if (current != null && tableID.equals(current.getTableID())) {
+                current.setSetupComplete(setupComplete);
+            }
+        }
+
+        if (selected != null && tableID.equals(selected.getTableID())) {
+            selected.setSetupComplete(setupComplete);
+        }
+    }
+
+    public static void setName(String tableID, String name) {
+        if (tableID == null || expensesMap == null) return;
+
+        for (String s : expensesMap.keySet()) {
+            HomeCard current = expensesMap.get(s);
+            if (current != null && tableID.equals(current.getTableID())) {
+                current.setName(name);
+            }
+        }
+
+        if (selected != null && tableID.equals(selected.getTableID())) {
+            selected.setName(name);
+        }
+    }
 }

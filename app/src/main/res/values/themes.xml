@@ -19,7 +19,7 @@
         <item name="colorBorderCards">@color/colorPrimary</item>
         <item name="colorBgResumenRows">@color/bgOnWhite</item>
         <item name="textColorPrimary">@color/colorSurface</item>
-        <item name="colorSurface">@color/colorSurface</item>
+        <item name="colorSurface">@color/material_surface_light</item>
         <item name="greyBackground">@color/purple_500</item>
         <item name="onGreyBackground">@color/white</item>
         <item name="filtrarPorBg">@color/white</item>
@@ -29,7 +29,79 @@
         <item name="bgwhitegrey">@color/white</item>
         <item name="whiteBlack">@color/background</item>
         <item name="popupbg">@color/white</item>
+        <item name="cardElevationHome">1dp</item>
+        <item name="homeTabBackgroundColor">@color/white</item>
+        <item name="homeTabTextSelectedColor">?attr/colorInteractivePrimary</item>
+        <item name="homeTabIndicatorColor">?attr/colorInteractivePrimary</item>
+        <item name="homeTabTextUnselectedColor">#66000000</item>
+        <item name="colorInteractivePrimary">@color/interactive_primary_light</item>
+        <item name="primary_text">@color/primary_text_light</item>
+        <item name="background">@color/app_background_light</item>
+        <item name="homeToolbarBackgroundColor">@color/home_header_background_light</item>
+        <item name="homeTabsBottomBorderColor">@color/home_tabs_border_light</item>
+        <item name="colorInteractiveSecondaryBg">#DFF3EE</item>
+        <item name="colorInteractiveSecondaryIcon">?attr/colorInteractivePrimary</item>
+        <item name="textPrimary">@color/primary_text_light</item>
+        <item name="textSecondary">@color/primary_text_light</item>
+        <item name="balanceDividerColor">#D7D7D7</item>
+        <item name="contentTabActiveBg">#00806F</item>
+        <item name="contentTabInactiveText">#334B46</item>
+        <item name="filterChipActiveBg">#E6FAF5</item>
+        <item name="filterChipActiveText">#016B5D</item>
+        <item name="filterChipActiveIcon">#016B5D</item>
+        <item name="filterChipInactiveBorder">#CAC4D0</item>
+        <item name="filterChipInactiveText">#49454F</item>
+        <item name="filterLabelText">#252525</item>
+        <item name="filterChipInactiveBg">#F1F1F1</item>
+        <item name="iconsColor">#252525</item>
+        <item name="sortDropdownBg">#F9FFFA</item>
+        <item name="sortDropdownItemSelectedBg">#B8E9DA</item>
+        <item name="sortDropdownText">#334B46</item>
+        <item name="sortDropdownTextSelected">#003F36</item>
+        <item name="contentCategoryRowBg">#F1F1F1</item>
+        <item name="contentCategoryPercentageBg">#D9D9D9</item>
+        <item name="contentCategoryPercentageText">#3D3D3D</item>
+        <item name="contentCategoryChevronColor">#252525</item>
+        <item name="contentCategoryTexts">#252525</item>
+        <item name="membersRowTextColor">#6D6D6D</item>
+        <item name="fabBackground">#00806F</item>
+        <item name="expensePrimaryTextColor">#252525</item>
+        <item name="materialAlertDialogTheme">@style/ThemeOverlay.ExpenseTracker.MaterialAlertDialog</item>
+    </style>
 
+    <style name="ThemeOverlay.ExpenseTracker.MaterialAlertDialog" parent="ThemeOverlay.MaterialComponents.MaterialAlertDialog">
+        <item name="backgroundTint">@color/white</item>
+    </style>
+
+    <style name="ActivityTitle" parent="TextAppearance.MaterialComponents.Headline6">
+        <item name="android:textSize">28sp</item>
+        <item name="android:textColor">?attr/primary_text</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:typeface">sans</item>
+    </style>
+
+    <style name="CardBodyText">
+        <item name="android:textSize">18sp</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:textColor">?attr/textPrimary</item>
+    </style>
+
+    <style name="CardTitleText">
+        <item name="android:textSize">22sp</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:textColor">?attr/textPrimary</item>
+    </style>
+
+    <style name="CardNameText">
+        <item name="android:textSize">14sp</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:textColor">?attr/textSecondary</item>
+    </style>
+
+    <style name="CardAmountText">
+        <item name="android:textSize">14sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">?attr/textSecondary</item>
     </style>
 
     <style name="CustomChipStyle" parent="Widget.MaterialComponents.Chip.Filter">
