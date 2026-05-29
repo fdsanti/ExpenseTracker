@@ -72,6 +72,8 @@
         <item name="membersRowTextColor">#B6B6B6</item>
         <item name="fabBackground">#004B41</item>
         <item name="expensePrimaryTextColor">#FFFFFF</item>
+        <item name="summaryHeaderBg">#1E363A</item>
+        <item name="summaryDividerColor">#353535</item>
         <item name="materialAlertDialogTheme">@style/ThemeOverlay.ExpenseTracker.MaterialAlertDialog</item>
     </style>
     <style name="ThemeOverlay.ExpenseTracker.MaterialAlertDialog" parent="ThemeOverlay.MaterialComponents.MaterialAlertDialog">

@@ -20,10 +20,10 @@ public class SummaryCardView extends LinearLayout {
     private TextView txtTotalAmount;
     private TextView txtMember1Name;
     private TextView txtMember1Amount;
+    private TextView txtMember1Percentage;
     private TextView txtMember2Name;
     private TextView txtMember2Amount;
-    private View barMember1;
-    private View barMember2;
+    private TextView txtMember2Percentage;
 
     public SummaryCardView(Context context) {
         super(context);
@@ -47,24 +47,23 @@ public class SummaryCardView extends LinearLayout {
         txtTotalAmount = findViewById(R.id.txtTotalAmount);
         txtMember1Name = findViewById(R.id.txtMember1Name);
         txtMember1Amount = findViewById(R.id.txtMember1Amount);
+        txtMember1Percentage = findViewById(R.id.txtMember1Percentage);
         txtMember2Name = findViewById(R.id.txtMember2Name);
         txtMember2Amount = findViewById(R.id.txtMember2Amount);
-        barMember1 = findViewById(R.id.barMember1);
-        barMember2 = findViewById(R.id.barMember2);
+        txtMember2Percentage = findViewById(R.id.txtMember2Percentage);
     }
 
     public void render(ExpenseSummary expenseSummary) {
-        txtTotalLabel.setText("Total");
+        txtTotalLabel.setText("Gastos totales");
 
         if (expenseSummary == null) {
             txtTotalAmount.setText("-");
             txtMember1Name.setText("-");
             txtMember1Amount.setText("");
+            txtMember1Percentage.setText("0%");
             txtMember2Name.setText("-");
             txtMember2Amount.setText("");
-
-            barMember1.setLayoutParams(new LinearLayout.LayoutParams(0, LayoutParams.MATCH_PARENT, 1f));
-            barMember2.setLayoutParams(new LinearLayout.LayoutParams(0, LayoutParams.MATCH_PARENT, 1f));
+            txtMember2Percentage.setText("0%");
             return;
         }
 
@@ -74,11 +73,10 @@ public class SummaryCardView extends LinearLayout {
         if (expenseSummary.getMemberSummaries() == null || expenseSummary.getMemberSummaries().isEmpty()) {
             txtMember1Name.setText("-");
             txtMember1Amount.setText("");
+            txtMember1Percentage.setText("0%");
             txtMember2Name.setText("-");
             txtMember2Amount.setText("");
-
-            barMember1.setLayoutParams(new LinearLayout.LayoutParams(0, LayoutParams.MATCH_PARENT, 1f));
-            barMember2.setLayoutParams(new LinearLayout.LayoutParams(0, LayoutParams.MATCH_PARENT, 1f));
+            txtMember2Percentage.setText("0%");
             return;
         }
 
@@ -91,7 +89,7 @@ public class SummaryCardView extends LinearLayout {
                 : null;
 
         if (m1 != null) {
-            txtMember1Name.setText(m1.getMemberName() + ":");
+            txtMember1Name.setText(m1.getMemberName());
             txtMember1Amount.setText(formatCurrency(m1.getAmount()));
         } else {
             txtMember1Name.setText("-");
@@ -99,7 +97,7 @@ public class SummaryCardView extends LinearLayout {
         }
 
         if (m2 != null) {
-            txtMember2Name.setText(m2.getMemberName() + ":");
+            txtMember2Name.setText(m2.getMemberName());
             txtMember2Amount.setText(formatCurrency(m2.getAmount()));
         } else {
             txtMember2Name.setText("-");
@@ -110,21 +108,21 @@ public class SummaryCardView extends LinearLayout {
         double amount2 = m2 != null ? m2.getAmount() : 0d;
         double totalAmount = amount1 + amount2;
 
-        if (totalAmount <= 0d) {
-            barMember1.setLayoutParams(new LinearLayout.LayoutParams(0, LayoutParams.MATCH_PARENT, 1f));
-            barMember2.setLayoutParams(new LinearLayout.LayoutParams(0, LayoutParams.MATCH_PARENT, 1f));
-            return;
-        }
-
-        float p1 = (float) (amount1 / totalAmount);
-        float p2 = (float) (amount2 / totalAmount);
-
-        barMember1.setLayoutParams(new LinearLayout.LayoutParams(0, LayoutParams.MATCH_PARENT, p1));
-        barMember2.setLayoutParams(new LinearLayout.LayoutParams(0, LayoutParams.MATCH_PARENT, p2));
+        txtMember1Percentage.setText(formatPercentage(amount1, totalAmount));
+        txtMember2Percentage.setText(formatPercentage(amount2, totalAmount));
     }
 
     private String formatCurrency(double amount) {
         NumberFormat format = NumberFormat.getCurrencyInstance(new Locale("es", "AR"));
         return format.format(amount);
+    }
+
+    private String formatPercentage(double amount, double totalAmount) {
+        if (totalAmount <= 0d) {
+            return "0%";
+        }
+
+        int percentage = (int) Math.round((amount * 100d) / totalAmount);
+        return percentage + "%";
     }
 }

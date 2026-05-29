@@ -6,80 +6,56 @@
     android:layout_marginTop="24dp"
     app:cardBackgroundColor="?attr/colorBackgroundCards"
     app:cardCornerRadius="20dp"
-    app:cardElevation="?attr/cardElevationHome">
+    app:cardElevation="?attr/cardElevationHome"
+    app:cardPreventCornerOverlap="false"
+    app:cardUseCompatPadding="false">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:paddingVertical="20dp"
-        android:paddingHorizontal="16dp">
+        android:orientation="vertical">
 
-        <!-- TOP ROW -->
         <LinearLayout
+            android:id="@+id/summaryHeader"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:layout_height="50dp"
+            android:background="?attr/summaryHeaderBg"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp">
 
             <TextView
                 android:id="@+id/txtTotalLabel"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Total"
-                style="@style/CardTitleText" />
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:text="Gastos totales"
+                android:textColor="@android:color/white"
+                android:textSize="16sp"
+                android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/txtTotalAmount"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="$0"
-                style="@style/CardTitleText" />
+                android:textColor="@android:color/white"
+                android:textSize="16sp"
+                android:textStyle="bold" />
         </LinearLayout>
 
-        <!-- BAR -->
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/barContainer"
-            android:layout_width="match_parent"
-            android:layout_height="30dp"
-            android:layout_marginTop="16dp"
-            app:cardCornerRadius="8dp"
-            app:cardElevation="0dp"
-            app:cardPreventCornerOverlap="false"
-            app:cardUseCompatPadding="false">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="horizontal">
-
-                <View
-                    android:id="@+id/barMember1"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:background="#0C5F4E" />
-
-                <View
-                    android:id="@+id/barMember2"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:background="#1AA38A" />
-
-            </LinearLayout>
-
-        </com.google.android.material.card.MaterialCardView>
-
-        <!-- BOTTOM ROW -->
-        <!-- BOTTOM ROW -->
         <LinearLayout
+            android:id="@+id/memberRow1"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:orientation="horizontal">
+            android:layout_height="44dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp">
 
-            <!-- MEMBER 1 -->
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -87,71 +63,99 @@
                 android:gravity="center_vertical"
                 android:orientation="horizontal">
 
-                <View
-                    android:layout_width="10dp"
-                    android:layout_height="10dp"
-                    android:layout_marginEnd="8dp"
-                    android:background="#0C5F4E" />
-
-                <LinearLayout
+                <TextView
+                    android:id="@+id/txtMember1Name"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical">
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:text="Persona"
+                    android:textColor="?attr/textPrimary"
+                    android:textSize="14sp" />
 
-                    <TextView
-                        android:id="@+id/txtMember1Name"
-                        style="@style/CardNameText"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="User 1: " />
-
-                    <TextView
-                        android:id="@+id/txtMember1Amount"
-                        style="@style/CardAmountText"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="6dp"
-                        android:text="$ 0,00" />
-                </LinearLayout>
+                <TextView
+                    android:id="@+id/txtMember1Percentage"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:background="@drawable/bg_content_category_percentage"
+                    android:gravity="center"
+                    android:paddingStart="5dp"
+                    android:paddingTop="2dp"
+                    android:paddingEnd="5dp"
+                    android:paddingBottom="3dp"
+                    android:text="0%"
+                    android:textColor="?attr/contentCategoryPercentageText"
+                    android:textSize="10sp"
+                    android:textStyle="bold" />
             </LinearLayout>
 
-            <!-- MEMBER 2 -->
-            <LinearLayout
+            <TextView
+                android:id="@+id/txtMember1Amount"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:text="$0,00"
+                android:textColor="?attr/textPrimary"
+                android:textSize="14sp" />
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="?attr/summaryDividerColor" />
+
+        <LinearLayout
+            android:id="@+id/memberRow2"
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
                 android:gravity="center_vertical"
                 android:orientation="horizontal">
 
-                <View
-                    android:layout_width="10dp"
-                    android:layout_height="10dp"
-                    android:layout_marginEnd="8dp"
-                    android:background="#1AA38A" />
-
-                <LinearLayout
+                <TextView
+                    android:id="@+id/txtMember2Name"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical">
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:text="Persona"
+                    android:textColor="?attr/textPrimary"
+                    android:textSize="14sp" />
 
-                    <TextView
-                        android:id="@+id/txtMember2Name"
-                        style="@style/CardNameText"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="User 2: " />
-
-                    <TextView
-                        android:id="@+id/txtMember2Amount"
-                        style="@style/CardAmountText"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="6dp"
-                        android:text="$ 0,00" />
-                </LinearLayout>
+                <TextView
+                    android:id="@+id/txtMember2Percentage"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:background="@drawable/bg_content_category_percentage"
+                    android:gravity="center"
+                    android:paddingStart="5dp"
+                    android:paddingTop="2dp"
+                    android:paddingEnd="5dp"
+                    android:paddingBottom="3dp"
+                    android:text="0%"
+                    android:textColor="?attr/contentCategoryPercentageText"
+                    android:textSize="10sp"
+                    android:textStyle="bold" />
             </LinearLayout>
 
+            <TextView
+                android:id="@+id/txtMember2Amount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:text="$0,00"
+                android:textColor="?attr/textPrimary"
+                android:textSize="14sp" />
         </LinearLayout>
 
     </LinearLayout>
