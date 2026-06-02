@@ -8,6 +8,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.expensetracker.calculator.ExpenseListQuery;
 import com.example.expensetracker.data.TrackerRepository;
+import com.example.expensetracker.model.Expense;
 import com.example.expensetracker.ui.expense.BalanceActivity;
 import com.example.expensetracker.ui.expense.dialogs.EditExpenseDialog;
 import com.example.expensetracker.ui.expense.ExpenseScreenController;
@@ -22,6 +23,7 @@ import com.example.expensetracker.ui.expense.components.SummaryCardView;
 import com.example.expensetracker.ui.expense.components.BalanceCardView;
 import com.example.expensetracker.ui.expense.components.MembersCardView;
 import com.example.expensetracker.ui.expense.components.ContentCardView;
+import com.example.expensetracker.ui.expense.dialogs.ExpenseBottomSheetDialog;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import android.graphics.Color;
@@ -95,9 +97,20 @@ public class ExpenseActivityV2 extends AppCompatActivity implements ExpenseScree
                 controller.toggleCategoryExpanded(categoryId)
         );
 
-        contentCard.setOnExpenseClickListener(expenseId ->
-                EditExpenseDialog.showEdit(this, currentState, expenseId, controller)
-        );
+        contentCard.setOnExpenseClickListener(expenseId -> {
+            if (currentState == null || currentState.expenses == null) return;
+
+            for (Expense e : currentState.expenses) {
+                if (e != null && e.getId().equals(expenseId)) {
+
+                    ExpenseBottomSheetDialog dialog =
+                            ExpenseBottomSheetDialog.newEditInstance(currentState, controller, e);
+
+                    dialog.show(getSupportFragmentManager(), "EDIT_EXPENSE");
+                    return;
+                }
+            }
+        });
 
         contentCard.setOnMemberFilterChangeListener(memberId ->
                 controller.setMemberFilter(memberId)
@@ -115,9 +128,12 @@ public class ExpenseActivityV2 extends AppCompatActivity implements ExpenseScree
 
         View fab = findViewById(R.id.fabAddExpense);
 
-        fab.setOnClickListener(v ->
-                EditExpenseDialog.showCreate(this, currentState, controller)
-        );
+        fab.setOnClickListener(v -> {
+            ExpenseBottomSheetDialog dialog =
+                    ExpenseBottomSheetDialog.newCreateInstance(currentState, controller);
+
+            dialog.show(getSupportFragmentManager(), "CREATE_EXPENSE");
+        });
 
         Log.d("ExpenseV2", "ExpenseActivityV2 started");
 

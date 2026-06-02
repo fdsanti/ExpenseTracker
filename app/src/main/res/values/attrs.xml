@@ -49,4 +49,6 @@
     <attr name="membersRowTextColor" format="color" />
     <attr name="fabBackground" format="color" />
     <attr name="expensePrimaryTextColor" format="color" />
+    <attr name="summaryHeaderBg" format="color" />
+    <attr name="summaryDividerColor" format="color" />
 </resources>
