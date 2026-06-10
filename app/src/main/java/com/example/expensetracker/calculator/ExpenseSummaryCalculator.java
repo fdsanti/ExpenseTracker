@@ -12,11 +12,13 @@ public class ExpenseSummaryCalculator {
     public static ExpenseSummary calculate(List<Expense> expenses, List<Member> members) {
 
         double total = 0;
-        HashMap<String, Double> amountByMemberId = new HashMap<>();
+        HashMap<String, Double> groupAmountByMemberId = new HashMap<>();
+        HashMap<String, Double> individualAmountByMemberId = new HashMap<>();
 
         if (members != null) {
             for (Member member : members) {
-                amountByMemberId.put(member.getId(), 0.0);
+                groupAmountByMemberId.put(member.getId(), 0.0);
+                individualAmountByMemberId.put(member.getId(), 0.0);
             }
         }
 
@@ -25,11 +27,15 @@ public class ExpenseSummaryCalculator {
                 total += expense.getAmount();
 
                 String memberId = expense.getPaidByMemberId();
-                double currentAmount = amountByMemberId.containsKey(memberId)
-                        ? amountByMemberId.get(memberId)
+                HashMap<String, Double> targetAmounts = expense.isIndividual()
+                        ? individualAmountByMemberId
+                        : groupAmountByMemberId;
+
+                double currentAmount = targetAmounts.containsKey(memberId)
+                        ? targetAmounts.get(memberId)
                         : 0.0;
 
-                amountByMemberId.put(memberId, currentAmount + expense.getAmount());
+                targetAmounts.put(memberId, currentAmount + expense.getAmount());
             }
         }
 
@@ -37,14 +43,20 @@ public class ExpenseSummaryCalculator {
 
         if (members != null) {
             for (Member member : members) {
-                double amount = amountByMemberId.containsKey(member.getId())
-                        ? amountByMemberId.get(member.getId())
+                double groupAmount = groupAmountByMemberId.containsKey(member.getId())
+                        ? groupAmountByMemberId.get(member.getId())
                         : 0.0;
+                double individualAmount = individualAmountByMemberId.containsKey(member.getId())
+                        ? individualAmountByMemberId.get(member.getId())
+                        : 0.0;
+                double amount = groupAmount + individualAmount;
 
                 memberSummaries.add(new MemberExpenseSummary(
                         member.getId(),
                         member.getName(),
-                        amount
+                        amount,
+                        groupAmount,
+                        individualAmount
                 ));
             }
         }

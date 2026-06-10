@@ -29,7 +29,7 @@
             android:paddingEnd="4dp"
             app:menu="@menu/main_menu"
             app:title="@string/app_name"
-            app:titleTextAppearance="@style/ActivityTitle"
+            app:titleTextAppearance="@style/HomeToolbarTitle"
             app:titleTextColor="?attr/primary_text" />
 
         <com.google.android.material.tabs.TabLayout
@@ -50,7 +50,7 @@
             app:tabPaddingStart="12dp"
             app:tabRippleColor="@android:color/transparent"
             app:tabSelectedTextColor="?attr/homeTabTextSelectedColor"
-            app:tabTextAppearance="@style/MyTabTextAppearance"
+            app:tabTextAppearance="@style/HomeTabTextAppearance"
             app:tabTextColor="?attr/homeTabTextUnselectedColor"
             tools:ignore="MissingConstraints">
 

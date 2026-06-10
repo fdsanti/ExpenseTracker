@@ -9,7 +9,9 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.ValueEventListener;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import com.example.expensetracker.model.Member;
 
 import java.text.SimpleDateFormat;
@@ -49,6 +51,16 @@ public class TrackerRepository {
 
                     long createdAt = 0L;
                     boolean closed = closedValue != null && closedValue;
+
+                    if (createdAtString != null && !createdAtString.trim().isEmpty()) {
+                        try {
+                            Date parsedCreatedAt = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                                    .parse(createdAtString);
+                            if (parsedCreatedAt != null) {
+                                createdAt = parsedCreatedAt.getTime();
+                            }
+                        } catch (Exception ignored) {}
+                    }
 
                     Tracker tracker = new Tracker(
                             trackerId,
@@ -150,8 +162,10 @@ public class TrackerRepository {
                         }
                         String participantId = child.child("participantId").getValue(String.class);
                         String dateString = child.child("date").getValue(String.class);
+                        Boolean individualValue = child.child("individual").getValue(Boolean.class);
 
                         double amount = amountValue != null ? amountValue : 0;
+                        boolean individual = individualValue != null && individualValue;
 
                         long date = 0;
 
@@ -170,7 +184,8 @@ public class TrackerRepository {
                                 amount,
                                 categoryId,
                                 participantId,
-                                date
+                                date,
+                                individual
                         );
 
                         result.add(expense);
@@ -236,17 +251,58 @@ public class TrackerRepository {
             String categoryId,
             long date
     ) {
+        updateExpense(trackerId, expenseId, description, amount, participantId, categoryId, date, false);
+    }
+
+    public void updateExpense(
+            String trackerId,
+            String expenseId,
+            String description,
+            double amount,
+            String participantId,
+            String categoryId,
+            long date,
+            boolean individual
+    ) {
+        updateExpense(trackerId, expenseId, description, amount, participantId, categoryId, date, individual, null);
+    }
+
+    public void updateExpense(
+            String trackerId,
+            String expenseId,
+            String description,
+            double amount,
+            String participantId,
+            String categoryId,
+            long date,
+            boolean individual,
+            RepositoryCallback<Void> callback
+    ) {
 
         DatabaseReference expenseRef = getExpensesRef(trackerId).child(expenseId);
 
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
         String dateString = formatter.format(new Date(date));
 
-        expenseRef.child("description").setValue(description);
-        expenseRef.child("amount").setValue(amount);
-        expenseRef.child("participantId").setValue(participantId);
-        expenseRef.child("categoryId").setValue(categoryId);
-        expenseRef.child("date").setValue(dateString);
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("description", description);
+        updates.put("amount", amount);
+        updates.put("participantId", participantId);
+        updates.put("categoryId", categoryId);
+        updates.put("date", dateString);
+        updates.put("individual", individual);
+
+        expenseRef.updateChildren(updates)
+                .addOnSuccessListener(unused -> {
+                    if (callback != null) {
+                        callback.onSuccess(null);
+                    }
+                })
+                .addOnFailureListener(exception -> {
+                    if (callback != null) {
+                        callback.onError(exception);
+                    }
+                });
     }
 
     public void createExpense(
@@ -257,16 +313,55 @@ public class TrackerRepository {
             String categoryId,
             long date
     ) {
+        createExpense(trackerId, description, amount, participantId, categoryId, date, false);
+    }
+
+    public void createExpense(
+            String trackerId,
+            String description,
+            double amount,
+            String participantId,
+            String categoryId,
+            long date,
+            boolean individual
+    ) {
+        createExpense(trackerId, description, amount, participantId, categoryId, date, individual, null);
+    }
+
+    public void createExpense(
+            String trackerId,
+            String description,
+            double amount,
+            String participantId,
+            String categoryId,
+            long date,
+            boolean individual,
+            RepositoryCallback<Void> callback
+    ) {
         DatabaseReference expenseRef = getExpensesRef(trackerId).push();
 
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
         String dateString = formatter.format(new Date(date));
 
-        expenseRef.child("description").setValue(description);
-        expenseRef.child("amount").setValue(amount);
-        expenseRef.child("participantId").setValue(participantId);
-        expenseRef.child("categoryId").setValue(categoryId);
-        expenseRef.child("date").setValue(dateString);
+        Map<String, Object> expenseValues = new HashMap<>();
+        expenseValues.put("description", description);
+        expenseValues.put("amount", amount);
+        expenseValues.put("participantId", participantId);
+        expenseValues.put("categoryId", categoryId);
+        expenseValues.put("date", dateString);
+        expenseValues.put("individual", individual);
+
+        expenseRef.updateChildren(expenseValues)
+                .addOnSuccessListener(unused -> {
+                    if (callback != null) {
+                        callback.onSuccess(null);
+                    }
+                })
+                .addOnFailureListener(exception -> {
+                    if (callback != null) {
+                        callback.onError(exception);
+                    }
+                });
     }
 
     public void deleteExpense(String trackerId, String expenseId) {

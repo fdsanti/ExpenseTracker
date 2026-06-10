@@ -156,6 +156,7 @@ public final class FirebaseMigrationHelper {
                         expense.put("categoryNameLegacy", categoryName.isEmpty() ? null : categoryName);
                         expense.put("notes", "");
                         expense.put("deleted", false);
+                        expense.put("individual", false);
 
                         expenses.put("e" + expenseCounter, expense);
                         expenseCounter++;

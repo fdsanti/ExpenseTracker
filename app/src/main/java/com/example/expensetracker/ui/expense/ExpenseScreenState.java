@@ -1,6 +1,7 @@
 package com.example.expensetracker.ui.expense;
 
 import com.example.expensetracker.calculator.CategorySummaryItem;
+import com.example.expensetracker.calculator.BalanceDetail;
 import com.example.expensetracker.calculator.DebtSummary;
 import com.example.expensetracker.calculator.ExpenseSummary;
 import com.example.expensetracker.model.Category;
@@ -20,11 +21,13 @@ public class ExpenseScreenState {
 
     public ExpenseSummary expenseSummary;
     public DebtSummary debtSummary;
+    public BalanceDetail balanceDetail;
     public List<CategorySummaryItem> categorySummary;
     public List<Expense> visibleExpenses;
     public String errorMessage;
     public ContentTab selectedTab;
     public String selectedMemberFilter;
+    public ExpenseListQuery.TypeFilter selectedTypeFilter;
     public ExpenseListQuery.SortType selectedSortType;
     public List<String> expandedCategoryIds;
     public String selectedMemberFilterId; // null = todos
@@ -38,10 +41,12 @@ public class ExpenseScreenState {
             List<Category> categories,
             ExpenseSummary expenseSummary,
             DebtSummary debtSummary,
+            BalanceDetail balanceDetail,
             List<CategorySummaryItem> categorySummary,
             List<Expense> visibleExpenses,
             ContentTab selectedTab,
             String selectedMemberFilter,
+            ExpenseListQuery.TypeFilter selectedTypeFilter,
             ExpenseListQuery.SortType selectedSortType,
             List<String> expandedCategoryIds,
             boolean loading,
@@ -53,10 +58,12 @@ public class ExpenseScreenState {
         this.categories = categories;
         this.expenseSummary = expenseSummary;
         this.debtSummary = debtSummary;
+        this.balanceDetail = balanceDetail;
         this.categorySummary = categorySummary;
         this.visibleExpenses = visibleExpenses;
         this.selectedTab = selectedTab;
         this.selectedMemberFilter = selectedMemberFilter;
+        this.selectedTypeFilter = selectedTypeFilter;
         this.selectedSortType = selectedSortType;
         this.expandedCategoryIds = expandedCategoryIds;
         this.loading = loading;

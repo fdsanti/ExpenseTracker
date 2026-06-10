@@ -2,7 +2,7 @@ package com.example.expensetracker.ui.expense.components;
 
 import android.content.Context;
 import android.util.AttributeSet;
-import android.widget.Button;
+import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -21,7 +21,7 @@ public class MembersCardView extends LinearLayout {
     private TextView txtMemberName2;
     private TextView txtMemberSalary1;
     private TextView txtMemberSalary2;
-    private Button btnEditMembers;
+    private View btnEditMembers;
 
     public MembersCardView(Context context) {
         super(context);

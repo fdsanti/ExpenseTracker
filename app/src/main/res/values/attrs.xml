@@ -27,11 +27,14 @@
     <attr name="textPrimary" format="color" />
     <attr name="textSecondary" format="color" />
     <attr name="balanceDividerColor" format="color" />
+    <attr name="balanceCardBorderColor" format="color" />
     <attr name="contentTabActiveBg" format="color" />
     <attr name="contentTabInactiveText" format="color" />
     <attr name="filterChipActiveBg" format="color" />
     <attr name="filterChipActiveText" format="color" />
     <attr name="filterChipActiveIcon" format="color" />
+    <attr name="filterChipClearIcon" format="color" />
+    <attr name="filterChipClearBg" format="color" />
     <attr name="filterChipInactiveBorder" format="color" />
     <attr name="filterChipInactiveText" format="color" />
     <attr name="filterLabelText" format="color" />
@@ -46,9 +49,34 @@
     <attr name="contentCategoryPercentageText" format="color" />
     <attr name="contentCategoryChevronColor" format="color" />
     <attr name="contentCategoryTexts" format="color" />
+    <attr name="contentCategoryLabelText" format="color" />
+    <attr name="contentCategoryAmountText" format="color" />
     <attr name="membersRowTextColor" format="color" />
+    <attr name="membersDividerColor" format="color" />
+    <attr name="membersEditButtonColor" format="color" />
     <attr name="fabBackground" format="color" />
+    <attr name="expenseFabBorderColor" format="color" />
+    <attr name="expenseFabShadowColor" format="color" />
+    <attr name="expenseFabIconColor" format="color" />
     <attr name="expensePrimaryTextColor" format="color" />
+    <attr name="expenseDateTextColor" format="color" />
+    <attr name="expenseListDividerColor" format="color" />
+    <attr name="expenseIndividualIconColor" format="color" />
     <attr name="summaryHeaderBg" format="color" />
     <attr name="summaryDividerColor" format="color" />
+    <attr name="trackerCardBorderColor" format="color" />
+    <attr name="trackerCardShadowColor" format="color" />
+    <attr name="trackerSummaryLabelColor" format="color" />
+    <attr name="memberExpenseDialogDividerColor" format="color" />
+    <attr name="debtClosingCardBg" format="color" />
+    <attr name="debtClosingCardBorderColor" format="color" />
+    <attr name="debtClosingCardShadowColor" format="color" />
+    <attr name="debtClosingTextColor" format="color" />
+    <attr name="debtClosingButtonBg" format="color" />
+    <attr name="debtClosingButtonBorderColor" format="color" />
+    <attr name="debtClosingButtonShadowColor" format="color" />
+    <attr name="debtClosingButtonTextColor" format="color" />
+    <attr name="expenseBottomSheetBg" format="color" />
+    <attr name="expenseSnackbarBg" format="color" />
+    <attr name="expenseSnackbarContentColor" format="color" />
 </resources>

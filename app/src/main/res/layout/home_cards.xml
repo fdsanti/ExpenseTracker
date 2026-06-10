@@ -16,16 +16,18 @@
         android:layout_marginTop="6dp"
         android:layout_marginEnd="20dp"
         android:layout_marginBottom="12dp"
-        android:elevation="?attr/cardElevationHome"
-        app:cardElevation="?attr/cardElevationHome"
-        app:cardUseCompatPadding="true"
+        android:elevation="0dp"
+        app:cardElevation="0dp"
+        app:cardUseCompatPadding="false"
         app:cardPreventCornerOverlap="false"
         app:cardCornerRadius="20dp"
-        app:cardBackgroundColor="?attr/colorBackgroundCards">
+        app:cardBackgroundColor="@android:color/transparent"
+        app:strokeWidth="0dp">
 
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:background="@drawable/bg_tracker_card_shadow"
             android:paddingTop="24dp"
             android:paddingStart="24dp"
             android:paddingEnd="24dp"
@@ -38,7 +40,7 @@
 
                 <TextView
                     android:id="@+id/txtName"
-                    style="@style/Title"
+                    style="@style/HomeCardTitleText"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Título" />
@@ -48,18 +50,18 @@
                     android:layout_height="wrap_content"
                     android:layout_toEndOf="@id/txtName"
                     android:layout_marginLeft="8dp"
-                    android:layout_marginTop="6dp"
+                    android:layout_marginTop="4dp"
                     android:src="@drawable/baseline_verified_24"
                     app:tint="?attr/whiteBlack"
                     android:contentDescription="icn_cerrado" />
 
                 <TextView
                     android:id="@+id/txtDate"
-                    style="@style/Subtitle"
+                    style="@style/HomeCardDateText"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_below="@id/txtName"
-                    android:layout_marginTop="8dp"
+                    android:layout_marginTop="4dp"
                     android:text="Creado el 23 de Mayo del 2021" />
 
             </RelativeLayout>

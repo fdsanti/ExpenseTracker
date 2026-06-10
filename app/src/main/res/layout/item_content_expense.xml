@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:paddingTop="10dp"
-    android:paddingBottom="10dp">
+    android:paddingTop="14dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="top"
+        android:gravity="center_vertical"
         android:orientation="horizontal">
 
         <LinearLayout
@@ -18,21 +18,59 @@
             android:layout_weight="1"
             android:orientation="vertical">
 
-            <TextView
-                android:id="@+id/tvExpenseTitle"
+            <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Nombre gasto"
-                android:textColor="?attr/expensePrimaryTextColor"
-                android:textStyle="bold"
-                />
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:id="@+id/tvExpenseTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:fontFamily="@font/rajdhani_medium"
+                    app:fontFamily="@font/rajdhani_medium"
+                    android:includeFontPadding="false"
+                    android:maxLines="1"
+                    android:text="Nombre gasto"
+                    android:textColor="?attr/expensePrimaryTextColor"
+                    android:textSize="16sp"
+                    android:textStyle="normal"
+                    app:layout_constrainedWidth="true"
+                    app:layout_constraintEnd_toStartOf="@id/ivIndividualExpense"
+                    app:layout_constraintHorizontal_bias="0"
+                    app:layout_constraintHorizontal_chainStyle="packed"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <ImageView
+                    android:id="@+id/ivIndividualExpense"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_marginStart="8dp"
+                    android:contentDescription="@null"
+                    android:importantForAccessibility="no"
+                    android:src="@drawable/person"
+                    android:visibility="gone"
+                    app:layout_constraintBottom_toBottomOf="@id/tvExpenseTitle"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@id/tvExpenseTitle"
+                    app:layout_constraintTop_toTopOf="@id/tvExpenseTitle"
+                    app:tint="?attr/expenseIndividualIconColor" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
 
             <TextView
                 android:id="@+id/tvExpenseDate"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
-                android:text="1 de marzo de 2026" />
+                android:fontFamily="@font/rajdhani_regular"
+                app:fontFamily="@font/rajdhani_regular"
+                android:includeFontPadding="false"
+                android:text="1 de marzo de 2026"
+                android:textColor="?attr/expenseDateTextColor"
+                android:textSize="13sp"
+                android:textStyle="normal" />
         </LinearLayout>
 
         <TextView
@@ -40,7 +78,13 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
-            android:text="User" />
+            android:fontFamily="@font/rajdhani_regular"
+            app:fontFamily="@font/rajdhani_regular"
+            android:includeFontPadding="false"
+            android:text="User"
+            android:textColor="?attr/expensePrimaryTextColor"
+            android:textSize="16sp"
+            android:textStyle="normal" />
 
         <TextView
             android:id="@+id/tvExpenseAmount"
@@ -48,9 +92,20 @@
             android:textAlignment="textEnd"
             android:layout_height="wrap_content"
             android:layout_marginStart="20dp"
+            android:fontFamily="@font/rajdhani_medium"
+            app:fontFamily="@font/rajdhani_medium"
+            android:includeFontPadding="false"
             android:text="$250.000,00"
             android:textColor="?attr/expensePrimaryTextColor"
-            android:textStyle="bold"/>
+            android:textSize="16sp"
+            android:textStyle="normal"/>
     </LinearLayout>
+
+    <View
+        android:id="@+id/expenseListDivider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="14dp"
+        android:background="?attr/expenseListDividerColor" />
 
 </LinearLayout>

@@ -2,8 +2,12 @@ package com.example.expensetracker.ui.expense.dialogs;
 
 import android.app.Dialog;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.TypedValue;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,12 +16,18 @@ import android.view.WindowManager;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.res.ResourcesCompat;
 
 import com.example.expensetracker.R;
+import com.example.expensetracker.data.TrackerRepository.RepositoryCallback;
 import com.example.expensetracker.model.Category;
 import com.example.expensetracker.model.Expense;
 import com.example.expensetracker.model.Member;
@@ -26,6 +36,7 @@ import com.example.expensetracker.ui.expense.ExpenseScreenState;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
+import com.google.android.material.checkbox.MaterialCheckBox;
 import com.google.android.material.datepicker.MaterialDatePicker;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.snackbar.Snackbar;
@@ -45,6 +56,7 @@ public class ExpenseBottomSheetDialog extends BottomSheetDialogFragment {
     private ExpenseScreenState state;
     private ExpenseScreenController controller;
     private Expense expense; // null = create
+    private static final long MIN_SAVE_LOADING_MS = 750L;
 
     public static ExpenseBottomSheetDialog newCreateInstance(
             ExpenseScreenState state,
@@ -101,6 +113,7 @@ public class ExpenseBottomSheetDialog extends BottomSheetDialogFragment {
 
         AutoCompleteTextView dropdownPersona = view.findViewById(R.id.dropdown_nombres);
         AutoCompleteTextView dropdownCategoria = view.findViewById(R.id.cat_dropdown);
+        MaterialCheckBox checkIndividualExpense = view.findViewById(R.id.checkIndividualExpense);
 
         TextInputLayout inputLayoutWho = view.findViewById(R.id.inputLayout_Who);
         TextInputLayout inputLayoutNombre = view.findViewById(R.id.inputLayout_NombreGasto);
@@ -163,7 +176,7 @@ public class ExpenseBottomSheetDialog extends BottomSheetDialogFragment {
 
         dropdownPersona.setAdapter(new ArrayAdapter<>(
                 requireContext(),
-                android.R.layout.simple_dropdown_item_1line,
+                R.layout.dropdown_item,
                 mapMemberNames(state.members)
         ));
 
@@ -174,7 +187,7 @@ public class ExpenseBottomSheetDialog extends BottomSheetDialogFragment {
 
         dropdownCategoria.setAdapter(new ArrayAdapter<>(
                 requireContext(),
-                android.R.layout.simple_dropdown_item_1line,
+                R.layout.dropdown_item,
                 mapCategoryNames(categories)
         ));
 
@@ -183,6 +196,9 @@ public class ExpenseBottomSheetDialog extends BottomSheetDialogFragment {
             txtMonto.setText(String.valueOf(expense.getAmount()));
             dropdownPersona.setText(resolveMemberName(expense.getPaidByMemberId(), state.members), false);
             dropdownCategoria.setText(resolveCategoryName(expense.getCategoryId(), categories), false);
+            if (checkIndividualExpense != null) {
+                checkIndividualExpense.setChecked(expense.isIndividual());
+            }
         }
 
         txtFecha.setText(formatDate(selectedDate[0]));
@@ -208,6 +224,7 @@ public class ExpenseBottomSheetDialog extends BottomSheetDialogFragment {
 
         AutoCompleteTextView dropdownPersona = view.findViewById(R.id.dropdown_nombres);
         AutoCompleteTextView dropdownCategoria = view.findViewById(R.id.cat_dropdown);
+        MaterialCheckBox checkIndividualExpense = view.findViewById(R.id.checkIndividualExpense);
 
         TextInputLayout inputLayoutWho = view.findViewById(R.id.inputLayout_Who);
         TextInputLayout inputLayoutNombre = view.findViewById(R.id.inputLayout_NombreGasto);
@@ -238,15 +255,25 @@ public class ExpenseBottomSheetDialog extends BottomSheetDialogFragment {
         });
 
         View btnSave = view.findViewById(R.id.btnCreateExpense);
+        TextView btnSaveText = view.findViewById(R.id.txtCreateExpenseButton);
+        ProgressBar btnSaveProgress = view.findViewById(R.id.progressCreateExpense);
         View btnDelete = view.findViewById(R.id.btnDeleteExpense);
+        final boolean[] saving = {false};
         expandOnFocus(txtNombre, txtMonto, dropdownPersona, dropdownCategoria);
+        if (checkIndividualExpense != null && isEditMode) {
+            checkIndividualExpense.setChecked(expense.isIndividual());
+        }
 
         if (btnSave != null) {
-            if (btnSave instanceof android.widget.TextView) {
-                ((android.widget.TextView) btnSave).setText(isEditMode ? "Guardar expense" : "Crear expense");
+            if (btnSaveText != null) {
+                btnSaveText.setText(isEditMode ? "Guardar gasto" : "Crear gasto");
             }
 
             btnSave.setOnClickListener(v -> {
+                if (saving[0]) {
+                    return;
+                }
+
                 String description = safe(txtNombre);
                 String amountText = safe(txtMonto);
                 String memberName = dropdownPersona.getText() != null
@@ -322,6 +349,61 @@ public class ExpenseBottomSheetDialog extends BottomSheetDialogFragment {
                     return;
                 }
 
+                saving[0] = true;
+                long saveStartedAt = System.currentTimeMillis();
+                setSaveButtonLoading(
+                        true,
+                        btnSave,
+                        btnSaveText,
+                        btnSaveProgress,
+                        btnDelete,
+                        txtNombre,
+                        txtMonto,
+                        txtFecha,
+                        dropdownPersona,
+                        dropdownCategoria,
+                        checkIndividualExpense
+                );
+
+                RepositoryCallback<Void> callback = new RepositoryCallback<Void>() {
+                    @Override
+                    public void onSuccess(Void result) {
+                        String message = isEditMode
+                                ? "Gasto editado"
+                                : "Gasto agregado";
+                        long elapsed = System.currentTimeMillis() - saveStartedAt;
+                        long remainingDelay = Math.max(0L, MIN_SAVE_LOADING_MS - elapsed);
+
+                        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                            dismissAllowingStateLoss();
+                            showSnackbar(message);
+                        }, remainingDelay);
+                    }
+
+                    @Override
+                    public void onError(Exception exception) {
+                        saving[0] = false;
+                        setSaveButtonLoading(
+                                false,
+                                btnSave,
+                                btnSaveText,
+                                btnSaveProgress,
+                                btnDelete,
+                                txtNombre,
+                                txtMonto,
+                                txtFecha,
+                                dropdownPersona,
+                                dropdownCategoria,
+                                checkIndividualExpense
+                        );
+                        Toast.makeText(
+                                requireContext(),
+                                "No se pudo guardar el gasto",
+                                Toast.LENGTH_SHORT
+                        ).show();
+                    }
+                };
+
                 if (isEditMode) {
                     controller.updateExpense(
                             expense.getId(),
@@ -329,21 +411,21 @@ public class ExpenseBottomSheetDialog extends BottomSheetDialogFragment {
                             amount,
                             memberId,
                             categoryId,
-                            selectedDate[0]
+                            selectedDate[0],
+                            checkIndividualExpense != null && checkIndividualExpense.isChecked(),
+                            callback
                     );
-                    showSnackbar("Los cambios se guardaron correctamente");
                 } else {
                     controller.createExpense(
                             description,
                             amount,
                             memberId,
                             categoryId,
-                            selectedDate[0]
+                            selectedDate[0],
+                            checkIndividualExpense != null && checkIndividualExpense.isChecked(),
+                            callback
                     );
-                    showSnackbar("El gasto se agregó correctamente");
                 }
-
-                dismissAllowingStateLoss();
             });
         }
 
@@ -362,7 +444,7 @@ public class ExpenseBottomSheetDialog extends BottomSheetDialogFragment {
                             .setNegativeButton("Cancelar", (dialog, which) -> dialog.dismiss())
                             .setPositiveButton("Eliminar", (dialog, which) -> {
                                 controller.deleteExpense(expense.getId());
-                                showSnackbar("El gasto se eliminó del tracker");
+                                showSnackbar("Gasto eliminado");
                                 dismissAllowingStateLoss();
                             })
                             .show();
@@ -508,6 +590,40 @@ public class ExpenseBottomSheetDialog extends BottomSheetDialogFragment {
         inputLayout.setErrorEnabled(false);
     }
 
+    private void setSaveButtonLoading(
+            boolean loading,
+            View btnSave,
+            @Nullable TextView btnSaveText,
+            @Nullable ProgressBar btnSaveProgress,
+            @Nullable View btnDelete,
+            View... formViews
+    ) {
+        btnSave.setEnabled(!loading);
+        btnSave.setClickable(!loading);
+
+        if (btnSaveText != null) {
+            btnSaveText.setVisibility(loading ? View.GONE : View.VISIBLE);
+        }
+
+        if (btnSaveProgress != null) {
+            btnSaveProgress.setVisibility(loading ? View.VISIBLE : View.GONE);
+        }
+
+        if (btnDelete != null) {
+            btnDelete.setEnabled(!loading);
+        }
+
+        if (formViews == null) {
+            return;
+        }
+
+        for (View formView : formViews) {
+            if (formView != null) {
+                formView.setEnabled(!loading);
+            }
+        }
+    }
+
     private void configureBottomSheetForKeyboard() {
         Dialog dialog = getDialog();
         if (dialog == null) {
@@ -552,9 +668,22 @@ public class ExpenseBottomSheetDialog extends BottomSheetDialogFragment {
             return;
         }
 
+        bottomSheet.setBackgroundColor(getAttrColor(R.attr.expenseBottomSheetBg));
+
         BottomSheetBehavior<FrameLayout> behavior = BottomSheetBehavior.from(bottomSheet);
         behavior.setSkipCollapsed(true);
         behavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+    }
+
+    private int getAttrColor(int attr) {
+        TypedValue typedValue = new TypedValue();
+        requireContext().getTheme().resolveAttribute(attr, typedValue, true);
+
+        if (typedValue.resourceId != 0) {
+            return androidx.core.content.ContextCompat.getColor(requireContext(), typedValue.resourceId);
+        }
+
+        return typedValue.data;
     }
 
     private void showSnackbar(String message) {
@@ -567,7 +696,71 @@ public class ExpenseBottomSheetDialog extends BottomSheetDialogFragment {
             return;
         }
 
-        Snackbar.make(root, message, Snackbar.LENGTH_SHORT).show();
+        Snackbar snackbar = Snackbar.make(root, "", Snackbar.LENGTH_SHORT);
+        View snackbarView = snackbar.getView();
+        snackbarView.setBackgroundResource(R.drawable.bg_expense_snackbar);
+        snackbarView.setPadding(0, 0, 0, 0);
+        snackbarView.setElevation(dpToPx(6));
+
+        ViewGroup.LayoutParams rawParams = snackbarView.getLayoutParams();
+        rawParams.width = ViewGroup.LayoutParams.WRAP_CONTENT;
+        rawParams.height = ViewGroup.LayoutParams.WRAP_CONTENT;
+
+        if (rawParams instanceof FrameLayout.LayoutParams) {
+            FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) rawParams;
+            params.gravity = Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL;
+            params.setMargins(0, 0, 0, dpToPx(24));
+            snackbarView.setLayoutParams(params);
+        } else if (rawParams instanceof ViewGroup.MarginLayoutParams) {
+            ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) rawParams;
+            params.setMargins(0, 0, 0, dpToPx(24));
+            snackbarView.setLayoutParams(params);
+        } else {
+            snackbarView.setLayoutParams(rawParams);
+        }
+
+        if (snackbarView instanceof Snackbar.SnackbarLayout) {
+            Snackbar.SnackbarLayout snackbarLayout = (Snackbar.SnackbarLayout) snackbarView;
+            snackbarLayout.removeAllViews();
+            snackbarLayout.addView(createSnackbarContent(message));
+        }
+
+        snackbar.show();
+    }
+
+    private View createSnackbarContent(String message) {
+        LinearLayout content = new LinearLayout(requireContext());
+        content.setOrientation(LinearLayout.HORIZONTAL);
+        content.setGravity(Gravity.CENTER_VERTICAL);
+        content.setPadding(dpToPx(18), dpToPx(14), dpToPx(20), dpToPx(14));
+
+        ImageView icon = new ImageView(requireContext());
+        LinearLayout.LayoutParams iconParams = new LinearLayout.LayoutParams(dpToPx(20), dpToPx(20));
+        icon.setLayoutParams(iconParams);
+        icon.setImageResource(R.drawable.checkcircle);
+        icon.setColorFilter(getAttrColor(R.attr.expenseSnackbarContentColor));
+        content.addView(icon);
+
+        TextView text = new TextView(requireContext());
+        LinearLayout.LayoutParams textParams = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+        );
+        textParams.setMarginStart(dpToPx(12));
+        text.setLayoutParams(textParams);
+        text.setFontFeatureSettings("kern");
+        text.setIncludeFontPadding(false);
+        text.setText(message);
+        text.setTextColor(getAttrColor(R.attr.expenseSnackbarContentColor));
+        text.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 16);
+        text.setTypeface(ResourcesCompat.getFont(requireContext(), R.font.rajdhani_semibold));
+        content.addView(text);
+
+        return content;
+    }
+
+    private int dpToPx(int dp) {
+        return Math.round(dp * getResources().getDisplayMetrics().density);
     }
 
     private abstract static class SimpleTextWatcher implements TextWatcher {

@@ -26,6 +26,8 @@ public final class ExpenseUiMapper {
                 isContentEmpty(state),
                 mapMemberFilterOptions(state.members),
                 state.selectedMemberFilter,
+                mapTypeFilterOptions(),
+                state.selectedTypeFilter != null ? state.selectedTypeFilter.name() : null,
                 mapSortOptions(),
                 state.selectedSortType != null ? state.selectedSortType.name() : null
         );
@@ -83,7 +85,8 @@ public final class ExpenseUiMapper {
                     formatDate(expense.getDate()),
                     resolveMemberName(expense.getPaidByMemberId(), members),
                     expense.getAmount(),
-                    resolveCategoryName(expense.getCategoryId(), categories)
+                    resolveCategoryName(expense.getCategoryId(), categories),
+                    expense.isIndividual()
             ));
         }
 
@@ -127,6 +130,22 @@ public final class ExpenseUiMapper {
         items.add(new ContentCardView.SortOptionUi(
                 ExpenseListQuery.SortType.AMOUNT_ASC.name(),
                 "Precio: Menor a mayor"
+        ));
+
+        return items;
+    }
+
+    private static List<ContentCardView.FilterOptionUi> mapTypeFilterOptions() {
+        List<ContentCardView.FilterOptionUi> items = new ArrayList<>();
+
+        items.add(new ContentCardView.FilterOptionUi(
+                ExpenseListQuery.TypeFilter.GROUP.name(),
+                "Grupal"
+        ));
+
+        items.add(new ContentCardView.FilterOptionUi(
+                ExpenseListQuery.TypeFilter.INDIVIDUAL.name(),
+                "Individual"
         ));
 
         return items;

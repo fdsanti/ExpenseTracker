@@ -41,6 +41,7 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.chip.Chip;
+import com.google.android.material.checkbox.MaterialCheckBox;
 import com.google.android.material.datepicker.MaterialDatePicker;
 import com.google.android.material.datepicker.MaterialPickerOnPositiveButtonClickListener;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
@@ -198,6 +199,7 @@ public class GastosFragment extends Fragment implements CallBackItemTouch, Swipe
 
             AutoCompleteTextView catDropdown = dialogView.findViewById(R.id.cat_dropdown);
             AutoCompleteTextView dropdown_nombres = dialogView.findViewById(R.id.dropdown_nombres);
+            MaterialCheckBox checkIndividualExpense = dialogView.findViewById(R.id.checkIndividualExpense);
             TextInputEditText txt_NombreGasto = dialogView.findViewById(R.id.editText_NombreGasto);
             TextInputEditText txt_FechaGasto = dialogView.findViewById(R.id.editText_FechaGasto);
             SimpleDateFormat simpleFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.US);
@@ -364,6 +366,9 @@ public class GastosFragment extends Fragment implements CallBackItemTouch, Swipe
                                         newExpenseRef.child("participantId").setValue("p2");
                                     }
                                     newExpenseRef.child("categoryId").setValue(categoryNameToId.get(newRow.getCategory()));
+                                    newExpenseRef.child("individual").setValue(
+                                            checkIndividualExpense != null && checkIndividualExpense.isChecked()
+                                    );
 
                                     if (dropdown_nombres.getText().toString().equals(SettingsDB.getSetting(HCardDB.getSelected()).getName1())) {
                                         rows1.add(newRow);

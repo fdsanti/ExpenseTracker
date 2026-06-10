@@ -22,6 +22,10 @@ public class DebtCalculator {
 
         if (expenses != null) {
             for (Expense expense : expenses) {
+                if (expense.isIndividual()) {
+                    continue;
+                }
+
                 totalExpenses += expense.getAmount();
 
                 if (m1.getId().equals(expense.getPaidByMemberId())) {

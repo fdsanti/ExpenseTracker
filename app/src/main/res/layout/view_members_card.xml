@@ -4,14 +4,16 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginTop="24dp"
-    android:elevation="?attr/cardElevationHome"
-    app:cardBackgroundColor="?attr/colorBackgroundCards"
+    android:elevation="0dp"
+    app:cardBackgroundColor="@android:color/transparent"
     app:cardCornerRadius="20dp"
-    app:cardElevation="?attr/cardElevationHome">
+    app:cardElevation="0dp"
+    app:strokeWidth="0dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="@drawable/bg_tracker_card_shadow"
         android:orientation="vertical"
         android:paddingHorizontal="16dp"
         android:paddingTop="20dp"
@@ -21,10 +23,13 @@
             android:id="@+id/txtMembersTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:fontFamily="@font/rajdhani_semibold"
+            android:includeFontPadding="false"
             android:text="Miembros"
-            android:textColor="?attr/textPrimary"
-            android:textSize="20sp"
-            android:textStyle="normal" />
+            android:textColor="?attr/expensePrimaryTextColor"
+            android:textSize="24sp"
+            android:textStyle="normal"
+            app:fontFamily="@font/rajdhani_semibold" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -37,19 +42,25 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:fontFamily="@font/rajdhani_semibold"
+                android:includeFontPadding="false"
                 android:text="User"
-                android:textColor="?attr/textPrimary"
+                android:textColor="?attr/expensePrimaryTextColor"
                 android:textSize="16sp"
-                android:textStyle="bold" />
+                android:textStyle="normal"
+                app:fontFamily="@font/rajdhani_semibold" />
 
             <TextView
                 android:id="@+id/txtSalaryHeader"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:fontFamily="@font/rajdhani_semibold"
+                android:includeFontPadding="false"
                 android:text="Sueldo"
-                android:textColor="?attr/textPrimary"
+                android:textColor="?attr/expensePrimaryTextColor"
                 android:textSize="16sp"
-                android:textStyle="bold" />
+                android:textStyle="normal"
+                app:fontFamily="@font/rajdhani_semibold" />
         </LinearLayout>
 
         <View
@@ -68,19 +79,25 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:fontFamily="@font/rajdhani_medium"
+                android:includeFontPadding="false"
                 android:text="Fede (60%)"
                 android:textColor="?attr/membersRowTextColor"
                 android:textSize="16sp"
-                android:textStyle="normal" />
+                android:textStyle="normal"
+                app:fontFamily="@font/rajdhani_medium" />
 
             <TextView
                 android:id="@+id/txtMemberSalary1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:fontFamily="@font/rajdhani_medium"
+                android:includeFontPadding="false"
                 android:text="$ 5.448.394,93"
                 android:textColor="?attr/membersRowTextColor"
                 android:textSize="16sp"
-                android:textStyle="normal" />
+                android:textStyle="normal"
+                app:fontFamily="@font/rajdhani_medium" />
         </LinearLayout>
 
         <View
@@ -99,19 +116,25 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:fontFamily="@font/rajdhani_medium"
+                android:includeFontPadding="false"
                 android:text="Clari (40%)"
                 android:textColor="?attr/membersRowTextColor"
                 android:textSize="16sp"
-                android:textStyle="normal" />
+                android:textStyle="normal"
+                app:fontFamily="@font/rajdhani_medium" />
 
             <TextView
                 android:id="@+id/txtMemberSalary2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:fontFamily="@font/rajdhani_medium"
+                android:includeFontPadding="false"
                 android:text="$ 3.448.394,93"
                 android:textColor="?attr/membersRowTextColor"
                 android:textSize="16sp"
-                android:textStyle="normal" />
+                android:textStyle="normal"
+                app:fontFamily="@font/rajdhani_medium" />
         </LinearLayout>
 
         <View
@@ -119,7 +142,7 @@
             android:layout_width="match_parent"
             android:layout_height="1dp"
             android:layout_marginTop="22dp"
-            android:background="?attr/balanceDividerColor" />
+            android:background="?attr/membersDividerColor" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnEditMembers"
@@ -127,6 +150,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
+            android:fontFamily="@font/rajdhani_medium"
             android:insetLeft="0dp"
             android:insetTop="0dp"
             android:insetRight="0dp"
@@ -136,15 +160,16 @@
             android:padding="0dp"
             android:text="Editar datos"
             android:textAllCaps="false"
-            android:textColor="?attr/colorInteractivePrimary"
+            android:textColor="?attr/membersEditButtonColor"
             android:textSize="15sp"
             android:textStyle="normal"
             app:backgroundTint="@android:color/transparent"
+            app:fontFamily="@font/rajdhani_medium"
             app:icon="@drawable/ic_arrow_forward"
             app:iconGravity="textEnd"
             app:iconPadding="8dp"
-            app:iconTint="?attr/colorInteractivePrimary"
-            app:rippleColor="?attr/colorInteractivePrimary" />
+            app:iconTint="?attr/membersEditButtonColor"
+            app:rippleColor="?attr/membersEditButtonColor" />
 
     </LinearLayout>
 
