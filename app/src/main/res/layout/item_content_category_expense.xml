@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
-    android:paddingStart="64dp"
+    android:paddingStart="16dp"
     android:paddingTop="10dp"
-    android:paddingEnd="48dp"
+    android:paddingEnd="16dp"
     android:paddingBottom="10dp"
     android:background="@drawable/bg_content_category_expense_click"
     android:clickable="true"
@@ -16,9 +17,14 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
+        android:ellipsize="end"
+        android:fontFamily="@font/rajdhani_medium"
+        app:fontFamily="@font/rajdhani_medium"
+        android:includeFontPadding="false"
+        android:maxLines="1"
         android:text="Compra Coto"
-        android:textColor="?attr/contentCategoryTexts"
-        android:textSize="14sp"
+        android:textColor="?attr/contentCategoryLabelText"
+        android:textSize="15sp"
         android:textStyle="normal" />
 
     <TextView
@@ -26,9 +32,12 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="12dp"
+        android:fontFamily="@font/rajdhani_medium"
+        app:fontFamily="@font/rajdhani_medium"
+        android:includeFontPadding="false"
         android:text="$ 0,00"
-        android:textColor="?attr/contentCategoryTexts"
-        android:textSize="14sp"
+        android:textColor="?attr/contentCategoryLabelText"
+        android:textSize="15sp"
         android:textStyle="normal" />
 
 </LinearLayout>

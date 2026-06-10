@@ -11,10 +11,12 @@
         <item name="colorSecondaryVariant">@color/teal_200</item>
         <item name="colorOnSecondary">@color/black</item>
         <item name="colorSurface">@color/material_surface_dark</item>
+        <item name="android:fontFamily">@font/rajdhani</item>
+        <item name="fontFamily">@font/rajdhani</item>
 
         <item name="windowActionBar">false</item>
-        <item name="android:colorBackground">@color/gray_bg</item>
-        <item name="android:windowBackground">@color/background</item>
+        <item name="android:colorBackground">@color/app_background_dark</item>
+        <item name="android:windowBackground">@color/app_background_dark</item>
 
         <!-- Status bar color. -->
         <item name="android:statusBarColor" tools:targetApi="l">#000</item>
@@ -26,17 +28,17 @@
         <item name="colorBorderCards">@color/cards_border</item>
         <item name="textColorPrimary">@color/white</item>
 
-        <item name="greyBackground">@color/background</item>
+        <item name="greyBackground">@color/app_background_dark</item>
         <item name="onGreyBackground">@color/white</item>
-        <item name="filtrarPorBg">@color/background</item>
-        <item name="fabBgCircle">@color/background</item>
+        <item name="filtrarPorBg">@color/app_background_dark</item>
+        <item name="fabBgCircle">@color/app_background_dark</item>
         <item name="deleteRed">@color/delete_red</item>
         <item name="rowsBorder">@color/rowsBorderDark</item>
-        <item name="bgwhitegrey">@color/background</item>
+        <item name="bgwhitegrey">@color/app_background_dark</item>
         <item name="whiteBlack">@color/white</item>
         <item name="popupbg">@color/darkPopUpBg</item>
         <item name="cardElevationHome">0dp</item>
-        <item name="homeTabBackgroundColor">@color/background</item>
+        <item name="homeTabBackgroundColor">@color/app_background_dark</item>
         <item name="homeTabTextSelectedColor">?attr/colorInteractivePrimary</item>
         <item name="homeTabIndicatorColor">?attr/colorInteractivePrimary</item>
         <item name="homeTabTextUnselectedColor">#99FFFFFF</item>
@@ -50,11 +52,14 @@
         <item name="textPrimary">@color/primary_text_dark</item>
         <item name="textSecondary">@color/primary_text_dark</item>
         <item name="balanceDividerColor">#484848</item>
-        <item name="contentTabActiveBg">#003C34</item>
+        <item name="balanceCardBorderColor">#595959</item>
+        <item name="contentTabActiveBg">#1B443E</item>
         <item name="contentTabInactiveText">#C0C0C0</item>
         <item name="filterChipActiveBg">#1A00CA9F</item>
-        <item name="filterChipActiveText">#CDE8E1</item>
-        <item name="filterChipActiveIcon">#CDE8E1</item>
+        <item name="filterChipActiveText">#FFFFFF</item>
+        <item name="filterChipActiveIcon">#FFFFFF</item>
+        <item name="filterChipClearIcon">#E3E3E3</item>
+        <item name="filterChipClearBg">#1C2226</item>
         <item name="filterChipInactiveBorder">#4E4E4E</item>
         <item name="filterChipInactiveText">#CAC4D0</item>
         <item name="filterLabelText">#FFFFFF</item>
@@ -67,13 +72,38 @@
         <item name="contentCategoryRowBg">#1B1D21</item>
         <item name="contentCategoryPercentageBg">#363744</item>
         <item name="contentCategoryPercentageText">#D9D9D9</item>
-        <item name="contentCategoryChevronColor">#FFFFFF</item>
+        <item name="contentCategoryChevronColor">#B6B6B6</item>
         <item name="contentCategoryTexts">#FFFFFF</item>
+        <item name="contentCategoryLabelText">#B6B6B6</item>
+        <item name="contentCategoryAmountText">#FFFFFF</item>
         <item name="membersRowTextColor">#B6B6B6</item>
-        <item name="fabBackground">#004B41</item>
+        <item name="membersDividerColor">#484848</item>
+        <item name="membersEditButtonColor">#4DA196</item>
+        <item name="fabBackground">#305651</item>
+        <item name="expenseFabBorderColor">#26403D</item>
+        <item name="expenseFabShadowColor">#26403D</item>
+        <item name="expenseFabIconColor">#FFFFFF</item>
         <item name="expensePrimaryTextColor">#FFFFFF</item>
+        <item name="expenseDateTextColor">#D2D2D2</item>
+        <item name="expenseListDividerColor">#3F3F3F</item>
+        <item name="expenseIndividualIconColor">#FFFFFF</item>
         <item name="summaryHeaderBg">#1E363A</item>
         <item name="summaryDividerColor">#353535</item>
+        <item name="trackerCardBorderColor">#131313</item>
+        <item name="trackerCardShadowColor">#131313</item>
+        <item name="trackerSummaryLabelColor">#D2D2D2</item>
+        <item name="memberExpenseDialogDividerColor">#484848</item>
+        <item name="debtClosingCardBg">#A5CBC6</item>
+        <item name="debtClosingCardBorderColor">#44716B</item>
+        <item name="debtClosingCardShadowColor">#44716B</item>
+        <item name="debtClosingTextColor">#252525</item>
+        <item name="debtClosingButtonBg">#305651</item>
+        <item name="debtClosingButtonBorderColor">#26403D</item>
+        <item name="debtClosingButtonShadowColor">#26403D</item>
+        <item name="debtClosingButtonTextColor">#FFFFFF</item>
+        <item name="expenseBottomSheetBg">#1B1D21</item>
+        <item name="expenseSnackbarBg">#FFFFFF</item>
+        <item name="expenseSnackbarContentColor">#252525</item>
         <item name="materialAlertDialogTheme">@style/ThemeOverlay.ExpenseTracker.MaterialAlertDialog</item>
     </style>
     <style name="ThemeOverlay.ExpenseTracker.MaterialAlertDialog" parent="ThemeOverlay.MaterialComponents.MaterialAlertDialog">
@@ -84,7 +114,8 @@
         <item name="android:textSize">28sp</item>
         <item name="android:textColor">?attr/primary_text</item>
         <item name="android:textStyle">normal</item>
-        <item name="android:typeface">sans</item>
+        <item name="android:fontFamily">@font/rajdhani</item>
+        <item name="fontFamily">@font/rajdhani</item>
     </style>
 
     <style name="CustomChipStyle" parent="Widget.MaterialComponents.Chip.Filter">
@@ -95,7 +126,7 @@
     </style>
 
     <style name="ThemeOverlay.App.TabLayout" parent="">
-        <item name="colorSurface">@color/background</item>
+        <item name="colorSurface">@color/app_background_dark</item>
     </style>
 
 
@@ -103,63 +134,72 @@
         <item name="android:textSize">24sp</item>
         <item name="android:textColor">@color/white</item>
         <item name="android:textStyle">bold</item>
-        <item name="android:typeface">sans</item>
+        <item name="android:fontFamily">@font/rajdhani</item>
+        <item name="fontFamily">@font/rajdhani</item>
     </style>
 
     <style name="TotalChart" parent="@android:style/TextAppearance.Medium">
         <item name="android:textSize">24sp</item>
         <item name="android:textColor">@color/white</item>
         <item name="android:textStyle">bold</item>
-        <item name="android:typeface">sans</item>
+        <item name="android:fontFamily">@font/rajdhani</item>
+        <item name="fontFamily">@font/rajdhani</item>
     </style>
 
     <style name="Subtitle" parent="@android:style/TextAppearance.Medium">
         <item name="android:textSize">14sp</item>
         <item name="android:textColor">@color/white</item>
         <item name="android:textStyle">normal</item>
-        <item name="android:typeface">sans</item>
+        <item name="android:fontFamily">@font/rajdhani</item>
+        <item name="fontFamily">@font/rajdhani</item>
     </style>
 
     <style name="NormalBold" parent="@android:style/TextAppearance.Medium">
         <item name="android:textSize">14sp</item>
         <item name="android:textColor">@color/white</item>
         <item name="android:textStyle">bold</item>
-        <item name="android:typeface">sans</item>
+        <item name="android:fontFamily">@font/rajdhani</item>
+        <item name="fontFamily">@font/rajdhani</item>
     </style>
 
     <style name="Normal" parent="@android:style/TextAppearance.Medium">
         <item name="android:textSize">16sp</item>
         <item name="android:textColor">@color/white</item>
         <item name="android:textStyle">normal</item>
-        <item name="android:typeface">sans</item>
+        <item name="android:fontFamily">@font/rajdhani</item>
+        <item name="fontFamily">@font/rajdhani</item>
     </style>
 
     <style name="RowTitle" parent="@android:style/TextAppearance.Medium">
         <item name="android:textSize">16sp</item>
         <item name="android:textColor">@color/white</item>
         <item name="android:textStyle">bold</item>
-        <item name="android:typeface">sans</item>
+        <item name="android:fontFamily">@font/rajdhani</item>
+        <item name="fontFamily">@font/rajdhani</item>
     </style>
 
     <style name="RowTitleDarkGrey" parent="@android:style/TextAppearance.Medium">
         <item name="android:textSize">16sp</item>
         <item name="android:textColor">@color/cards_background</item>
         <item name="android:textStyle">bold</item>
-        <item name="android:typeface">sans</item>
+        <item name="android:fontFamily">@font/rajdhani</item>
+        <item name="fontFamily">@font/rajdhani</item>
     </style>
 
     <style name="Row_Rest" parent="@android:style/TextAppearance.Medium">
         <item name="android:textSize">16sp</item>
         <item name="android:textColor">@color/white</item>
         <item name="android:textStyle">normal</item>
-        <item name="android:typeface">sans</item>
+        <item name="android:fontFamily">@font/rajdhani</item>
+        <item name="fontFamily">@font/rajdhani</item>
     </style>
 
     <style name="ExpenseNames" parent="@android:style/TextAppearance.Medium">
         <item name="android:textSize">12sp</item>
         <item name="android:textColor">@color/white</item>
         <item name="android:textStyle">normal</item>
-        <item name="android:typeface">sans</item>
+        <item name="android:fontFamily">@font/rajdhani</item>
+        <item name="fontFamily">@font/rajdhani</item>
         <item name="textAllCaps">true</item>
         <item name="android:letterSpacing" tools:targetApi="lollipop">0.25</item>
     </style>
@@ -168,7 +208,4 @@
         <item name="textAllCaps">false</item>
         <item name="android:textAllCaps">false</item>
     </style>
-
-
-
 </resources>

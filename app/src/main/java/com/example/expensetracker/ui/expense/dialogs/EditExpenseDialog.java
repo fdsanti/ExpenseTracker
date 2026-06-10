@@ -18,6 +18,7 @@ import com.example.expensetracker.model.Expense;
 import com.example.expensetracker.model.Member;
 import com.example.expensetracker.ui.expense.ExpenseScreenController;
 import com.example.expensetracker.ui.expense.ExpenseScreenState;
+import com.google.android.material.checkbox.MaterialCheckBox;
 import com.google.android.material.datepicker.MaterialDatePicker;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.TextInputEditText;
@@ -73,6 +74,7 @@ public class EditExpenseDialog {
 
         AutoCompleteTextView dropdownPersona = dialogView.findViewById(R.id.dropdown_nombres);
         AutoCompleteTextView dropdownCategoria = dialogView.findViewById(R.id.cat_dropdown);
+        MaterialCheckBox checkIndividualExpense = dialogView.findViewById(R.id.checkIndividualExpense);
         TextInputLayout inputLayoutWho = dialogView.findViewById(R.id.inputLayout_Who);
         TextInputLayout inputLayoutNombre = dialogView.findViewById(R.id.inputLayout_NombreGasto);
         TextInputLayout inputLayoutFecha = dialogView.findViewById(R.id.inputLayout_FechaGasto);
@@ -152,6 +154,9 @@ public class EditExpenseDialog {
             txtMonto.setText(String.valueOf(expense.getAmount()));
             dropdownPersona.setText(resolveMemberName(expense.getPaidByMemberId(), state.members), false);
             dropdownCategoria.setText(resolveCategoryName(expense.getCategoryId(), categories), false);
+            if (checkIndividualExpense != null) {
+                checkIndividualExpense.setChecked(expense.isIndividual());
+            }
         }
 
         txtFecha.setText(formatDate(selectedDate[0]));
@@ -264,7 +269,8 @@ public class EditExpenseDialog {
                         amount,
                         memberId,
                         categoryId,
-                        selectedDate[0]
+                        selectedDate[0],
+                        checkIndividualExpense != null && checkIndividualExpense.isChecked()
                 );
             } else {
                 controller.createExpense(
@@ -272,7 +278,8 @@ public class EditExpenseDialog {
                         amount,
                         memberId,
                         categoryId,
-                        selectedDate[0]
+                        selectedDate[0],
+                        checkIndividualExpense != null && checkIndividualExpense.isChecked()
                 );
             }
 

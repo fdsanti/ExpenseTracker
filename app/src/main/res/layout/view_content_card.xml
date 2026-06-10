@@ -4,14 +4,16 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginTop="24dp"
-    android:elevation="?attr/cardElevationHome"
-    app:cardBackgroundColor="?attr/colorBackgroundCards"
+    android:elevation="0dp"
+    app:cardBackgroundColor="@android:color/transparent"
     app:cardCornerRadius="20dp"
-    app:cardElevation="?attr/cardElevationHome">
+    app:cardElevation="0dp"
+    app:strokeWidth="0dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="@drawable/bg_tracker_card_shadow"
         android:orientation="vertical"
         android:paddingTop="20dp"
         android:paddingBottom="20dp">
@@ -35,10 +37,12 @@
                     android:layout_height="match_parent"
                     android:layout_weight="1"
                     android:background="@drawable/bg_tab_active"
+                    android:fontFamily="@font/rajdhani_semibold"
                     android:gravity="center"
                     android:paddingHorizontal="16dp"
                     android:text="Categorías"
-                    android:textSize="14sp" />
+                    android:textSize="14sp"
+                    app:fontFamily="@font/rajdhani_semibold" />
 
                 <View
                     android:layout_width="8dp"
@@ -50,10 +54,12 @@
                     android:layout_height="match_parent"
                     android:layout_weight="1"
                     android:background="@drawable/bg_tab_inactive"
+                    android:fontFamily="@font/rajdhani_medium"
                     android:gravity="center"
                     android:paddingHorizontal="16dp"
                     android:text="Listado de gastos"
-                    android:textSize="14sp" />
+                    android:textSize="14sp"
+                    app:fontFamily="@font/rajdhani_medium" />
             </LinearLayout>
 
             <View
@@ -73,25 +79,76 @@
             android:layout_marginEnd="16dp"
             android:gravity="center_vertical"
             android:orientation="horizontal"
-            android:visibility="gone">
+            android:visibility="gone"
+            >
 
-            <TextView
-                android:id="@+id/txtFilterBy"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
-                android:text="Filtrar por:"
-                android:textSize="15sp"
-                android:textStyle="normal"
-                android:textColor="?attr/textPrimary" />
-
-            <com.google.android.material.chip.ChipGroup
-                android:id="@+id/chipGroupMembers"
+            <LinearLayout
+                android:id="@+id/filterDropdownsContainer"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                app:selectionRequired="false"
-                app:singleSelection="false" />
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <LinearLayout
+                    android:id="@+id/btnFilterUser"
+                    android:layout_width="wrap_content"
+                    android:layout_height="32dp"
+                    android:background="@drawable/bg_filter_dropdown_inactive"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="12dp">
+
+                    <TextView
+                        android:id="@+id/txtFilterUser"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Usuario"
+                        android:textSize="14sp"
+                        android:textStyle="normal" />
+
+                    <ImageView
+                        android:id="@+id/ivFilterUserChevron"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_marginStart="8dp"
+                        android:contentDescription="@null"
+                        android:importantForAccessibility="no"
+                        android:src="@drawable/chevron_down" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/btnFilterType"
+                    android:layout_width="wrap_content"
+                    android:layout_height="32dp"
+                    android:layout_marginStart="8dp"
+                    android:background="@drawable/bg_filter_dropdown_inactive"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="12dp">
+
+                    <TextView
+                        android:id="@+id/txtFilterType"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Tipo"
+                        android:textSize="14sp"
+                        android:textStyle="normal" />
+
+                    <ImageView
+                        android:id="@+id/ivFilterTypeChevron"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_marginStart="8dp"
+                        android:contentDescription="@null"
+                        android:importantForAccessibility="no"
+                        android:src="@drawable/chevron_down" />
+                </LinearLayout>
+            </LinearLayout>
 
             <androidx.appcompat.widget.AppCompatImageButton
                 android:id="@+id/btnSort"
@@ -130,7 +187,7 @@
             android:id="@+id/categoriesContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="24dp"
             android:orientation="vertical"
             android:visibility="gone"
             android:layout_marginStart="12dp"

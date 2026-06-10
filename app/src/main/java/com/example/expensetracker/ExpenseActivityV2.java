@@ -9,11 +9,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.expensetracker.calculator.ExpenseListQuery;
 import com.example.expensetracker.data.TrackerRepository;
 import com.example.expensetracker.model.Expense;
-import com.example.expensetracker.ui.expense.BalanceActivity;
 import com.example.expensetracker.ui.expense.dialogs.EditExpenseDialog;
 import com.example.expensetracker.ui.expense.ExpenseScreenController;
 import com.example.expensetracker.ui.expense.ExpenseScreenListener;
 import com.example.expensetracker.ui.expense.ExpenseScreenState;
+import com.example.expensetracker.ui.expense.TrackerDateUtils;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -45,9 +45,11 @@ public class ExpenseActivityV2 extends AppCompatActivity implements ExpenseScree
     private BalanceCardView balanceCard;
     private MembersCardView membersCard;
     private ContentCardView contentCard;
+    private LinearLayout trackerCardsContainer;
     private View btnBack;
     private View btnMoreOptions;
     private ExpenseScreenState currentState;
+    private ExpenseScreenState previousRenderedState;
 
 
     @Override
@@ -60,18 +62,9 @@ public class ExpenseActivityV2 extends AppCompatActivity implements ExpenseScree
         balanceCard = findViewById(R.id.balanceCard);
         membersCard = findViewById(R.id.membersCard);
         contentCard = findViewById(R.id.contentCard);
+        trackerCardsContainer = findViewById(R.id.trackerCardsContainer);
         btnBack = findViewById(R.id.btnBack);
         btnMoreOptions = findViewById(R.id.btnMoreOptions);
-
-        balanceCard.setOnReviewBalanceClickListener(v -> {
-            if (currentState == null || currentState.tracker == null || currentState.tracker.getId() == null) {
-                return;
-            }
-
-            Intent intent = new Intent(this, BalanceActivity.class);
-            intent.putExtra(BalanceActivity.EXTRA_TRACKER_ID, currentState.tracker.getId());
-            startActivity(intent);
-        });
 
         membersCard.setOnEditMembersClickListener(v -> {
             if (currentState == null || currentState.tracker == null || currentState.tracker.getId() == null) {
@@ -116,6 +109,14 @@ public class ExpenseActivityV2 extends AppCompatActivity implements ExpenseScree
                 controller.setMemberFilter(memberId)
         );
 
+        contentCard.setOnTypeFilterChangeListener(typeFilterValue -> {
+            ExpenseListQuery.TypeFilter typeFilter = typeFilterValue != null
+                    ? ExpenseListQuery.TypeFilter.valueOf(typeFilterValue)
+                    : null;
+
+            controller.setTypeFilter(typeFilter);
+        });
+
         contentCard.setOnSortTypeChangeListener(sortTypeValue -> {
             ExpenseListQuery.SortType sortType =
                     ExpenseListQuery.SortType.valueOf(sortTypeValue);
@@ -125,6 +126,7 @@ public class ExpenseActivityV2 extends AppCompatActivity implements ExpenseScree
 
         btnBack.setOnClickListener(v -> finish());
         btnMoreOptions.setOnClickListener(v -> showMoreOptionsMenu());
+        balanceCard.setOnCloseTrackerClickListener(v -> confirmCloseTracker());
 
         View fab = findViewById(R.id.fabAddExpense);
 
@@ -134,9 +136,6 @@ public class ExpenseActivityV2 extends AppCompatActivity implements ExpenseScree
 
             dialog.show(getSupportFragmentManager(), "CREATE_EXPENSE");
         });
-
-        Log.d("ExpenseV2", "ExpenseActivityV2 started");
-
 
         String trackerId = getIntent().getStringExtra("trackerId");
 
@@ -172,6 +171,7 @@ public class ExpenseActivityV2 extends AppCompatActivity implements ExpenseScree
         renderHeader(state);
         renderCards(state);
         renderLoading(state);
+        previousRenderedState = state;
     }
 
     private void renderHeader(ExpenseScreenState state) {
@@ -183,10 +183,53 @@ public class ExpenseActivityV2 extends AppCompatActivity implements ExpenseScree
     }
 
     private void renderCards(ExpenseScreenState state) {
-        summaryCard.render(state.expenseSummary);
-        balanceCard.render(state.debtSummary);
-        membersCard.render(state.members);
+        positionBalanceCard(TrackerDateUtils.shouldShowClosingVariant(state.tracker));
+
+        boolean tabOnlyChange = previousRenderedState != null
+                && previousRenderedState.tracker == state.tracker
+                && previousRenderedState.members == state.members
+                && previousRenderedState.expenses == state.expenses
+                && previousRenderedState.categories == state.categories
+                && previousRenderedState.expenseSummary == state.expenseSummary
+                && previousRenderedState.balanceDetail == state.balanceDetail
+                && previousRenderedState.categorySummary == state.categorySummary
+                && previousRenderedState.visibleExpenses == state.visibleExpenses
+                && previousRenderedState.selectedMemberFilter == state.selectedMemberFilter
+                && previousRenderedState.selectedTypeFilter == state.selectedTypeFilter
+                && previousRenderedState.selectedSortType == state.selectedSortType
+                && previousRenderedState.selectedTab != state.selectedTab;
+
+        if (!tabOnlyChange) {
+            summaryCard.render(state.expenseSummary, state.tracker);
+            balanceCard.render(state.balanceDetail, state.tracker);
+            membersCard.render(state.members);
+        }
+
         contentCard.render(ExpenseUiMapper.toContentCardModel(state));
+    }
+
+    private void positionBalanceCard(boolean closingVariant) {
+        if (trackerCardsContainer == null || balanceCard == null) {
+            return;
+        }
+
+        int targetIndex = closingVariant
+                ? trackerCardsContainer.indexOfChild(summaryCard)
+                : trackerCardsContainer.indexOfChild(contentCard) + 1;
+        int currentIndex = trackerCardsContainer.indexOfChild(balanceCard);
+
+        if (targetIndex < 0 || currentIndex == targetIndex) {
+            return;
+        }
+
+        ViewGroup.LayoutParams layoutParams = balanceCard.getLayoutParams();
+        trackerCardsContainer.removeView(balanceCard);
+
+        if (currentIndex < targetIndex) {
+            targetIndex--;
+        }
+
+        trackerCardsContainer.addView(balanceCard, targetIndex, layoutParams);
     }
 
     private void renderLoading(ExpenseScreenState state) {
@@ -256,7 +299,7 @@ public class ExpenseActivityV2 extends AppCompatActivity implements ExpenseScree
         itemView.setLayoutParams(params);
         itemView.setText(label);
         itemView.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 16);
-        itemView.setTypeface(android.graphics.Typeface.DEFAULT, android.graphics.Typeface.BOLD);
+        itemView.setTypeface(itemView.getTypeface(), android.graphics.Typeface.BOLD);
         itemView.setTextColor(getAttrColor(R.attr.sortDropdownText));
         itemView.setPadding(dpToPx(16), dpToPx(14), dpToPx(16), dpToPx(14));
         itemView.setBackgroundResource(R.drawable.bg_content_category_expense_click);

@@ -15,11 +15,14 @@ public class ExpenseFilterSorter {
         if (expenses != null) {
             for (Expense expense : expenses) {
                 if (query == null || query.getMemberIdFilter() == null) {
-                    result.add(expense);
+                    if (matchesTypeFilter(expense, query)) {
+                        result.add(expense);
+                    }
                     continue;
                 }
 
-                if (query.getMemberIdFilter().equals(expense.getPaidByMemberId())) {
+                if (query.getMemberIdFilter().equals(expense.getPaidByMemberId())
+                        && matchesTypeFilter(expense, query)) {
                     result.add(expense);
                 }
             }
@@ -52,6 +55,23 @@ public class ExpenseFilterSorter {
         });
 
         return result;
+    }
+
+    private static boolean matchesTypeFilter(Expense expense, ExpenseListQuery query) {
+        if (query == null || query.getTypeFilter() == null) {
+            return true;
+        }
+
+        switch (query.getTypeFilter()) {
+            case GROUP:
+                return expense.isGroupExpense();
+
+            case INDIVIDUAL:
+                return expense.isIndividual();
+
+            default:
+                return true;
+        }
     }
 
     private static int compareByDateThenId(Expense e1, Expense e2, boolean ascending) {

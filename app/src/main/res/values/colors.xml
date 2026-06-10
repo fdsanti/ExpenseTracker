@@ -11,7 +11,7 @@
     <color name="interactive_primary_light">#004B41</color>
     <color name="primary_text_light">#252525</color>
     <color name="home_header_background_light">#FFFFFF</color>
-    <color name="home_tabs_border_light">#D0D0D0</color>
+    <color name="home_tabs_border_light">#959595</color>
     <color name="app_background_light">#EFEFEF</color>
 
     <!--Colors for dark theme here-->
@@ -34,9 +34,9 @@
     <color name="interactive_primary_dark">#00A18C</color>
     <color name="primary_text_dark">#FFFFFF</color>
 
-    <color name="app_background_dark">#1B1D21</color>
+    <color name="app_background_dark">#2C3439</color>
     <color name="home_header_background_dark">#21262F</color>
-    <color name="home_tabs_border_dark">#414141</color>
+    <color name="home_tabs_border_dark">#131313</color>
 
     <color name="material_surface_light">#FFFFFF</color>
     <color name="material_surface_dark">#121212</color>

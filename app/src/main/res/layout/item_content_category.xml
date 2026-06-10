@@ -16,13 +16,13 @@
         <LinearLayout
             android:id="@+id/categoryRow"
             android:layout_width="match_parent"
-            android:layout_height="56dp"
+            android:layout_height="68dp"
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
             <FrameLayout
                 android:id="@+id/categoryIconContainer"
-                android:layout_width="45dp"
+                android:layout_width="52dp"
                 android:layout_height="match_parent"
                 android:background="@drawable/bg_content_category_icon_block">
 
@@ -43,8 +43,8 @@
                 android:layout_weight="1"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
-                android:paddingStart="14dp"
-                android:paddingEnd="12dp">
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp">
 
                 <LinearLayout
                     android:id="@+id/categoryTextBlock"
@@ -52,51 +52,63 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:gravity="center_vertical"
-                    android:orientation="horizontal">
+                    android:orientation="vertical">
 
                     <TextView
                         android:id="@+id/tvCategoryName"
-                        android:layout_width="wrap_content"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:ellipsize="end"
+                        android:fontFamily="@font/rajdhani_medium"
+                        app:fontFamily="@font/rajdhani_medium"
+                        android:includeFontPadding="false"
+                        android:maxLines="1"
                         android:text="Super"
-                        android:textColor="?attr/contentCategoryTexts"
+                        android:textColor="?attr/contentCategoryLabelText"
                         android:textSize="14sp"
                         android:textStyle="normal" />
 
                     <TextView
-                        android:id="@+id/tvCategoryPercentage"
-                        android:layout_width="wrap_content"
+                        android:id="@+id/tvCategoryAmount"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="10dp"
-                        android:background="@drawable/bg_content_category_percentage"
-                        android:gravity="center"
-                        android:paddingStart="5dp"
-                        android:paddingTop="2dp"
-                        android:paddingEnd="5dp"
-                        android:paddingBottom="3dp"
-                        android:text="23%"
-                        android:textColor="?attr/contentCategoryPercentageText"
-                        android:textSize="10sp"
-                        android:textStyle="bold" />
+                        android:layout_marginTop="2dp"
+                        android:ellipsize="end"
+                        android:fontFamily="@font/rajdhani_semibold"
+                        app:fontFamily="@font/rajdhani_semibold"
+                        android:includeFontPadding="false"
+                        android:maxLines="1"
+                        android:text="$0,00"
+                        android:textColor="?attr/contentCategoryAmountText"
+                        android:textSize="16sp"
+                        android:textStyle="normal" />
                 </LinearLayout>
 
                 <TextView
-                    android:id="@+id/tvCategoryAmount"
+                    android:id="@+id/tvCategoryPercentage"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
-                    android:text="$0,00"
-                    android:textColor="?attr/contentCategoryTexts"
-                    android:textSize="14sp"
+                    android:layout_height="21dp"
+                    android:layout_marginStart="12dp"
+                    android:background="@drawable/bg_content_category_percentage"
+                    android:fontFamily="@font/rajdhani_medium"
+                    app:fontFamily="@font/rajdhani_medium"
+                    android:gravity="center"
+                    android:includeFontPadding="false"
+                    android:minWidth="31dp"
+                    android:paddingStart="8dp"
+                    android:paddingEnd="8dp"
+                    android:text="23%"
+                    android:textColor="?attr/contentCategoryPercentageText"
+                    android:textSize="13sp"
                     android:textStyle="normal" />
 
                 <ImageView
                     android:id="@+id/ivCategoryChevron"
                     android:layout_width="24dp"
                     android:layout_height="24dp"
-                    android:layout_marginStart="4dp"
+                    android:layout_marginStart="16dp"
                     android:contentDescription="@null"
-                    android:src="@drawable/chevron_down"
+                    android:src="@drawable/chevrondown"
                     app:tint="?attr/contentCategoryChevronColor" />
             </LinearLayout>
         </LinearLayout>

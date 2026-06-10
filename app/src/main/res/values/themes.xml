@@ -10,6 +10,8 @@
         <item name="colorSecondary">@color/colorPrimary</item>
         <item name="colorSecondaryVariant">@color/colorPrimary</item>
         <item name="colorOnSecondary">@color/black</item>
+        <item name="android:fontFamily">@font/rajdhani</item>
+        <item name="fontFamily">@font/rajdhani</item>
 
         <!-- Status bar color. -->
         <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimaryVariant</item>
@@ -29,7 +31,7 @@
         <item name="bgwhitegrey">@color/white</item>
         <item name="whiteBlack">@color/background</item>
         <item name="popupbg">@color/white</item>
-        <item name="cardElevationHome">1dp</item>
+        <item name="cardElevationHome">0dp</item>
         <item name="homeTabBackgroundColor">@color/white</item>
         <item name="homeTabTextSelectedColor">?attr/colorInteractivePrimary</item>
         <item name="homeTabIndicatorColor">?attr/colorInteractivePrimary</item>
@@ -44,11 +46,14 @@
         <item name="textPrimary">@color/primary_text_light</item>
         <item name="textSecondary">@color/primary_text_light</item>
         <item name="balanceDividerColor">#D7D7D7</item>
-        <item name="contentTabActiveBg">#00806F</item>
+        <item name="balanceCardBorderColor">#D7D7D7</item>
+        <item name="contentTabActiveBg">#427D75</item>
         <item name="contentTabInactiveText">#334B46</item>
         <item name="filterChipActiveBg">#E6FAF5</item>
         <item name="filterChipActiveText">#016B5D</item>
         <item name="filterChipActiveIcon">#016B5D</item>
+        <item name="filterChipClearIcon">#016B5D</item>
+        <item name="filterChipClearBg">#BEE6DE</item>
         <item name="filterChipInactiveBorder">#CAC4D0</item>
         <item name="filterChipInactiveText">#49454F</item>
         <item name="filterLabelText">#252525</item>
@@ -61,13 +66,38 @@
         <item name="contentCategoryRowBg">#F1F1F1</item>
         <item name="contentCategoryPercentageBg">#D9D9D9</item>
         <item name="contentCategoryPercentageText">#3D3D3D</item>
-        <item name="contentCategoryChevronColor">#252525</item>
+        <item name="contentCategoryChevronColor">#5E5E5E</item>
         <item name="contentCategoryTexts">#252525</item>
-        <item name="membersRowTextColor">#6D6D6D</item>
-        <item name="fabBackground">#00806F</item>
+        <item name="contentCategoryLabelText">#5E5E5E</item>
+        <item name="contentCategoryAmountText">#252525</item>
+        <item name="membersRowTextColor">#5E5E5E</item>
+        <item name="membersDividerColor">#959595</item>
+        <item name="membersEditButtonColor">#427D75</item>
+        <item name="fabBackground">#B9DBD6</item>
+        <item name="expenseFabBorderColor">#26403D</item>
+        <item name="expenseFabShadowColor">#26403D</item>
+        <item name="expenseFabIconColor">#305651</item>
         <item name="expensePrimaryTextColor">#252525</item>
+        <item name="expenseDateTextColor">#5E5E5E</item>
+        <item name="expenseListDividerColor">#D7D7D7</item>
+        <item name="expenseIndividualIconColor">#6D6D6D</item>
         <item name="summaryHeaderBg">#3E3E3E</item>
         <item name="summaryDividerColor">#DEDEDE</item>
+        <item name="trackerCardBorderColor">#9D9D9D</item>
+        <item name="trackerCardShadowColor">#9D9D9D</item>
+        <item name="trackerSummaryLabelColor">#6D6D6D</item>
+        <item name="memberExpenseDialogDividerColor">#D2D2D2</item>
+        <item name="debtClosingCardBg">#427D75</item>
+        <item name="debtClosingCardBorderColor">#26403D</item>
+        <item name="debtClosingCardShadowColor">#26403D</item>
+        <item name="debtClosingTextColor">#FFFFFF</item>
+        <item name="debtClosingButtonBg">#B9DBD6</item>
+        <item name="debtClosingButtonBorderColor">#26403D</item>
+        <item name="debtClosingButtonShadowColor">#26403D</item>
+        <item name="debtClosingButtonTextColor">#252525</item>
+        <item name="expenseBottomSheetBg">@color/app_background_light</item>
+        <item name="expenseSnackbarBg">#1B1D21</item>
+        <item name="expenseSnackbarContentColor">#FFFFFF</item>
         <item name="materialAlertDialogTheme">@style/ThemeOverlay.ExpenseTracker.MaterialAlertDialog</item>
     </style>
 
@@ -79,7 +109,43 @@
         <item name="android:textSize">28sp</item>
         <item name="android:textColor">?attr/primary_text</item>
         <item name="android:textStyle">normal</item>
-        <item name="android:typeface">sans</item>
+        <item name="android:fontFamily">@font/rajdhani</item>
+        <item name="fontFamily">@font/rajdhani</item>
+    </style>
+
+    <style name="HomeToolbarTitle" parent="TextAppearance.MaterialComponents.Headline6">
+        <item name="android:textSize">32sp</item>
+        <item name="android:textColor">?attr/primary_text</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:fontFamily">@font/rajdhani_semibold</item>
+        <item name="fontFamily">@font/rajdhani_semibold</item>
+        <item name="android:letterSpacing" tools:targetApi="lollipop">0.015625</item>
+    </style>
+
+    <style name="ExpenseTrackerTitle" parent="TextAppearance.MaterialComponents.Headline6">
+        <item name="android:textSize">32sp</item>
+        <item name="android:textColor">?attr/primary_text</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:fontFamily">@font/rajdhani_medium</item>
+        <item name="fontFamily">@font/rajdhani_medium</item>
+    </style>
+
+    <style name="HomeCardTitleText" parent="@android:style/TextAppearance.Medium">
+        <item name="android:textSize">26sp</item>
+        <item name="android:textColor">?attr/primary_text</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:fontFamily">@font/rajdhani_semibold</item>
+        <item name="fontFamily">@font/rajdhani_semibold</item>
+        <item name="android:letterSpacing" tools:targetApi="lollipop">0.019</item>
+    </style>
+
+    <style name="HomeCardDateText" parent="@android:style/TextAppearance.Medium">
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">?attr/primary_text</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:fontFamily">@font/rajdhani_medium</item>
+        <item name="fontFamily">@font/rajdhani_medium</item>
+        <item name="android:letterSpacing" tools:targetApi="lollipop">0.018</item>
     </style>
 
     <style name="CardBodyText">
@@ -118,61 +184,76 @@
         <item name="android:textSize">24sp</item>
         <item name="android:textColor">@color/colorSurface</item>
         <item name="android:textStyle">bold</item>
-        <item name="android:typeface">sans</item>
+        <item name="android:fontFamily">@font/rajdhani</item>
+        <item name="fontFamily">@font/rajdhani</item>
+    </style>
+
+    <style name="ExpenseBottomSheetInputHint" parent="TextAppearance.MaterialComponents.Subtitle1">
+        <item name="android:fontFamily">@font/rajdhani_medium</item>
+        <item name="fontFamily">@font/rajdhani_medium</item>
+        <item name="android:textStyle">normal</item>
     </style>
 
     <style name="TotalChart" parent="@android:style/TextAppearance.Medium">
         <item name="android:textSize">24sp</item>
         <item name="android:textColor">@color/colorSurface</item>
         <item name="android:textStyle">bold</item>
-        <item name="android:typeface">sans</item>
+        <item name="android:fontFamily">@font/rajdhani</item>
+        <item name="fontFamily">@font/rajdhani</item>
     </style>
 
     <style name="Subtitle" parent="@android:style/TextAppearance.Medium">
         <item name="android:textSize">14sp</item>
         <item name="android:textColor">@color/colorSurface</item>
         <item name="android:textStyle">normal</item>
-        <item name="android:typeface">sans</item>
+        <item name="android:fontFamily">@font/rajdhani</item>
+        <item name="fontFamily">@font/rajdhani</item>
     </style>
 
     <style name="Normal" parent="@android:style/TextAppearance.Medium">
         <item name="android:textSize">16sp</item>
         <item name="android:textStyle">normal</item>
-        <item name="android:typeface">sans</item>
+        <item name="android:fontFamily">@font/rajdhani</item>
+        <item name="fontFamily">@font/rajdhani</item>
     </style>
 
     <style name="NormalBold" parent="@android:style/TextAppearance.Medium">
         <item name="android:textSize">14sp</item>
         <item name="android:textStyle">bold</item>
-        <item name="android:typeface">sans</item>
+        <item name="android:fontFamily">@font/rajdhani</item>
+        <item name="fontFamily">@font/rajdhani</item>
     </style>
 
     <style name="RowTitle" parent="@android:style/TextAppearance.Medium">
         <item name="android:textSize">16sp</item>
 
         <item name="android:textStyle">bold</item>
-        <item name="android:typeface">sans</item>
+        <item name="android:fontFamily">@font/rajdhani</item>
+        <item name="fontFamily">@font/rajdhani</item>
     </style>
 
     <style name="RowTitleDarkGrey" parent="@android:style/TextAppearance.Medium">
         <item name="android:textSize">16sp</item>
 
         <item name="android:textStyle">bold</item>
-        <item name="android:typeface">sans</item>
+        <item name="android:fontFamily">@font/rajdhani</item>
+        <item name="fontFamily">@font/rajdhani</item>
     </style>
 
     <style name="Row_Rest" parent="@android:style/TextAppearance.Medium">
         <item name="android:textSize">16sp</item>
 
         <item name="android:textStyle">normal</item>
-        <item name="android:typeface">sans</item>
+        <item name="android:fontFamily">@font/rajdhani</item>
+        <item name="fontFamily">@font/rajdhani</item>
     </style>
 
     <style name="ExpenseNames" parent="@android:style/TextAppearance.Medium">
         <item name="android:textSize">12sp</item>
 
         <item name="android:textStyle">normal</item>
-        <item name="android:typeface">sans</item>
+        <item name="android:fontFamily">@font/rajdhani</item>
+        <item name="fontFamily">@font/rajdhani</item>
         <item name="textAllCaps">true</item>
         <item name="android:letterSpacing" tools:targetApi="lollipop">0.25</item>
     </style>
@@ -182,5 +263,13 @@
         <item name="android:textAllCaps">false</item>
     </style>
 
-
+    <style name="HomeTabTextAppearance" parent="TextAppearance.Design.Tab">
+        <item name="textAllCaps">false</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:fontFamily">@font/rajdhani_semibold</item>
+        <item name="fontFamily">@font/rajdhani_semibold</item>
+        <item name="android:letterSpacing" tools:targetApi="lollipop">0.015625</item>
+    </style>
 </resources>

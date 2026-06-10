@@ -16,6 +16,7 @@
         android:fillViewport="true">
 
         <LinearLayout
+            android:id="@+id/trackerCardsContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
@@ -69,7 +70,7 @@
 
                     <TextView
                         android:id="@+id/txtTrackerName"
-                        style="@style/ActivityTitle"
+                        style="@style/ExpenseTrackerTitle"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Tracker" />
@@ -116,20 +117,28 @@
         android:layout_margin="16dp"
         android:layout_gravity="bottom|end"
         android:clickable="true"
+        android:elevation="0dp"
         android:focusable="true"
-        android:foreground="?attr/selectableItemBackgroundBorderless"
-        app:cardBackgroundColor="?attr/fabBackground"
-        app:cardCornerRadius="16dp"
-        app:cardElevation="6dp"
+        android:foreground="@drawable/ripple_tracker_card"
+        app:cardBackgroundColor="@android:color/transparent"
+        app:cardCornerRadius="20dp"
+        app:cardElevation="0dp"
+        app:strokeWidth="0dp"
         app:rippleColor="?attr/fabBackground">
 
-        <androidx.appcompat.widget.AppCompatImageView
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:layout_gravity="center"
-            android:contentDescription="Agregar gasto"
-            android:src="@drawable/ic_add"
-            app:tint="@android:color/white" />
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/bg_expense_fab_shadow">
+
+            <androidx.appcompat.widget.AppCompatImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_gravity="center"
+                android:contentDescription="Agregar gasto"
+                android:src="@drawable/ic_add"
+                app:tint="?attr/expenseFabIconColor" />
+        </FrameLayout>
 
     </com.google.android.material.card.MaterialCardView>
 

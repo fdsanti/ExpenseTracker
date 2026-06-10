@@ -15,6 +15,8 @@ import java.util.ArrayList;
 
 import com.example.expensetracker.calculator.CategorySummaryCalculator;
 import com.example.expensetracker.calculator.CategorySummaryItem;
+import com.example.expensetracker.calculator.BalanceDetail;
+import com.example.expensetracker.calculator.BalanceDetailCalculator;
 import com.example.expensetracker.calculator.DebtCalculator;
 import com.example.expensetracker.calculator.DebtSummary;
 import com.example.expensetracker.calculator.ExpenseFilterSorter;
@@ -36,6 +38,7 @@ public class ExpenseScreenController {
     private boolean hasLoadError;
     private String errorMessage;
     private ContentTab selectedTab;
+    private ExpenseScreenState lastEmittedState;
     private final List<String> expandedCategoryIds = new ArrayList<>();
 
 
@@ -62,6 +65,7 @@ public class ExpenseScreenController {
 
 
     private void emitState(ExpenseScreenState state) {
+        lastEmittedState = state;
         if (listener != null) {
             listener.onStateChanged(state);
         }
@@ -141,13 +145,18 @@ public class ExpenseScreenController {
         DebtSummary debtSummary =
                 DebtCalculator.calculate(safeExpenses, safeMembers);
 
+        BalanceDetail balanceDetail =
+                BalanceDetailCalculator.calculate(safeExpenses, safeMembers);
+
         String selectedMemberFilter =
                 expenseListQuery != null ? expenseListQuery.getMemberIdFilter() : null;
+        ExpenseListQuery.TypeFilter selectedTypeFilter =
+                expenseListQuery != null ? expenseListQuery.getTypeFilter() : null;
 
         List<Expense> filteredExpensesForCategories =
                 ExpenseFilterSorter.apply(
                         safeExpenses,
-                        new ExpenseListQuery(selectedMemberFilter, null)
+                        new ExpenseListQuery(selectedMemberFilter, selectedTypeFilter, null)
                 );
 
         List<Expense> visibleExpenses =
@@ -167,10 +176,12 @@ public class ExpenseScreenController {
                 safeCategories,
                 expenseSummary,
                 debtSummary,
+                balanceDetail,
                 categorySummary,
                 visibleExpenses,
                 selectedTab,
                 expenseListQuery != null ? expenseListQuery.getMemberIdFilter() : null,
+                expenseListQuery != null ? expenseListQuery.getTypeFilter() : null,
                 expenseListQuery != null ? expenseListQuery.getSortType() : null,
                 new ArrayList<>(expandedCategoryIds),
                 loading,
@@ -204,22 +215,59 @@ public class ExpenseScreenController {
 
     public void setSelectedTab(ContentTab selectedTab) {
         this.selectedTab = selectedTab;
+
+        if (lastEmittedState != null) {
+            emitState(new ExpenseScreenState(
+                    lastEmittedState.tracker,
+                    lastEmittedState.members,
+                    lastEmittedState.expenses,
+                    lastEmittedState.categories,
+                    lastEmittedState.expenseSummary,
+                    lastEmittedState.debtSummary,
+                    lastEmittedState.balanceDetail,
+                    lastEmittedState.categorySummary,
+                    lastEmittedState.visibleExpenses,
+                    selectedTab,
+                    lastEmittedState.selectedMemberFilter,
+                    lastEmittedState.selectedTypeFilter,
+                    lastEmittedState.selectedSortType,
+                    new ArrayList<>(expandedCategoryIds),
+                    lastEmittedState.loading,
+                    lastEmittedState.errorMessage
+            ));
+            return;
+        }
+
         emitCurrentState();
     }
 
     public void setMemberFilter(String memberId) {
         ExpenseListQuery.SortType currentSortType =
                 expenseListQuery != null ? expenseListQuery.getSortType() : ExpenseListQuery.SortType.DATE_DESC;
+        ExpenseListQuery.TypeFilter currentTypeFilter =
+                expenseListQuery != null ? expenseListQuery.getTypeFilter() : null;
 
-        expenseListQuery = new ExpenseListQuery(memberId, currentSortType);
+        expenseListQuery = new ExpenseListQuery(memberId, currentTypeFilter, currentSortType);
+        emitCurrentState();
+    }
+
+    public void setTypeFilter(ExpenseListQuery.TypeFilter typeFilter) {
+        String currentMemberFilter =
+                expenseListQuery != null ? expenseListQuery.getMemberIdFilter() : null;
+        ExpenseListQuery.SortType currentSortType =
+                expenseListQuery != null ? expenseListQuery.getSortType() : ExpenseListQuery.SortType.DATE_DESC;
+
+        expenseListQuery = new ExpenseListQuery(currentMemberFilter, typeFilter, currentSortType);
         emitCurrentState();
     }
 
     public void setSortType(ExpenseListQuery.SortType sortType) {
         String currentMemberFilter =
                 expenseListQuery != null ? expenseListQuery.getMemberIdFilter() : null;
+        ExpenseListQuery.TypeFilter currentTypeFilter =
+                expenseListQuery != null ? expenseListQuery.getTypeFilter() : null;
 
-        expenseListQuery = new ExpenseListQuery(currentMemberFilter, sortType);
+        expenseListQuery = new ExpenseListQuery(currentMemberFilter, currentTypeFilter, sortType);
         emitCurrentState();
     }
 
@@ -254,8 +302,36 @@ public class ExpenseScreenController {
             String categoryId,
             long date
     ) {
+        updateExpense(expenseId, description, amount, participantId, categoryId, date, false);
+    }
+
+    public void updateExpense(
+            String expenseId,
+            String description,
+            double amount,
+            String participantId,
+            String categoryId,
+            long date,
+            boolean individual
+    ) {
+        updateExpense(expenseId, description, amount, participantId, categoryId, date, individual, null);
+    }
+
+    public void updateExpense(
+            String expenseId,
+            String description,
+            double amount,
+            String participantId,
+            String categoryId,
+            long date,
+            boolean individual,
+            RepositoryCallback<Void> callback
+    ) {
 
         if (trackerId == null) {
+            if (callback != null) {
+                callback.onError(new IllegalStateException("Tracker id is missing"));
+            }
             return;
         }
 
@@ -266,10 +342,25 @@ public class ExpenseScreenController {
                 amount,
                 participantId,
                 categoryId,
-                date
-        );
+                date,
+                individual,
+                new RepositoryCallback<Void>() {
+                    @Override
+                    public void onSuccess(Void result) {
+                        refresh();
+                        if (callback != null) {
+                            callback.onSuccess(null);
+                        }
+                    }
 
-        refresh();
+                    @Override
+                    public void onError(Exception exception) {
+                        if (callback != null) {
+                            callback.onError(exception);
+                        }
+                    }
+                }
+        );
     }
 
     public void createExpense(
@@ -279,7 +370,33 @@ public class ExpenseScreenController {
             String categoryId,
             long date
     ) {
+        createExpense(description, amount, participantId, categoryId, date, false);
+    }
+
+    public void createExpense(
+            String description,
+            double amount,
+            String participantId,
+            String categoryId,
+            long date,
+            boolean individual
+    ) {
+        createExpense(description, amount, participantId, categoryId, date, individual, null);
+    }
+
+    public void createExpense(
+            String description,
+            double amount,
+            String participantId,
+            String categoryId,
+            long date,
+            boolean individual,
+            RepositoryCallback<Void> callback
+    ) {
         if (trackerId == null || trackerId.isEmpty()) {
+            if (callback != null) {
+                callback.onError(new IllegalStateException("Tracker id is missing"));
+            }
             return;
         }
 
@@ -289,10 +406,25 @@ public class ExpenseScreenController {
                 amount,
                 participantId,
                 categoryId,
-                date
-        );
+                date,
+                individual,
+                new RepositoryCallback<Void>() {
+                    @Override
+                    public void onSuccess(Void result) {
+                        refresh();
+                        if (callback != null) {
+                            callback.onSuccess(null);
+                        }
+                    }
 
-        refresh();
+                    @Override
+                    public void onError(Exception exception) {
+                        if (callback != null) {
+                            callback.onError(exception);
+                        }
+                    }
+                }
+        );
     }
 
     public void deleteExpense(String expenseId) {

@@ -36,6 +36,10 @@ public class BalanceDetailCalculator {
 
         if (expenses != null) {
             for (Expense expense : expenses) {
+                if (expense.isIndividual()) {
+                    continue;
+                }
+
                 double amount = expense.getAmount();
                 totalExpenses += amount;
 
