@@ -9,6 +9,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.view.animation.DecelerateInterpolator;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -32,8 +33,10 @@ public class SummaryCardView extends LinearLayout {
     private TextView txtMember1Amount;
     private TextView txtMember2Meta;
     private TextView txtMember2Amount;
+    private View totalSummaryCard;
     private View memberCard1;
     private View memberCard2;
+    private ExpenseSummary expenseSummary;
     private MemberExpenseSummary memberSummary1;
     private MemberExpenseSummary memberSummary2;
 
@@ -62,9 +65,11 @@ public class SummaryCardView extends LinearLayout {
         txtMember1Amount = findViewById(R.id.txtMember1Amount);
         txtMember2Meta = findViewById(R.id.txtMember2Meta);
         txtMember2Amount = findViewById(R.id.txtMember2Amount);
+        totalSummaryCard = findViewById(R.id.totalSummaryCard);
         memberCard1 = findViewById(R.id.memberCard1);
         memberCard2 = findViewById(R.id.memberCard2);
 
+        totalSummaryCard.setOnClickListener(v -> showTotalSummaryDialog());
         memberCard1.setOnClickListener(v -> showMemberSummaryDialog(memberSummary1));
         memberCard2.setOnClickListener(v -> showMemberSummaryDialog(memberSummary2));
     }
@@ -82,6 +87,7 @@ public class SummaryCardView extends LinearLayout {
         }
 
         if (expenseSummary == null) {
+            this.expenseSummary = null;
             memberSummary1 = null;
             memberSummary2 = null;
             txtTotalAmount.setText("-");
@@ -93,6 +99,7 @@ public class SummaryCardView extends LinearLayout {
             return;
         }
 
+        this.expenseSummary = expenseSummary;
         double total = expenseSummary.getTotalAmount();
         txtTotalAmount.setText(formatCurrency(total));
         txtTotalTrend.setText("3%");
@@ -138,14 +145,56 @@ public class SummaryCardView extends LinearLayout {
         }
     }
 
+    private void showTotalSummaryDialog() {
+        if (expenseSummary == null) {
+            return;
+        }
+
+        double groupAmount = 0d;
+        double individualAmount = 0d;
+
+        if (expenseSummary.getMemberSummaries() != null) {
+            for (MemberExpenseSummary memberSummary : expenseSummary.getMemberSummaries()) {
+                if (memberSummary == null) {
+                    continue;
+                }
+
+                groupAmount += memberSummary.getGroupAmount();
+                individualAmount += memberSummary.getIndividualAmount();
+            }
+        }
+
+        showExpenseSummaryDialog(
+                "Gastos totales",
+                expenseSummary.getTotalAmount(),
+                groupAmount,
+                individualAmount
+        );
+    }
+
     private void showMemberSummaryDialog(@Nullable MemberExpenseSummary memberSummary) {
         if (memberSummary == null) {
             return;
         }
 
-        Dialog dialog = new Dialog(getContext());
+        showExpenseSummaryDialog(
+                memberSummary.getMemberName(),
+                memberSummary.getAmount(),
+                memberSummary.getGroupAmount(),
+                memberSummary.getIndividualAmount()
+        );
+    }
+
+    private void showExpenseSummaryDialog(
+            String title,
+            double totalAmount,
+            double groupAmount,
+            double individualAmount
+    ) {
+        Dialog dialog = new Dialog(getContext(), R.style.ExpenseTrackerDialogNoWindowAnimation);
         View dialogView = LayoutInflater.from(getContext())
                 .inflate(R.layout.dialog_member_expense_summary, null);
+        prepareDialogEnterAnimation(dialogView);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialog.setContentView(dialogView);
 
@@ -157,11 +206,7 @@ public class SummaryCardView extends LinearLayout {
         TextView txtIndividualPercentage = dialogView.findViewById(R.id.txtIndividualPercentage);
         ImageButton closeButton = dialogView.findViewById(R.id.btnMemberDialogClose);
 
-        double totalAmount = memberSummary.getAmount();
-        double groupAmount = memberSummary.getGroupAmount();
-        double individualAmount = memberSummary.getIndividualAmount();
-
-        txtName.setText(memberSummary.getMemberName());
+        txtName.setText(title);
         txtTotal.setText("Gastos: " + formatCurrency(totalAmount));
         txtGroupAmount.setText(formatCurrency(groupAmount));
         txtGroupPercentage.setText(formatPercentage(groupAmount, totalAmount));
@@ -185,8 +230,29 @@ public class SummaryCardView extends LinearLayout {
                         WindowManager.LayoutParams.WRAP_CONTENT
                 );
             }
+
+            dialogView.post(() -> playDialogEnterAnimation(dialogView));
         });
         dialog.show();
+    }
+
+    private void prepareDialogEnterAnimation(View dialogView) {
+        dialogView.setAlpha(0f);
+        dialogView.setScaleX(0.96f);
+        dialogView.setScaleY(0.96f);
+        dialogView.setTranslationY(dpToPx(12));
+    }
+
+    private void playDialogEnterAnimation(View dialogView) {
+        dialogView.animate().cancel();
+        dialogView.animate()
+                .alpha(1f)
+                .scaleX(1f)
+                .scaleY(1f)
+                .translationY(0f)
+                .setDuration(180L)
+                .setInterpolator(new DecelerateInterpolator())
+                .start();
     }
 
     private String formatCurrency(double amount) {

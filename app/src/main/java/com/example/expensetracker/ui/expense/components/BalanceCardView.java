@@ -11,6 +11,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.view.animation.DecelerateInterpolator;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -129,9 +130,10 @@ public class BalanceCardView extends LinearLayout {
             return;
         }
 
-        Dialog dialog = new Dialog(getContext());
+        Dialog dialog = new Dialog(getContext(), R.style.ExpenseTrackerDialogNoWindowAnimation);
         View dialogView = LayoutInflater.from(getContext())
                 .inflate(R.layout.dialog_balance_detail, null);
+        prepareDialogEnterAnimation(dialogView);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialog.setContentView(dialogView);
 
@@ -201,8 +203,29 @@ public class BalanceCardView extends LinearLayout {
                         WindowManager.LayoutParams.WRAP_CONTENT
                 );
             }
+
+            dialogView.post(() -> playDialogEnterAnimation(dialogView));
         });
         dialog.show();
+    }
+
+    private void prepareDialogEnterAnimation(View dialogView) {
+        dialogView.setAlpha(0f);
+        dialogView.setScaleX(0.96f);
+        dialogView.setScaleY(0.96f);
+        dialogView.setTranslationY(dpToPx(12));
+    }
+
+    private void playDialogEnterAnimation(View dialogView) {
+        dialogView.animate().cancel();
+        dialogView.animate()
+                .alpha(1f)
+                .scaleX(1f)
+                .scaleY(1f)
+                .translationY(0f)
+                .setDuration(180L)
+                .setInterpolator(new DecelerateInterpolator())
+                .start();
     }
 
     private void bindDetailRow(View row, String label, String value) {
