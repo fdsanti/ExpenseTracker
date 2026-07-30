@@ -30,6 +30,7 @@ import com.google.android.material.progressindicator.LinearProgressIndicator;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
+import com.example.expensetracker.ui.common.AppDialog;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
@@ -167,38 +168,18 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
         int id = item.getItemId();
 
         if (id == R.id.btnRefresh) {
-            MaterialAlertDialogBuilder dialog = new MaterialAlertDialogBuilder(this);
-            dialog.setCancelable(false);
-            dialog.setTitle("Agregar reporte");
-            dialog.setMessage("Por favor escriba un nombre para el reporte");
-
-            LayoutInflater inflater = this.getLayoutInflater();
-            View dialogView = inflater.inflate(R.layout.input1, null);
-            dialog.setView(dialogView);
-            dialog.setNegativeButton("Cancelar", null);
-            dialog.setPositiveButton("Crear", null);
-
-            AlertDialog alertDialog = dialog.create();
-            alertDialog.show();
-
-            alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
-                TextInputEditText editText = dialogView.findViewById(R.id.edit_text);
-                TextInputLayout inputField = dialogView.findViewById(R.id.filledTextField);
-
-                String input = editText.getText() != null ? editText.getText().toString().trim() : "";
-                if (HCardDB.containsDescription(input)) {
-                    inputField.setErrorEnabled(true);
-                    inputField.setError("El nombre ya existe. Elija otro.");
-                    inputField.setErrorIconDrawable(R.drawable.ic_info);
-                } else if (input.isEmpty()) {
-                    inputField.setErrorEnabled(true);
-                    inputField.setError("Es necesario elegir un nombre.");
-                    inputField.setErrorIconDrawable(R.drawable.ic_info);
-                } else {
-                    alertDialog.dismiss();
-                    createTrackerV2(input);
-                }
-            });
+            AppDialog.showTextInput(
+                    this,
+                    "Agregar reporte",
+                    "",
+                    "Nombre tracker",
+                    "Crear",
+                    "Es necesario elegir un nombre.",
+                    value -> HCardDB.containsDescription(value)
+                            ? "El nombre ya existe. Elija otro."
+                            : null,
+                    this::createTrackerV2
+            );
 
             return true;
 

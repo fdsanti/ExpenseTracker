@@ -21,7 +21,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
-import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.example.expensetracker.ui.common.AppDialog;
 import com.google.android.material.progressindicator.LinearProgressIndicator;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
@@ -97,42 +97,39 @@ public class MainPastFragment extends Fragment implements CallBackItemTouch, Swi
     public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
         int position = viewHolder.getAdapterPosition();
 
-        MaterialAlertDialogBuilder dialog = getMaterialAlertDialogBuilder(position);
-        dialog.setPositiveButton("Eliminar", (dialogInterface, which) -> {
-            String trackerId = hCards.get(position).getTableID();
-
-            DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference();
-            HashMap<String, Object> updates = new HashMap<>();
-            updates.put("home_index/" + trackerId, null);
-            updates.put("trackers_v2/" + trackerId, null);
-
-            rootRef.updateChildren(updates)
-                    .addOnSuccessListener(unused -> {
-                        HCardDB.removeReportFromArrayList(trackerId);
-                        SettingsDB.removeReportFromArrayList(trackerId);
-                        hCards.remove(position);
-                        adapter.notifyItemRemoved(position);
-                        adapter.notifyItemRangeChanged(position, hCards.size());
-                        Toast.makeText(context, "El reporte se ha eliminado", Toast.LENGTH_SHORT).show();
-                    })
-                    .addOnFailureListener(e -> {
-                        adapter.notifyDataSetChanged();
-                        Toast.makeText(context, "No se pudo eliminar el reporte", Toast.LENGTH_SHORT).show();
-                        Log.e("firebase", "Error deleting tracker", e);
-                    });
-        });
-
-        dialog.show();
+        AppDialog.showConfirmation(
+                context,
+                "Eliminar reporte",
+                "Est\u00e1s seguro que quer\u00e9s eliminar el reporte " + hCards.get(position).getName() + "?",
+                "Eliminar",
+                AppDialog.ActionStyle.DESTRUCTIVE,
+                () -> deleteTrackerAt(position),
+                () -> adapter.notifyDataSetChanged()
+        );
     }
 
-    @NonNull
-    private MaterialAlertDialogBuilder getMaterialAlertDialogBuilder(int position) {
-        MaterialAlertDialogBuilder dialog = new MaterialAlertDialogBuilder(context);
-        dialog.setTitle("¿Eliminar reporte?");
-        dialog.setMessage("¿Estás seguro que querés eliminar el reporte " + hCards.get(position).getName() + "?");
-        dialog.setIcon(R.drawable.ic_delete);
-        dialog.setNegativeButton("Cancelar", (dialog1, which) -> adapter.notifyDataSetChanged());
-        return dialog;
+    private void deleteTrackerAt(int position) {
+        String trackerId = hCards.get(position).getTableID();
+
+        DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference();
+        HashMap<String, Object> updates = new HashMap<>();
+        updates.put("home_index/" + trackerId, null);
+        updates.put("trackers_v2/" + trackerId, null);
+
+        rootRef.updateChildren(updates)
+                .addOnSuccessListener(unused -> {
+                    HCardDB.removeReportFromArrayList(trackerId);
+                    SettingsDB.removeReportFromArrayList(trackerId);
+                    hCards.remove(position);
+                    adapter.notifyItemRemoved(position);
+                    adapter.notifyItemRangeChanged(position, hCards.size());
+                    Toast.makeText(context, "El reporte se ha eliminado", Toast.LENGTH_SHORT).show();
+                })
+                .addOnFailureListener(e -> {
+                    adapter.notifyDataSetChanged();
+                    Toast.makeText(context, "No se pudo eliminar el reporte", Toast.LENGTH_SHORT).show();
+                    Log.e("firebase", "Error deleting tracker", e);
+                });
     }
 
     private void loadVariables(View view) {

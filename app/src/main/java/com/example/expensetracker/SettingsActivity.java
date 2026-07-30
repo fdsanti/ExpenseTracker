@@ -21,6 +21,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import java.util.HashMap;
 import java.util.Map;
+import com.example.expensetracker.data.DefaultCategories;
 import com.example.expensetracker.data.TrackerRepository;
 import com.example.expensetracker.model.Member;
 import java.util.List;
@@ -164,7 +165,7 @@ public class SettingsActivity extends AppCompatActivity {
                         }
 
                         if (!catTask.getResult().exists()) {
-                            categoriesRef.setValue(buildDefaultCategoriesMap()).addOnCompleteListener(saveCategoriesTask -> {
+                            categoriesRef.setValue(DefaultCategories.asFirebaseMap()).addOnCompleteListener(saveCategoriesTask -> {
                                 if (!saveCategoriesTask.isSuccessful()) {
                                     Log.e("SettingsActivity", "Error saving categories", saveCategoriesTask.getException());
                                     Toast.makeText(SettingsActivity.this, "Error al guardar las categorías", Toast.LENGTH_SHORT).show();
@@ -220,37 +221,6 @@ public class SettingsActivity extends AppCompatActivity {
         txtEditSueldo1 = findViewById(R.id.txtEditSueldo1);
         txtEditNombre2 = findViewById(R.id.txtEditNombre2);
         txtEditSueldo2 = findViewById(R.id.txtEditSueldo2);
-    }
-
-    private Map<String, Object> buildDefaultCategoriesMap() {
-        Map<String, Object> categoriesMap = new HashMap<>();
-
-        String[] names = {
-                "Salidas",
-                "Delivery",
-                "Super",
-                "Gatitas",
-                "Servicios",
-                "Nafta / Peajes",
-                "Olga",
-                "Auto",
-                "Pago Casa",
-                "Suscripciones",
-                "Compras",
-                "Otros"
-        };
-
-        for (int i = 0; i < names.length; i++) {
-            Map<String, Object> category = new HashMap<>();
-            category.put("name", names[i]);
-            category.put("order", i + 1);
-            category.put("active", true);
-            category.put("system", false);
-
-            categoriesMap.put("c" + (i + 1), category);
-        }
-
-        return categoriesMap;
     }
 
     private void loadInitialData() {

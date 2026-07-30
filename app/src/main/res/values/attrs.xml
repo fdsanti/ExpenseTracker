@@ -79,4 +79,24 @@
     <attr name="expenseBottomSheetBg" format="color" />
     <attr name="expenseSnackbarBg" format="color" />
     <attr name="expenseSnackbarContentColor" format="color" />
+    <attr name="categoryEditorTitleText" format="color" />
+    <attr name="categoryEditorActionText" format="color" />
+    <attr name="categoryEditorSheetBg" format="color" />
+    <attr name="categoryEditorPanelBg" format="color" />
+    <attr name="categoryEditorItemBg" format="color" />
+    <attr name="categoryEditorRowText" format="color" />
+    <attr name="categoryEditorRemoveIcon" format="color" />
+    <attr name="categoryEditorEditIcon" format="color" />
+    <attr name="categoryEditorDragIcon" format="color" />
+    <attr name="categoryDialogBg" format="color" />
+    <attr name="categoryDialogText" format="color" />
+    <attr name="categoryDialogFieldBg" format="color" />
+    <attr name="categoryDialogFieldText" format="color" />
+    <attr name="categoryDialogSecondaryBg" format="color" />
+    <attr name="categoryDialogSecondaryBorderColor" format="color" />
+    <attr name="categoryDialogSecondaryShadowColor" format="color" />
+    <attr name="categoryDialogDestructiveBg" format="color" />
+    <attr name="categoryDialogDestructiveBorderColor" format="color" />
+    <attr name="categoryDialogDestructiveShadowColor" format="color" />
+    <attr name="categoryDialogDestructiveText" format="color" />
 </resources>

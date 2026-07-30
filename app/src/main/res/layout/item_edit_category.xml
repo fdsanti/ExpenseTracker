@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_edit_category_item"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingStart="20dp"
+    android:paddingTop="16dp"
+    android:paddingEnd="20dp"
+    android:paddingBottom="16dp">
+
+    <ImageButton
+        android:id="@+id/btnDeleteCategory"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="Eliminar categor&#237;a"
+        android:padding="0dp"
+        android:scaleType="fitCenter"
+        android:src="@drawable/remove"
+        app:tint="?attr/categoryEditorRemoveIcon" />
+
+    <LinearLayout
+        android:id="@+id/categoryNameEditGroup"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
+        android:layout_weight="1"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/txtCategoryName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:fontFamily="@font/rajdhani_medium"
+            android:includeFontPadding="false"
+            android:maxLines="1"
+            android:textColor="?attr/categoryEditorRowText"
+            android:textSize="18sp"
+            app:fontFamily="@font/rajdhani_medium" />
+
+        <ImageButton
+            android:id="@+id/btnEditCategory"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_marginStart="14dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Editar categor&#237;a"
+            android:padding="0dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_edit_simple"
+            app:tint="?attr/categoryEditorEditIcon" />
+    </LinearLayout>
+
+    <ImageButton
+        android:id="@+id/btnDragCategory"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_marginStart="28dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="Reordenar categor&#237;a"
+        android:padding="0dp"
+        android:scaleType="fitCenter"
+        android:src="@drawable/reorder"
+        app:tint="?attr/categoryEditorDragIcon" />
+</LinearLayout>

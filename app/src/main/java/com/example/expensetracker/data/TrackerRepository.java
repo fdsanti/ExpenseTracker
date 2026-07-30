@@ -9,6 +9,8 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.ValueEventListener;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -224,6 +226,20 @@ public class TrackerRepository {
                         result.add(new Category(id, name, active, order));
                     }
 
+                    Collections.sort(result, new Comparator<Category>() {
+                        @Override
+                        public int compare(Category category1, Category category2) {
+                            int orderCompare = Integer.compare(category1.getOrder(), category2.getOrder());
+                            if (orderCompare != 0) {
+                                return orderCompare;
+                            }
+
+                            String name1 = category1.getName() != null ? category1.getName() : "";
+                            String name2 = category2.getName() != null ? category2.getName() : "";
+                            return name1.compareToIgnoreCase(name2);
+                        }
+                    });
+
                     callback.onSuccess(result);
 
                 } catch (Exception e) {
@@ -240,6 +256,126 @@ public class TrackerRepository {
 
     public DatabaseReference getCategoriesRef(String trackerId) {
         return getTrackerRef(trackerId).child("categories");
+    }
+
+    public void createCategory(String trackerId, String name, int order, RepositoryCallback<Category> callback) {
+        String categoryId = getCategoriesRef(trackerId).push().getKey();
+
+        if (categoryId == null) {
+            if (callback != null) {
+                callback.onError(new IllegalStateException("Could not create category id"));
+            }
+            return;
+        }
+
+        Map<String, Object> categoryValues = new HashMap<>();
+        categoryValues.put("name", name);
+        categoryValues.put("order", order);
+        categoryValues.put("active", true);
+        categoryValues.put("system", false);
+
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("trackers_v2/" + trackerId + "/categories/" + categoryId, categoryValues);
+        updates.put("trackers_v2/" + trackerId + "/summary/categoryCount", order);
+
+        database.updateChildren(updates)
+                .addOnSuccessListener(unused -> {
+                    if (callback != null) {
+                        callback.onSuccess(new Category(categoryId, name, true, order));
+                    }
+                })
+                .addOnFailureListener(exception -> {
+                    if (callback != null) {
+                        callback.onError(exception);
+                    }
+                });
+    }
+
+    public void updateCategoryName(String trackerId, String categoryId, String name, RepositoryCallback<Void> callback) {
+        getCategoriesRef(trackerId)
+                .child(categoryId)
+                .child("name")
+                .setValue(name)
+                .addOnSuccessListener(unused -> {
+                    if (callback != null) {
+                        callback.onSuccess(null);
+                    }
+                })
+                .addOnFailureListener(exception -> {
+                    if (callback != null) {
+                        callback.onError(exception);
+                    }
+                });
+    }
+
+    public void reorderCategories(String trackerId, List<Category> categories, RepositoryCallback<Void> callback) {
+        Map<String, Object> updates = new HashMap<>();
+
+        for (int i = 0; i < categories.size(); i++) {
+            Category category = categories.get(i);
+            updates.put("trackers_v2/" + trackerId + "/categories/" + category.getId() + "/order", i + 1);
+        }
+
+        database.updateChildren(updates)
+                .addOnSuccessListener(unused -> {
+                    if (callback != null) {
+                        callback.onSuccess(null);
+                    }
+                })
+                .addOnFailureListener(exception -> {
+                    if (callback != null) {
+                        callback.onError(exception);
+                    }
+                });
+    }
+
+    public void deleteCategory(String trackerId, String categoryId, int remainingCategoryCount, RepositoryCallback<Void> callback) {
+        if (DefaultCategories.OTHERS_ID.equals(categoryId)) {
+            if (callback != null) {
+                callback.onError(new IllegalArgumentException("Otros cannot be deleted"));
+            }
+            return;
+        }
+
+        getExpensesRef(trackerId).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                Map<String, Object> updates = new HashMap<>();
+                updates.put("trackers_v2/" + trackerId + "/categories/" + categoryId, null);
+                updates.put("trackers_v2/" + trackerId + "/summary/categoryCount", remainingCategoryCount);
+
+                for (DataSnapshot expenseSnapshot : snapshot.getChildren()) {
+                    String expenseCategoryId = expenseSnapshot.child("categoryId").getValue(String.class);
+                    String expenseId = expenseSnapshot.getKey();
+
+                    if (expenseId != null && categoryId.equals(expenseCategoryId)) {
+                        updates.put(
+                                "trackers_v2/" + trackerId + "/expenses/" + expenseId + "/categoryId",
+                                DefaultCategories.OTHERS_ID
+                        );
+                    }
+                }
+
+                database.updateChildren(updates)
+                        .addOnSuccessListener(unused -> {
+                            if (callback != null) {
+                                callback.onSuccess(null);
+                            }
+                        })
+                        .addOnFailureListener(exception -> {
+                            if (callback != null) {
+                                callback.onError(exception);
+                            }
+                        });
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                if (callback != null) {
+                    callback.onError(error.toException());
+                }
+            }
+        });
     }
 
     public void updateExpense(

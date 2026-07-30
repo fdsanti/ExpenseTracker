@@ -453,4 +453,109 @@ public class ExpenseScreenController {
         trackerRepository.updateTrackerClosed(trackerId, closed);
         refresh();
     }
+
+    public void createCategory(String name, RepositoryCallback<Category> callback) {
+        if (trackerId == null || trackerId.isEmpty()) {
+            if (callback != null) {
+                callback.onError(new IllegalStateException("Tracker id is missing"));
+            }
+            return;
+        }
+
+        int nextOrder = categories != null ? categories.size() + 1 : 1;
+        trackerRepository.createCategory(trackerId, name, nextOrder, new RepositoryCallback<Category>() {
+            @Override
+            public void onSuccess(Category result) {
+                refresh();
+                if (callback != null) {
+                    callback.onSuccess(result);
+                }
+            }
+
+            @Override
+            public void onError(Exception exception) {
+                if (callback != null) {
+                    callback.onError(exception);
+                }
+            }
+        });
+    }
+
+    public void updateCategoryName(String categoryId, String name, RepositoryCallback<Void> callback) {
+        if (trackerId == null || trackerId.isEmpty() || categoryId == null || categoryId.isEmpty()) {
+            if (callback != null) {
+                callback.onError(new IllegalStateException("Category id is missing"));
+            }
+            return;
+        }
+
+        trackerRepository.updateCategoryName(trackerId, categoryId, name, new RepositoryCallback<Void>() {
+            @Override
+            public void onSuccess(Void result) {
+                refresh();
+                if (callback != null) {
+                    callback.onSuccess(null);
+                }
+            }
+
+            @Override
+            public void onError(Exception exception) {
+                if (callback != null) {
+                    callback.onError(exception);
+                }
+            }
+        });
+    }
+
+    public void reorderCategories(List<Category> orderedCategories, RepositoryCallback<Void> callback) {
+        if (trackerId == null || trackerId.isEmpty() || orderedCategories == null) {
+            if (callback != null) {
+                callback.onError(new IllegalStateException("Category order is missing"));
+            }
+            return;
+        }
+
+        trackerRepository.reorderCategories(trackerId, orderedCategories, new RepositoryCallback<Void>() {
+            @Override
+            public void onSuccess(Void result) {
+                refresh();
+                if (callback != null) {
+                    callback.onSuccess(null);
+                }
+            }
+
+            @Override
+            public void onError(Exception exception) {
+                if (callback != null) {
+                    callback.onError(exception);
+                }
+            }
+        });
+    }
+
+    public void deleteCategory(String categoryId, int remainingCategoryCount, RepositoryCallback<Void> callback) {
+        if (trackerId == null || trackerId.isEmpty() || categoryId == null || categoryId.isEmpty()) {
+            if (callback != null) {
+                callback.onError(new IllegalStateException("Category id is missing"));
+            }
+            return;
+        }
+
+        trackerRepository.deleteCategory(trackerId, categoryId, remainingCategoryCount, new RepositoryCallback<Void>() {
+            @Override
+            public void onSuccess(Void result) {
+                refresh();
+                if (callback != null) {
+                    callback.onSuccess(null);
+                }
+            }
+
+            @Override
+            public void onError(Exception exception) {
+                if (callback != null) {
+                    callback.onError(exception);
+                }
+            }
+        });
+    }
 }

@@ -13,9 +13,11 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.expensetracker.R;
+import com.example.expensetracker.data.DefaultCategories;
 import com.example.expensetracker.model.Category;
 import com.example.expensetracker.model.Expense;
 import com.example.expensetracker.model.Member;
+import com.example.expensetracker.ui.common.AppDialog;
 import com.example.expensetracker.ui.expense.ExpenseScreenController;
 import com.example.expensetracker.ui.expense.ExpenseScreenState;
 import com.google.android.material.checkbox.MaterialCheckBox;
@@ -140,7 +142,7 @@ public class EditExpenseDialog {
         List<Category> categories = state.categories;
 
         if (categories == null || categories.isEmpty()) {
-            categories = getDefaultCategories();
+            categories = DefaultCategories.asList();
         }
 
         dropdownCategoria.setAdapter(new ArrayAdapter<>(
@@ -177,15 +179,17 @@ public class EditExpenseDialog {
 
         if (isEditMode) {
             dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener(v -> {
-                new MaterialAlertDialogBuilder(activity)
-                        .setTitle("Eliminar expense")
-                        .setMessage("¿Querés eliminar este gasto?")
-                        .setNegativeButton("Cancelar", (d, w) -> d.dismiss())
-                        .setPositiveButton("Eliminar", (d, w) -> {
+                AppDialog.showConfirmation(
+                        activity,
+                        "Eliminar gasto",
+                        "Queres eliminar este gasto?",
+                        "Eliminar",
+                        AppDialog.ActionStyle.DESTRUCTIVE,
+                        () -> {
                             controller.deleteExpense(expense.getId());
                             dialog.dismiss();
-                        })
-                        .show();
+                        }
+                );
             });
         }
 
@@ -247,7 +251,7 @@ public class EditExpenseDialog {
 
             List<Category> availableCategories = state.categories;
             if (availableCategories == null || availableCategories.isEmpty()) {
-                availableCategories = getDefaultCategories();
+                availableCategories = DefaultCategories.asList();
             }
 
             String categoryId = findCategoryId(categoryName, availableCategories);
@@ -447,22 +451,4 @@ public class EditExpenseDialog {
         }
     }
 
-
-    private static List<Category> getDefaultCategories() {
-        List<Category> list = new ArrayList<>();
-
-        list.add(new Category("supermercado", "Supermercado", true, 0));
-        list.add(new Category("delivery", "Delivery", true, 1));
-        list.add(new Category("nafta_peajes", "Nafta / Peajes", true, 2));
-        list.add(new Category("salidas", "Salidas", true, 3));
-        list.add(new Category("servicios", "Servicios", true, 4));
-        list.add(new Category("suscripciones", "Suscripciones", true, 5));
-        list.add(new Category("auto", "Auto", true, 6));
-        list.add(new Category("pago_casa", "Pago Casa", true, 7));
-        list.add(new Category("compras", "Compras", true, 8));
-        list.add(new Category("gatitas", "Gatitas", true, 9));
-        list.add(new Category("otros", "Otros", true, 10));
-
-        return list;
-    }
 }

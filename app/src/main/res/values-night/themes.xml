@@ -104,6 +104,26 @@
         <item name="expenseBottomSheetBg">#1B1D21</item>
         <item name="expenseSnackbarBg">#FFFFFF</item>
         <item name="expenseSnackbarContentColor">#252525</item>
+        <item name="categoryEditorTitleText">#FFFFFF</item>
+        <item name="categoryEditorActionText">#4DA196</item>
+        <item name="categoryEditorSheetBg">#1B1D21</item>
+        <item name="categoryEditorPanelBg">#21262F</item>
+        <item name="categoryEditorItemBg">#D921262F</item>
+        <item name="categoryEditorRowText">#FFFFFF</item>
+        <item name="categoryEditorRemoveIcon">#B25A5A</item>
+        <item name="categoryEditorEditIcon">#A1A1A1</item>
+        <item name="categoryEditorDragIcon">#444444</item>
+        <item name="categoryDialogBg">#21262F</item>
+        <item name="categoryDialogText">#FFFFFF</item>
+        <item name="categoryDialogFieldBg">#181C23</item>
+        <item name="categoryDialogFieldText">#FFFFFF</item>
+        <item name="categoryDialogSecondaryBg">#DDDDDD</item>
+        <item name="categoryDialogSecondaryBorderColor">#474747</item>
+        <item name="categoryDialogSecondaryShadowColor">#474747</item>
+        <item name="categoryDialogDestructiveBg">#CE7F7F</item>
+        <item name="categoryDialogDestructiveBorderColor">#913A3A</item>
+        <item name="categoryDialogDestructiveShadowColor">#913A3A</item>
+        <item name="categoryDialogDestructiveText">#3F0E0E</item>
         <item name="materialAlertDialogTheme">@style/ThemeOverlay.ExpenseTracker.MaterialAlertDialog</item>
     </style>
     <style name="ThemeOverlay.ExpenseTracker.MaterialAlertDialog" parent="ThemeOverlay.MaterialComponents.MaterialAlertDialog">

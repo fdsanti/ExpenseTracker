@@ -27,10 +27,12 @@ import androidx.annotation.Nullable;
 import androidx.core.content.res.ResourcesCompat;
 
 import com.example.expensetracker.R;
+import com.example.expensetracker.data.DefaultCategories;
 import com.example.expensetracker.data.TrackerRepository.RepositoryCallback;
 import com.example.expensetracker.model.Category;
 import com.example.expensetracker.model.Expense;
 import com.example.expensetracker.model.Member;
+import com.example.expensetracker.ui.common.AppDialog;
 import com.example.expensetracker.ui.expense.ExpenseScreenController;
 import com.example.expensetracker.ui.expense.ExpenseScreenState;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
@@ -38,7 +40,6 @@ import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 import com.google.android.material.checkbox.MaterialCheckBox;
 import com.google.android.material.datepicker.MaterialDatePicker;
-import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
@@ -182,7 +183,7 @@ public class ExpenseBottomSheetDialog extends BottomSheetDialogFragment {
 
         List<Category> categories = state.categories;
         if (categories == null || categories.isEmpty()) {
-            categories = getDefaultCategories();
+            categories = DefaultCategories.asList();
         }
 
         dropdownCategoria.setAdapter(new ArrayAdapter<>(
@@ -334,7 +335,7 @@ public class ExpenseBottomSheetDialog extends BottomSheetDialogFragment {
 
                 List<Category> availableCategories = state.categories;
                 if (availableCategories == null || availableCategories.isEmpty()) {
-                    availableCategories = getDefaultCategories();
+                    availableCategories = DefaultCategories.asList();
                 }
 
                 String categoryId = findCategoryId(categoryName, availableCategories);
@@ -438,16 +439,18 @@ public class ExpenseBottomSheetDialog extends BottomSheetDialogFragment {
                         return;
                     }
 
-                    new MaterialAlertDialogBuilder(requireContext())
-                            .setTitle("Eliminar expense")
-                            .setMessage("¿Querés eliminar este gasto?")
-                            .setNegativeButton("Cancelar", (dialog, which) -> dialog.dismiss())
-                            .setPositiveButton("Eliminar", (dialog, which) -> {
+                    AppDialog.showConfirmation(
+                            requireContext(),
+                            "Eliminar gasto",
+                            "Queres eliminar este gasto?",
+                            "Eliminar",
+                            AppDialog.ActionStyle.DESTRUCTIVE,
+                            () -> {
                                 controller.deleteExpense(expense.getId());
                                 showSnackbar("Gasto eliminado");
                                 dismissAllowingStateLoss();
-                            })
-                            .show();
+                            }
+                    );
                 });
             }
         }
@@ -774,21 +777,4 @@ public class ExpenseBottomSheetDialog extends BottomSheetDialogFragment {
         }
     }
 
-    private static List<Category> getDefaultCategories() {
-        List<Category> list = new ArrayList<>();
-
-        list.add(new Category("supermercado", "Supermercado", true, 0));
-        list.add(new Category("delivery", "Delivery", true, 1));
-        list.add(new Category("nafta_peajes", "Nafta / Peajes", true, 2));
-        list.add(new Category("salidas", "Salidas", true, 3));
-        list.add(new Category("servicios", "Servicios", true, 4));
-        list.add(new Category("suscripciones", "Suscripciones", true, 5));
-        list.add(new Category("auto", "Auto", true, 6));
-        list.add(new Category("pago_casa", "Pago Casa", true, 7));
-        list.add(new Category("compras", "Compras", true, 8));
-        list.add(new Category("gatitas", "Gatitas", true, 9));
-        list.add(new Category("otros", "Otros", true, 10));
-
-        return list;
-    }
 }

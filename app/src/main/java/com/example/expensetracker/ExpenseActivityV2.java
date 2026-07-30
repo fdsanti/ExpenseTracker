@@ -9,6 +9,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.expensetracker.calculator.ExpenseListQuery;
 import com.example.expensetracker.data.TrackerRepository;
 import com.example.expensetracker.model.Expense;
+import com.example.expensetracker.ui.common.AppDialog;
+import com.example.expensetracker.ui.expense.dialogs.CategoriesBottomSheetDialog;
 import com.example.expensetracker.ui.expense.dialogs.EditExpenseDialog;
 import com.example.expensetracker.ui.expense.ExpenseScreenController;
 import com.example.expensetracker.ui.expense.ExpenseScreenListener;
@@ -261,6 +263,7 @@ public class ExpenseActivityV2 extends AppCompatActivity implements ExpenseScree
         }
 
         addMoreOptionItem(container, "Editar nombre", popupWindow, this::showEditTrackerNameDialog);
+        addMoreOptionItem(container, "Editar categor\u00edas", popupWindow, this::showEditCategoriesDialog);
         addMoreOptionItem(container, "Configuración", popupWindow, this::openSettings);
         addMoreOptionItem(container, closeOptionLabel, popupWindow, this::confirmCloseTracker);
 
@@ -344,6 +347,17 @@ public class ExpenseActivityV2 extends AppCompatActivity implements ExpenseScree
                 .show();
     }
 
+    private void showEditCategoriesDialog() {
+        if (currentState == null || currentState.tracker == null) {
+            Toast.makeText(this, "No se pudieron abrir las categor\u00edas", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        CategoriesBottomSheetDialog
+                .newInstance(currentState, controller)
+                .show(getSupportFragmentManager(), "CATEGORIES_BOTTOM_SHEET");
+    }
+
     private void openSettings() {
         if (currentState == null || currentState.tracker == null || currentState.tracker.getId() == null) {
             Toast.makeText(this, "No se pudo abrir configuración", Toast.LENGTH_SHORT).show();
@@ -368,11 +382,13 @@ public class ExpenseActivityV2 extends AppCompatActivity implements ExpenseScree
                 ? "¿Estás seguro que querés abrir el tracker nuevamente?"
                 : "¿Estás seguro que querés cerrar el tracker? Esto deshabilitará las funcionalidades del mismo.";
 
-        new com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
-                .setTitle(title)
-                .setMessage(message)
-                .setNegativeButton("Cancelar", null)
-                .setPositiveButton("Confirmar", (dialog, which) -> {
+        AppDialog.showConfirmation(
+                this,
+                title,
+                message,
+                "Confirmar",
+                AppDialog.ActionStyle.PRIMARY,
+                () -> {
                     boolean newClosedValue = !currentlyClosed;
 
                     controller.updateTrackerClosed(newClosedValue);
@@ -385,8 +401,8 @@ public class ExpenseActivityV2 extends AppCompatActivity implements ExpenseScree
                     ).show();
 
                     finish();
-                })
-                .show();
+                }
+        );
     }
 
     private int getAttrColor(int attr) {
