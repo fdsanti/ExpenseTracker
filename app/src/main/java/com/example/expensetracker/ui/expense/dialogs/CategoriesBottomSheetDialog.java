@@ -32,7 +32,6 @@ import com.example.expensetracker.ui.expense.ExpenseScreenState;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
-import com.google.android.material.snackbar.Snackbar;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,6 +42,7 @@ public class CategoriesBottomSheetDialog extends BottomSheetDialogFragment {
     private ExpenseScreenController controller;
     private CategoryEditorAdapter adapter;
     private ItemTouchHelper itemTouchHelper;
+    private View activeSnackbarView;
 
     public static CategoriesBottomSheetDialog newInstance(
             ExpenseScreenState state,
@@ -278,48 +278,55 @@ public class CategoriesBottomSheetDialog extends BottomSheetDialogFragment {
     }
 
     private void showSnackbar(String message) {
-        if (getActivity() == null) {
+        FrameLayout bottomSheet = getBottomSheetContainer();
+        if (bottomSheet == null) {
             return;
         }
 
-        View root = getView();
-        if (root == null) {
-            root = getActivity().findViewById(android.R.id.content);
-        }
-        if (root == null) {
-            return;
+        if (activeSnackbarView != null) {
+            bottomSheet.removeView(activeSnackbarView);
+            activeSnackbarView = null;
         }
 
-        Snackbar snackbar = Snackbar.make(root, "", Snackbar.LENGTH_SHORT);
-        View snackbarView = snackbar.getView();
+        FrameLayout snackbarView = new FrameLayout(requireContext());
         snackbarView.setBackgroundResource(R.drawable.bg_expense_snackbar);
         snackbarView.setPadding(0, 0, 0, 0);
         snackbarView.setElevation(dpToPx(6));
 
-        ViewGroup.LayoutParams rawParams = snackbarView.getLayoutParams();
-        rawParams.width = ViewGroup.LayoutParams.WRAP_CONTENT;
-        rawParams.height = ViewGroup.LayoutParams.WRAP_CONTENT;
+        snackbarView.addView(createSnackbarContent(message));
 
-        if (rawParams instanceof FrameLayout.LayoutParams) {
-            FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) rawParams;
-            params.gravity = Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL;
-            params.setMargins(0, 0, 0, dpToPx(24));
-            snackbarView.setLayoutParams(params);
-        } else if (rawParams instanceof ViewGroup.MarginLayoutParams) {
-            ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) rawParams;
-            params.setMargins(0, 0, 0, dpToPx(24));
-            snackbarView.setLayoutParams(params);
-        } else {
-            snackbarView.setLayoutParams(rawParams);
-        }
+        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+        );
+        params.gravity = Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL;
+        params.setMargins(0, 0, 0, dpToPx(24));
 
-        if (snackbarView instanceof Snackbar.SnackbarLayout) {
-            Snackbar.SnackbarLayout snackbarLayout = (Snackbar.SnackbarLayout) snackbarView;
-            snackbarLayout.removeAllViews();
-            snackbarLayout.addView(createSnackbarContent(message));
-        }
-
-        snackbar.show();
+        activeSnackbarView = snackbarView;
+        bottomSheet.addView(snackbarView, params);
+        snackbarView.bringToFront();
+        snackbarView.setAlpha(0f);
+        snackbarView.setTranslationY(dpToPx(18));
+        snackbarView.animate()
+                .alpha(1f)
+                .translationY(0f)
+                .setDuration(180)
+                .start();
+        snackbarView.postDelayed(() -> {
+            if (activeSnackbarView == snackbarView && snackbarView.getParent() == bottomSheet) {
+                snackbarView.animate()
+                        .alpha(0f)
+                        .translationY(dpToPx(18))
+                        .setDuration(160)
+                        .withEndAction(() -> {
+                            if (activeSnackbarView == snackbarView && snackbarView.getParent() == bottomSheet) {
+                                bottomSheet.removeView(snackbarView);
+                                activeSnackbarView = null;
+                            }
+                        })
+                        .start();
+            }
+        }, 2200);
     }
 
     private View createSnackbarContent(String message) {
@@ -356,6 +363,18 @@ public class CategoriesBottomSheetDialog extends BottomSheetDialogFragment {
         TypedValue typedValue = new TypedValue();
         requireContext().getTheme().resolveAttribute(attr, typedValue, true);
         return typedValue.data;
+    }
+
+    @Nullable
+    private FrameLayout getBottomSheetContainer() {
+        Dialog dialog = getDialog();
+
+        if (!(dialog instanceof BottomSheetDialog)) {
+            return null;
+        }
+
+        return ((BottomSheetDialog) dialog)
+                .findViewById(com.google.android.material.R.id.design_bottom_sheet);
     }
 
     private int dpToPx(int dp) {
