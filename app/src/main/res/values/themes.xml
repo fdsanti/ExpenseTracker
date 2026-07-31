@@ -172,6 +172,15 @@
         <item name="android:letterSpacing" tools:targetApi="lollipop">0.019</item>
     </style>
 
+    <style name="HomeCardCompactTitleText" parent="@android:style/TextAppearance.Medium">
+        <item name="android:textSize">20sp</item>
+        <item name="android:textColor">?attr/primary_text</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:fontFamily">@font/rajdhani_semibold</item>
+        <item name="fontFamily">@font/rajdhani_semibold</item>
+        <item name="android:letterSpacing" tools:targetApi="lollipop">0.019</item>
+    </style>
+
     <style name="HomeCardDateText" parent="@android:style/TextAppearance.Medium">
         <item name="android:textSize">14sp</item>
         <item name="android:textColor">?attr/primary_text</item>

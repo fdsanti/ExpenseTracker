@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -26,6 +25,7 @@ import com.example.expensetracker.data.TrackerRepository;
 import com.example.expensetracker.model.Member;
 import java.util.List;
 import com.example.expensetracker.ExpenseActivityV2;
+import com.example.expensetracker.ui.common.AppSnackbar;
 
 public class SettingsActivity extends AppCompatActivity {
     private MaterialToolbar toolbar;
@@ -111,7 +111,7 @@ public class SettingsActivity extends AppCompatActivity {
                     && !salary2Text.isEmpty()) {
 
                 if (trackerId == null || trackerId.trim().isEmpty()) {
-                    Toast.makeText(SettingsActivity.this, "No se pudo guardar la configuración", Toast.LENGTH_SHORT).show();
+                    AppSnackbar.show(SettingsActivity.this, "No se pudo guardar la configuración");
                     return;
                 }
 
@@ -122,7 +122,7 @@ public class SettingsActivity extends AppCompatActivity {
                     salary1 = Double.parseDouble(salary1Text);
                     salary2 = Double.parseDouble(salary2Text);
                 } catch (NumberFormatException e) {
-                    Toast.makeText(SettingsActivity.this, "Los sueldos deben ser numéricos", Toast.LENGTH_SHORT).show();
+                    AppSnackbar.show(SettingsActivity.this, "Los sueldos deben ser numéricos");
                     return;
                 }
 
@@ -144,12 +144,13 @@ public class SettingsActivity extends AppCompatActivity {
                 Map<String, Object> updates = new HashMap<>();
                 updates.put("trackers_v2/" + trackerId + "/participants/p1", participant1);
                 updates.put("trackers_v2/" + trackerId + "/participants/p2", participant2);
+                updates.put("trackers_v2/" + trackerId + "/summary/participantCount", 2);
                 updates.put("home_index/" + trackerId + "/isSetupComplete", true);
 
                 myRef.updateChildren(updates).addOnCompleteListener(task -> {
                     if (!task.isSuccessful()) {
                         Log.e("SettingsActivity", "Error saving settings", task.getException());
-                        Toast.makeText(SettingsActivity.this, "Error al guardar la configuración", Toast.LENGTH_SHORT).show();
+                        AppSnackbar.show(SettingsActivity.this, "Error al guardar la configuración");
                         return;
                     }
 
@@ -160,21 +161,32 @@ public class SettingsActivity extends AppCompatActivity {
                     categoriesRef.get().addOnCompleteListener(catTask -> {
                         if (!catTask.isSuccessful()) {
                             Log.e("SettingsActivity", "Error checking categories", catTask.getException());
-                            Toast.makeText(SettingsActivity.this, "Error al guardar las categorías", Toast.LENGTH_SHORT).show();
+                            AppSnackbar.show(SettingsActivity.this, "Error al guardar las categorías");
                             return;
                         }
 
                         if (!catTask.getResult().exists()) {
-                            categoriesRef.setValue(DefaultCategories.asFirebaseMap()).addOnCompleteListener(saveCategoriesTask -> {
+                            Map<String, Object> defaultCategories = DefaultCategories.asFirebaseMap();
+                            categoriesRef.setValue(defaultCategories).addOnCompleteListener(saveCategoriesTask -> {
                                 if (!saveCategoriesTask.isSuccessful()) {
                                     Log.e("SettingsActivity", "Error saving categories", saveCategoriesTask.getException());
-                                    Toast.makeText(SettingsActivity.this, "Error al guardar las categorías", Toast.LENGTH_SHORT).show();
+                                    AppSnackbar.show(SettingsActivity.this, "Error al guardar las categorías");
                                     return;
                                 }
 
+                                myRef.child("trackers_v2")
+                                        .child(trackerId)
+                                        .child("summary")
+                                        .child("categoryCount")
+                                        .setValue(defaultCategories.size());
                                 openNextScreen();
                             });
                         } else {
+                            myRef.child("trackers_v2")
+                                    .child(trackerId)
+                                    .child("summary")
+                                    .child("categoryCount")
+                                    .setValue(catTask.getResult().getChildrenCount());
                             openNextScreen();
                         }
                     });

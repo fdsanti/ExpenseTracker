@@ -12,7 +12,6 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.RelativeLayout;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -23,6 +22,7 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager.widget.ViewPager;
+import com.example.expensetracker.ui.common.AppSnackbar;
 
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.tabs.TabLayout;
@@ -104,7 +104,7 @@ public class ExpenseActivity extends AppCompatActivity {
                 .get()
                 .addOnCompleteListener(task -> {
                     if (!task.isSuccessful()) {
-                        Toast.makeText(this, "Error cargando settings", Toast.LENGTH_SHORT).show();
+                        AppSnackbar.show(this, "Error cargando settings");
                         finish();
                         return;
                     }
@@ -182,7 +182,7 @@ public class ExpenseActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        finish();
+        super.onBackPressed();
         //Intent intent = new Intent(ExpenseActivity.this, MainActivity.class);
         //ExpenseActivity.this.startActivity(intent);
     }

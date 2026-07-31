@@ -8,7 +8,6 @@ import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.view.View;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
@@ -30,6 +29,11 @@ public class MainItemDragSwipeCallback extends ItemTouchHelper.Callback {
 
     @Override
     public int getMovementFlags(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder) {
+        if (viewHolder instanceof HCardsViewAdapter.ViewHolder
+                && !((HCardsViewAdapter.ViewHolder) viewHolder).isSwipeable()) {
+            return makeMovementFlags(0, 0);
+        }
+
         final int swipeFlags = ItemTouchHelper.START;
         return makeMovementFlags(0,swipeFlags);
     }
@@ -53,6 +57,10 @@ public class MainItemDragSwipeCallback extends ItemTouchHelper.Callback {
         }
 
         else {
+            if (viewHolder instanceof HCardsViewAdapter.ViewHolder
+                    && !((HCardsViewAdapter.ViewHolder) viewHolder).isSwipeable()) {
+                return;
+            }
             final View foregroundView = ((HCardsViewAdapter.ViewHolder)viewHolder).viewB;
             getDefaultUIUtil().onDrawOver(c,recyclerView,foregroundView,dX,dY,actionState,isCurrentlyActive);
         }
@@ -63,6 +71,10 @@ public class MainItemDragSwipeCallback extends ItemTouchHelper.Callback {
         //super.onChildDrawOver(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
 
         if (actionState != ItemTouchHelper.ACTION_STATE_DRAG) {
+            if (viewHolder instanceof HCardsViewAdapter.ViewHolder
+                    && !((HCardsViewAdapter.ViewHolder) viewHolder).isSwipeable()) {
+                return;
+            }
             final View foregroundView = ((HCardsViewAdapter.ViewHolder)viewHolder).mCardView;
             getDefaultUIUtil().onDraw(c,recyclerView,foregroundView,dX / 3,dY,actionState,isCurrentlyActive);
         }
@@ -70,6 +82,10 @@ public class MainItemDragSwipeCallback extends ItemTouchHelper.Callback {
 
     @Override
     public void clearView(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder) {
+        if (viewHolder instanceof HCardsViewAdapter.ViewHolder
+                && !((HCardsViewAdapter.ViewHolder) viewHolder).isSwipeable()) {
+            return;
+        }
         final View foregroundView = ((HCardsViewAdapter.ViewHolder)viewHolder).mCardView;
         getDefaultUIUtil().clearView(foregroundView);
     }

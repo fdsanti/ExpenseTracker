@@ -5,6 +5,8 @@ import com.example.expensetracker.data.TrackerRepository;
 import com.example.expensetracker.model.Tracker;
 import com.example.expensetracker.data.TrackerRepository.RepositoryCallback;
 import java.util.List;
+import java.util.Calendar;
+import java.util.concurrent.TimeUnit;
 
 import com.example.expensetracker.model.Category;
 import com.example.expensetracker.model.Expense;
@@ -22,6 +24,7 @@ import com.example.expensetracker.calculator.DebtSummary;
 import com.example.expensetracker.calculator.ExpenseFilterSorter;
 import com.example.expensetracker.calculator.ExpenseSummary;
 import com.example.expensetracker.calculator.ExpenseSummaryCalculator;
+import com.example.expensetracker.calculator.TotalTrend;
 import com.example.expensetracker.ui.expense.ExpenseScreenState.ContentTab;
 
 public class ExpenseScreenController {
@@ -34,6 +37,9 @@ public class ExpenseScreenController {
     private List<Member> members;
     private List<Expense> expenses;
     private List<Category> categories;
+    private Tracker previousMonthlyTracker;
+    private List<Expense> previousMonthlyExpenses;
+    private TotalTrend totalTrend;
     private int pendingLoads;
     private boolean hasLoadError;
     private String errorMessage;
@@ -83,6 +89,7 @@ public class ExpenseScreenController {
             @Override
             public void onSuccess(Tracker tracker) {
                 ExpenseScreenController.this.tracker = tracker;
+                loadPreviousMonthlyTrend();
                 onLoadFinished();
             }
 
@@ -141,6 +148,12 @@ public class ExpenseScreenController {
 
         ExpenseSummary expenseSummary =
                 ExpenseSummaryCalculator.calculate(safeExpenses, safeMembers);
+        totalTrend = calculateTotalTrend(
+                tracker,
+                safeExpenses,
+                previousMonthlyTracker,
+                previousMonthlyExpenses
+        );
 
         DebtSummary debtSummary =
                 DebtCalculator.calculate(safeExpenses, safeMembers);
@@ -175,6 +188,7 @@ public class ExpenseScreenController {
                 safeExpenses,
                 safeCategories,
                 expenseSummary,
+                totalTrend,
                 debtSummary,
                 balanceDetail,
                 categorySummary,
@@ -193,6 +207,9 @@ public class ExpenseScreenController {
         pendingLoads = 4;
         hasLoadError = false;
         errorMessage = null;
+        previousMonthlyTracker = null;
+        previousMonthlyExpenses = null;
+        totalTrend = null;
         emitCurrentState(true);
     }
 
@@ -223,6 +240,7 @@ public class ExpenseScreenController {
                     lastEmittedState.expenses,
                     lastEmittedState.categories,
                     lastEmittedState.expenseSummary,
+                    lastEmittedState.totalTrend,
                     lastEmittedState.debtSummary,
                     lastEmittedState.balanceDetail,
                     lastEmittedState.categorySummary,
@@ -292,6 +310,138 @@ public class ExpenseScreenController {
 
     private void emitCurrentState(boolean loading) {
         emitState(buildState(loading));
+    }
+
+    private void loadPreviousMonthlyTrend() {
+        trackerRepository.loadPreviousMonthlyTrackerExpenses(
+                tracker,
+                new RepositoryCallback<TrackerRepository.PreviousTrackerExpenses>() {
+                    @Override
+                    public void onSuccess(TrackerRepository.PreviousTrackerExpenses result) {
+                        if (result == null) {
+                            previousMonthlyTracker = null;
+                            previousMonthlyExpenses = null;
+                        } else {
+                            previousMonthlyTracker = result.getTracker();
+                            previousMonthlyExpenses = result.getExpenses();
+                        }
+
+                        emitCurrentState(lastEmittedState != null && lastEmittedState.loading);
+                    }
+
+                    @Override
+                    public void onError(Exception exception) {
+                        Log.e("ExpenseScreenController", "Error loading previous monthly tracker", exception);
+                        previousMonthlyTracker = null;
+                        previousMonthlyExpenses = null;
+                        emitCurrentState(lastEmittedState != null && lastEmittedState.loading);
+                    }
+                }
+        );
+    }
+
+    private TotalTrend calculateTotalTrend(
+            Tracker currentTracker,
+            List<Expense> currentExpenses,
+            Tracker previousTracker,
+            List<Expense> previousExpenses
+    ) {
+        if (currentTracker == null
+                || previousTracker == null
+                || currentExpenses == null
+                || previousExpenses == null
+                || !currentTracker.isMonthly()
+                || !previousTracker.isMonthly()) {
+            return null;
+        }
+
+        if (daysBetween(previousTracker.getCreatedAt(), currentTracker.getCreatedAt()) < 20) {
+            return null;
+        }
+
+        double currentTotal;
+        double previousTotal;
+
+        if (currentTracker.isClosed()) {
+            currentTotal = sumExpenses(currentExpenses);
+            previousTotal = sumExpenses(previousExpenses);
+        } else {
+            int trackerDay = TrackerDateUtils.getTrackerDay(currentTracker);
+            if (trackerDay <= 0) {
+                return null;
+            }
+
+            currentTotal = sumThroughTrackerDay(currentTracker, currentExpenses, trackerDay);
+            previousTotal = sumThroughTrackerDay(previousTracker, previousExpenses, trackerDay);
+        }
+
+        if (previousTotal <= 0d || currentTotal == previousTotal) {
+            return null;
+        }
+
+        int percentage = (int) Math.round(Math.abs((currentTotal - previousTotal) * 100d / previousTotal));
+        if (percentage == 0) {
+            return null;
+        }
+
+        return new TotalTrend(
+                percentage,
+                currentTotal > previousTotal ? TotalTrend.Direction.UP : TotalTrend.Direction.DOWN
+        );
+    }
+
+    private double sumExpenses(List<Expense> expenses) {
+        double total = 0d;
+
+        if (expenses == null) {
+            return total;
+        }
+
+        for (Expense expense : expenses) {
+            if (expense != null) {
+                total += expense.getAmount();
+            }
+        }
+
+        return total;
+    }
+
+    private double sumThroughTrackerDay(Tracker tracker, List<Expense> expenses, int trackerDay) {
+        long start = startOfDay(tracker.getCreatedAt());
+        long end = start + TimeUnit.DAYS.toMillis(trackerDay) - 1L;
+        double total = 0d;
+
+        for (Expense expense : expenses) {
+            if (expense == null) {
+                continue;
+            }
+
+            long expenseDate = startOfDay(expense.getDate());
+            if (expenseDate >= start && expenseDate <= end) {
+                total += expense.getAmount();
+            }
+        }
+
+        return total;
+    }
+
+    private long daysBetween(long startMillis, long endMillis) {
+        long start = startOfDay(startMillis);
+        long end = startOfDay(endMillis);
+        if (end <= start) {
+            return 0L;
+        }
+        return TimeUnit.MILLISECONDS.toDays(end - start);
+    }
+
+    private long startOfDay(long timeMillis) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTimeInMillis(timeMillis);
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+        return calendar.getTimeInMillis();
     }
 
     public void updateExpense(

@@ -9,6 +9,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.ValueEventListener;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -24,10 +25,29 @@ import com.example.expensetracker.model.Expense;
 
 import com.example.expensetracker.model.Category;
 public class TrackerRepository {
+    private static final int SUMMARY_VERSION = 1;
 
     public interface RepositoryCallback<T> {
         void onSuccess(T result);
         void onError(Exception exception);
+    }
+
+    public static class PreviousTrackerExpenses {
+        private final Tracker tracker;
+        private final List<Expense> expenses;
+
+        public PreviousTrackerExpenses(Tracker tracker, List<Expense> expenses) {
+            this.tracker = tracker;
+            this.expenses = expenses;
+        }
+
+        public Tracker getTracker() {
+            return tracker;
+        }
+
+        public List<Expense> getExpenses() {
+            return expenses;
+        }
     }
 
     private final DatabaseReference database;
@@ -50,6 +70,8 @@ public class TrackerRepository {
                     String name = snapshot.child("name").getValue(String.class);
                     String createdAtString = snapshot.child("createdAt").getValue(String.class);
                     Boolean closedValue = snapshot.child("closed").getValue(Boolean.class);
+                    String type = snapshot.child("type").getValue(String.class);
+                    String monthKey = snapshot.child("monthKey").getValue(String.class);
 
                     long createdAt = 0L;
                     boolean closed = closedValue != null && closedValue;
@@ -68,12 +90,101 @@ public class TrackerRepository {
                             trackerId,
                             name,
                             createdAt,
-                            closed
+                            closed,
+                            type,
+                            monthKey
                     );
 
 
                     callback.onSuccess(tracker);
 
+                } catch (Exception e) {
+                    callback.onError(e);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                callback.onError(error.toException());
+            }
+        });
+    }
+
+    public void loadPreviousMonthlyTrackerExpenses(
+            Tracker currentTracker,
+            RepositoryCallback<PreviousTrackerExpenses> callback
+    ) {
+        if (currentTracker == null
+                || currentTracker.getId() == null
+                || currentTracker.getCreatedAt() <= 0L
+                || !currentTracker.isMonthly()) {
+            callback.onSuccess(null);
+            return;
+        }
+
+        database.child("home_index").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                try {
+                    String previousTrackerId = null;
+                    long previousCreatedAt = 0L;
+                    SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+
+                    for (DataSnapshot child : snapshot.getChildren()) {
+                        String trackerId = child.child("trackerId").getValue(String.class);
+                        if (trackerId == null || trackerId.equals(currentTracker.getId())) {
+                            continue;
+                        }
+
+                        String type = child.child("type").getValue(String.class);
+                        if (Tracker.TYPE_MANUAL.equals(type)) {
+                            continue;
+                        }
+
+                        String createdAtString = child.child("createdAt").getValue(String.class);
+                        long createdAt = 0L;
+                        try {
+                            Date parsedDate = formatter.parse(createdAtString);
+                            if (parsedDate != null) {
+                                createdAt = parsedDate.getTime();
+                            }
+                        } catch (Exception ignored) {
+                        }
+
+                        if (createdAt > 0L
+                                && createdAt < currentTracker.getCreatedAt()
+                                && createdAt > previousCreatedAt) {
+                            previousCreatedAt = createdAt;
+                            previousTrackerId = trackerId;
+                        }
+                    }
+
+                    if (previousTrackerId == null) {
+                        callback.onSuccess(null);
+                        return;
+                    }
+
+                    loadTracker(previousTrackerId, new RepositoryCallback<Tracker>() {
+                        @Override
+                        public void onSuccess(Tracker previousTracker) {
+                            loadExpenses(previousTracker.getId(), new RepositoryCallback<List<Expense>>() {
+                                @Override
+                                public void onSuccess(List<Expense> expenses) {
+                                    callback.onSuccess(new PreviousTrackerExpenses(previousTracker, expenses));
+                                }
+
+                                @Override
+                                public void onError(Exception exception) {
+                                    callback.onError(exception);
+                                }
+                            });
+                        }
+
+                        @Override
+                        public void onError(Exception exception) {
+                            callback.onError(exception);
+                        }
+                    });
                 } catch (Exception e) {
                     callback.onError(e);
                 }
@@ -430,9 +541,7 @@ public class TrackerRepository {
 
         expenseRef.updateChildren(updates)
                 .addOnSuccessListener(unused -> {
-                    if (callback != null) {
-                        callback.onSuccess(null);
-                    }
+                    recalculateTrackerSummary(trackerId, callback);
                 })
                 .addOnFailureListener(exception -> {
                     if (callback != null) {
@@ -489,9 +598,7 @@ public class TrackerRepository {
 
         expenseRef.updateChildren(expenseValues)
                 .addOnSuccessListener(unused -> {
-                    if (callback != null) {
-                        callback.onSuccess(null);
-                    }
+                    recalculateTrackerSummary(trackerId, callback);
                 })
                 .addOnFailureListener(exception -> {
                     if (callback != null) {
@@ -503,7 +610,80 @@ public class TrackerRepository {
     public void deleteExpense(String trackerId, String expenseId) {
         getExpensesRef(trackerId)
                 .child(expenseId)
-                .removeValue();
+                .removeValue()
+                .addOnSuccessListener(unused -> recalculateTrackerSummary(trackerId, null));
+    }
+
+    private void recalculateTrackerSummary(String trackerId, RepositoryCallback<Void> callback) {
+        if (trackerId == null || trackerId.isEmpty()) {
+            if (callback != null) {
+                callback.onError(new IllegalStateException("Tracker id is missing"));
+            }
+            return;
+        }
+
+        getTrackerRef(trackerId).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                try {
+                    double totalAmount = 0d;
+                    long expenseCount = 0L;
+
+                    for (DataSnapshot expenseSnapshot : snapshot.child("expenses").getChildren()) {
+                        totalAmount += safeDouble(expenseSnapshot.child("amount"), 0d);
+                        expenseCount++;
+                    }
+
+                    long participantCount = snapshot.child("participants").getChildrenCount();
+                    long categoryCount = snapshot.child("categories").getChildrenCount();
+
+                    Map<String, Object> updates = new HashMap<>();
+                    updates.put("trackers_v2/" + trackerId + "/summary/expenseCount", expenseCount);
+                    updates.put("trackers_v2/" + trackerId + "/summary/totalAmount", totalAmount);
+                    updates.put("trackers_v2/" + trackerId + "/summary/participantCount", participantCount);
+                    updates.put("trackers_v2/" + trackerId + "/summary/categoryCount", categoryCount);
+                    updates.put("trackers_v2/" + trackerId + "/summary/version", SUMMARY_VERSION);
+                    updates.put("home_index/" + trackerId + "/totalAmount", totalAmount);
+                    updates.put("home_index/" + trackerId + "/summaryVersion", SUMMARY_VERSION);
+
+                    database.updateChildren(updates)
+                            .addOnSuccessListener(unused -> {
+                                if (callback != null) {
+                                    callback.onSuccess(null);
+                                }
+                            })
+                            .addOnFailureListener(exception -> {
+                                if (callback != null) {
+                                    callback.onError(exception);
+                                }
+                            });
+                } catch (Exception e) {
+                    if (callback != null) {
+                        callback.onError(e);
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                if (callback != null) {
+                    callback.onError(error.toException());
+                }
+            }
+        });
+    }
+
+    private double safeDouble(DataSnapshot snapshot, double fallback) {
+        Object value = snapshot.getValue();
+        if (value == null) return fallback;
+        if (value instanceof Long) return ((Long) value).doubleValue();
+        if (value instanceof Integer) return ((Integer) value).doubleValue();
+        if (value instanceof Double) return (Double) value;
+        try {
+            return Double.parseDouble(String.valueOf(value));
+        } catch (Exception e) {
+            return fallback;
+        }
     }
 
     public void updateTrackerName(String trackerId, String newName) {
@@ -520,15 +700,15 @@ public class TrackerRepository {
     }
 
     public void updateTrackerClosed(String trackerId, boolean closed) {
-        database.child("trackers_v2")
-                .child(trackerId)
-                .child("meta")
-                .child("closed")
-                .setValue(closed);
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("trackers_v2/" + trackerId + "/meta/closed", closed);
+        updates.put("home_index/" + trackerId + "/closed", closed);
 
-        database.child("home_index")
-                .child(trackerId)
-                .child("closed")
-                .setValue(closed);
+        database.updateChildren(updates)
+                .addOnSuccessListener(unused -> {
+                    if (closed) {
+                        recalculateTrackerSummary(trackerId, null);
+                    }
+                });
     }
 }

@@ -10,6 +10,7 @@ import com.example.expensetracker.calculator.ExpenseListQuery;
 import com.example.expensetracker.data.TrackerRepository;
 import com.example.expensetracker.model.Expense;
 import com.example.expensetracker.ui.common.AppDialog;
+import com.example.expensetracker.ui.common.AppSnackbar;
 import com.example.expensetracker.ui.expense.dialogs.CategoriesBottomSheetDialog;
 import com.example.expensetracker.ui.expense.dialogs.EditExpenseDialog;
 import com.example.expensetracker.ui.expense.ExpenseScreenController;
@@ -18,7 +19,6 @@ import com.example.expensetracker.ui.expense.ExpenseScreenState;
 import com.example.expensetracker.ui.expense.TrackerDateUtils;
 import android.view.View;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.example.expensetracker.ui.expense.ExpenseUiMapper;
 import com.example.expensetracker.ui.expense.components.SummaryCardView;
@@ -27,6 +27,8 @@ import com.example.expensetracker.ui.expense.components.MembersCardView;
 import com.example.expensetracker.ui.expense.components.ContentCardView;
 import com.example.expensetracker.ui.expense.dialogs.ExpenseBottomSheetDialog;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
@@ -36,6 +38,8 @@ import android.view.LayoutInflater;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
+
+import java.util.HashMap;
 
 
 public class ExpenseActivityV2 extends AppCompatActivity implements ExpenseScreenListener {
@@ -70,7 +74,7 @@ public class ExpenseActivityV2 extends AppCompatActivity implements ExpenseScree
 
         membersCard.setOnEditMembersClickListener(v -> {
             if (currentState == null || currentState.tracker == null || currentState.tracker.getId() == null) {
-                Toast.makeText(this, "No se pudo abrir configuración", Toast.LENGTH_SHORT).show();
+                AppSnackbar.show(this, "No se pudo abrir configuración");
                 return;
             }
 
@@ -193,6 +197,7 @@ public class ExpenseActivityV2 extends AppCompatActivity implements ExpenseScree
                 && previousRenderedState.expenses == state.expenses
                 && previousRenderedState.categories == state.categories
                 && previousRenderedState.expenseSummary == state.expenseSummary
+                && previousRenderedState.totalTrend == state.totalTrend
                 && previousRenderedState.balanceDetail == state.balanceDetail
                 && previousRenderedState.categorySummary == state.categorySummary
                 && previousRenderedState.visibleExpenses == state.visibleExpenses
@@ -202,7 +207,7 @@ public class ExpenseActivityV2 extends AppCompatActivity implements ExpenseScree
                 && previousRenderedState.selectedTab != state.selectedTab;
 
         if (!tabOnlyChange) {
-            summaryCard.render(state.expenseSummary, state.tracker);
+            summaryCard.render(state.expenseSummary, state.tracker, state.totalTrend);
             balanceCard.render(state.balanceDetail, state.tracker);
             membersCard.render(state.members);
         }
@@ -266,6 +271,11 @@ public class ExpenseActivityV2 extends AppCompatActivity implements ExpenseScree
         addMoreOptionItem(container, "Editar categor\u00edas", popupWindow, this::showEditCategoriesDialog);
         addMoreOptionItem(container, "Configuración", popupWindow, this::openSettings);
         addMoreOptionItem(container, closeOptionLabel, popupWindow, this::confirmCloseTracker);
+        if (currentState == null
+                || currentState.tracker == null
+                || !currentState.tracker.isMonthly()) {
+            addMoreOptionItem(container, "Eliminar tracker", popupWindow, this::confirmDeleteTracker);
+        }
 
         popupWindow.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         popupWindow.setOutsideTouchable(true);
@@ -336,7 +346,7 @@ public class ExpenseActivityV2 extends AppCompatActivity implements ExpenseScree
                     String newName = input.getText().toString().trim();
 
                     if (newName.isEmpty()) {
-                        Toast.makeText(this, "El nombre no puede estar vacío", Toast.LENGTH_SHORT).show();
+                        AppSnackbar.show(this, "El nombre no puede estar vacío");
                         return;
                     }
 
@@ -349,7 +359,7 @@ public class ExpenseActivityV2 extends AppCompatActivity implements ExpenseScree
 
     private void showEditCategoriesDialog() {
         if (currentState == null || currentState.tracker == null) {
-            Toast.makeText(this, "No se pudieron abrir las categor\u00edas", Toast.LENGTH_SHORT).show();
+            AppSnackbar.show(this, "No se pudieron abrir las categorías");
             return;
         }
 
@@ -360,7 +370,7 @@ public class ExpenseActivityV2 extends AppCompatActivity implements ExpenseScree
 
     private void openSettings() {
         if (currentState == null || currentState.tracker == null || currentState.tracker.getId() == null) {
-            Toast.makeText(this, "No se pudo abrir configuración", Toast.LENGTH_SHORT).show();
+            AppSnackbar.show(this, "No se pudo abrir configuración");
             return;
         }
 
@@ -372,7 +382,7 @@ public class ExpenseActivityV2 extends AppCompatActivity implements ExpenseScree
 
     private void confirmCloseTracker() {
         if (currentState == null || currentState.tracker == null || currentState.tracker.getId() == null) {
-            Toast.makeText(this, "No se pudo actualizar el tracker", Toast.LENGTH_SHORT).show();
+            AppSnackbar.show(this, "No se pudo actualizar el tracker");
             return;
         }
 
@@ -394,15 +404,68 @@ public class ExpenseActivityV2 extends AppCompatActivity implements ExpenseScree
                     controller.updateTrackerClosed(newClosedValue);
                     HCardDB.setCerrado(newClosedValue);
 
-                    Toast.makeText(
-                            this,
-                            newClosedValue ? "Tracker cerrado" : "Tracker abierto",
-                            Toast.LENGTH_SHORT
-                    ).show();
+                    AppSnackbar.show(this, newClosedValue ? "Tracker cerrado" : "Tracker abierto");
 
                     finish();
                 }
         );
+    }
+
+    private void confirmDeleteTracker() {
+        if (currentState == null || currentState.tracker == null || currentState.tracker.getId() == null) {
+            AppSnackbar.show(this, "No se pudo eliminar el tracker");
+            return;
+        }
+
+        if (currentState.tracker.isMonthly()) {
+            AppSnackbar.show(this, "Los trackers mensuales no se pueden eliminar");
+            return;
+        }
+
+        String trackerName = currentState.tracker.getName();
+
+        AppDialog.showConfirmation(
+                this,
+                "Eliminar tracker",
+                "Est\u00e1s seguro que quer\u00e9s eliminar el tracker " + trackerName + "?",
+                "Eliminar",
+                AppDialog.ActionStyle.DESTRUCTIVE,
+                this::deleteCurrentTracker
+        );
+    }
+
+    private void deleteCurrentTracker() {
+        if (currentState == null || currentState.tracker == null || currentState.tracker.getId() == null) {
+            AppSnackbar.show(this, "No se pudo eliminar el tracker");
+            return;
+        }
+
+        if (currentState.tracker.isMonthly()) {
+            AppSnackbar.show(this, "Los trackers mensuales no se pueden eliminar");
+            return;
+        }
+
+        String trackerId = currentState.tracker.getId();
+        DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference();
+        HashMap<String, Object> updates = new HashMap<>();
+        updates.put("home_index/" + trackerId, null);
+        updates.put("trackers_v2/" + trackerId, null);
+
+        rootRef.updateChildren(updates)
+                .addOnSuccessListener(unused -> {
+                    HCardDB.removeReportFromArrayList(trackerId);
+                    SettingsDB.removeReportFromArrayList(trackerId);
+
+                    Intent intent = new Intent(this, MainActivity.class);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                    intent.putExtra(MainActivity.EXTRA_HOME_MESSAGE, "Tracker eliminado");
+                    startActivity(intent);
+                    finish();
+                })
+                .addOnFailureListener(error -> {
+                    Log.e("ExpenseV2", "Error deleting tracker", error);
+                    AppSnackbar.show(this, "No se pudo eliminar el tracker");
+                });
     }
 
     private int getAttrColor(int attr) {

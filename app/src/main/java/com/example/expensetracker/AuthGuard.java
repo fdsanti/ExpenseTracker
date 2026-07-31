@@ -1,7 +1,6 @@
 package com.example.expensetracker;
 
 import android.util.Log;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 
@@ -12,6 +11,7 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.example.expensetracker.ui.common.AppSnackbar;
 
 public class AuthGuard {
 
@@ -39,7 +39,7 @@ public class AuthGuard {
                             if (e != null) {
                                 Log.e("AuthGuard", "Error getting data", e);
                             }
-                            Toast.makeText(activity, "Acceso denegado. Iniciá sesión nuevamente.", Toast.LENGTH_SHORT).show();
+                            AppSnackbar.show(activity, "Acceso denegado. Iniciá sesión nuevamente.");
                             mAuth.signOut();
                             activity.redirectToLogin();
                         } else {

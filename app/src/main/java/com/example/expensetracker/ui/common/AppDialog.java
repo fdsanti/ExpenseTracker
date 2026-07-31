@@ -10,7 +10,6 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 
@@ -129,14 +128,14 @@ public final class AppDialog {
         primaryButton.setOnClickListener(v -> {
             String value = input.getText() != null ? input.getText().toString().trim() : "";
             if (value.isEmpty()) {
-                Toast.makeText(context, emptyErrorMessage, Toast.LENGTH_SHORT).show();
+                AppSnackbar.show(context, emptyErrorMessage);
                 return;
             }
 
             if (validator != null) {
                 String validationError = validator.validate(value);
                 if (validationError != null && !validationError.isEmpty()) {
-                    Toast.makeText(context, validationError, Toast.LENGTH_SHORT).show();
+                    AppSnackbar.show(context, validationError);
                     return;
                 }
             }

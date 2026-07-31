@@ -17,7 +17,6 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -28,6 +27,7 @@ import com.google.android.material.progressindicator.LinearProgressIndicator;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
+import com.example.expensetracker.ui.common.AppSnackbar;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
@@ -153,7 +153,7 @@ public class MainActivityBackup extends AppCompatActivity implements CallBackIte
                                 myRef.child("allTables").child(hc.getTableID()).child("cerrado").setValue(hc.isCerrado());
                                 HCardDB.addExpense(String.valueOf(newID), hc);
                                 actualFragment.addHCards(0,hc);
-                                Toast.makeText(MainActivityBackup.this, "¡El expense ha sido creado con éxito!", Toast.LENGTH_SHORT).show();
+                                AppSnackbar.show(MainActivityBackup.this, "Expense creado");
                                 Log.d("firebase", String.valueOf(task.getResult().getValue()));
                             }
                         }

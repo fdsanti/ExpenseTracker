@@ -4,6 +4,7 @@ import com.example.expensetracker.calculator.CategorySummaryItem;
 import com.example.expensetracker.calculator.BalanceDetail;
 import com.example.expensetracker.calculator.DebtSummary;
 import com.example.expensetracker.calculator.ExpenseSummary;
+import com.example.expensetracker.calculator.TotalTrend;
 import com.example.expensetracker.model.Category;
 import com.example.expensetracker.model.Expense;
 import com.example.expensetracker.model.Member;
@@ -20,6 +21,7 @@ public class ExpenseScreenState {
     public List<Category> categories;
 
     public ExpenseSummary expenseSummary;
+    public TotalTrend totalTrend;
     public DebtSummary debtSummary;
     public BalanceDetail balanceDetail;
     public List<CategorySummaryItem> categorySummary;
@@ -40,6 +42,7 @@ public class ExpenseScreenState {
             List<Expense> expenses,
             List<Category> categories,
             ExpenseSummary expenseSummary,
+            TotalTrend totalTrend,
             DebtSummary debtSummary,
             BalanceDetail balanceDetail,
             List<CategorySummaryItem> categorySummary,
@@ -57,6 +60,7 @@ public class ExpenseScreenState {
         this.expenses = expenses;
         this.categories = categories;
         this.expenseSummary = expenseSummary;
+        this.totalTrend = totalTrend;
         this.debtSummary = debtSummary;
         this.balanceDetail = balanceDetail;
         this.categorySummary = categorySummary;

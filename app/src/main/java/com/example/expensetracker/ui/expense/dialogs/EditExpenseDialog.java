@@ -6,7 +6,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
-import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
@@ -18,6 +17,7 @@ import com.example.expensetracker.model.Category;
 import com.example.expensetracker.model.Expense;
 import com.example.expensetracker.model.Member;
 import com.example.expensetracker.ui.common.AppDialog;
+import com.example.expensetracker.ui.common.AppSnackbar;
 import com.example.expensetracker.ui.expense.ExpenseScreenController;
 import com.example.expensetracker.ui.expense.ExpenseScreenState;
 import com.google.android.material.checkbox.MaterialCheckBox;
@@ -44,7 +44,7 @@ public class EditExpenseDialog {
     ) {
         Expense expense = findExpenseById(state, expenseId);
         if (expense == null) {
-            Toast.makeText(activity, "No se encontró el gasto", Toast.LENGTH_SHORT).show();
+            AppSnackbar.show(activity, "No se encontró el gasto");
             return;
         }
 

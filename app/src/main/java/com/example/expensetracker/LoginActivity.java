@@ -2,7 +2,6 @@ package com.example.expensetracker;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -14,6 +13,7 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.GoogleAuthProvider;
+import com.example.expensetracker.ui.common.AppSnackbar;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -57,7 +57,7 @@ public class LoginActivity extends AppCompatActivity {
                 GoogleSignInAccount account = task.getResult();
                 firebaseAuthWithGoogle(account);
             } else {
-                Toast.makeText(this, "Error en Google Sign-In", Toast.LENGTH_SHORT).show();
+                AppSnackbar.show(this, "Error en Google Sign-In");
             }
         }
     }
@@ -69,7 +69,7 @@ public class LoginActivity extends AppCompatActivity {
                     if (task.isSuccessful()) {
                         startMainActivity();
                     } else {
-                        Toast.makeText(this, "Autenticación fallida", Toast.LENGTH_SHORT).show();
+                        AppSnackbar.show(this, "Autenticación fallida");
                     }
                 });
     }

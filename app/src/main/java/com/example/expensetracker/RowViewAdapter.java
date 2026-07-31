@@ -12,11 +12,11 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.TextView;
-import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.RecyclerView;
+import com.example.expensetracker.ui.common.AppSnackbar;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.card.MaterialCardView;
@@ -298,7 +298,7 @@ public class RowViewAdapter extends RecyclerView.Adapter<RowViewAdapter.ViewHold
                             public void onComplete(@NonNull Task<DataSnapshot> task) {
                                 if (!task.isSuccessful()) {
                                     Log.e("firebase", "Error getting data", task.getException());
-                                    Toast.makeText(context, "Error de conexión", Toast.LENGTH_SHORT).show();
+                                    AppSnackbar.show(context, "Error de conexión");
                                 }
                                 else {
                                     //Upload new row
@@ -373,7 +373,7 @@ public class RowViewAdapter extends RecyclerView.Adapter<RowViewAdapter.ViewHold
                                     fragment.loadTotals();
                                     fragment.getSaldosFragment().calculate();
                                     alertDialog.dismiss();
-                                    Toast.makeText(context, "La fila ha sido modificada con éxito", Toast.LENGTH_SHORT).show();
+                                    AppSnackbar.show(context, "Fila modificada");
                                     Log.d("firebase", String.valueOf(task.getResult().getValue()));
                                 }
                             }

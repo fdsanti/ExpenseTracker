@@ -11,6 +11,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -19,6 +20,7 @@ import androidx.annotation.Nullable;
 import com.example.expensetracker.R;
 import com.example.expensetracker.calculator.ExpenseSummary;
 import com.example.expensetracker.calculator.MemberExpenseSummary;
+import com.example.expensetracker.calculator.TotalTrend;
 import com.example.expensetracker.model.Tracker;
 import com.example.expensetracker.ui.expense.TrackerDateUtils;
 import java.text.NumberFormat;
@@ -29,6 +31,8 @@ public class SummaryCardView extends LinearLayout {
     private TextView txtTotalLabel;
     private TextView txtTotalAmount;
     private TextView txtTotalTrend;
+    private View totalTrendBadge;
+    private ImageView ivTotalTrend;
     private TextView txtMember1Meta;
     private TextView txtMember1Amount;
     private TextView txtMember2Meta;
@@ -61,6 +65,8 @@ public class SummaryCardView extends LinearLayout {
         txtTotalLabel = findViewById(R.id.txtTotalLabel);
         txtTotalAmount = findViewById(R.id.txtTotalAmount);
         txtTotalTrend = findViewById(R.id.txtTotalTrend);
+        totalTrendBadge = findViewById(R.id.totalTrendBadge);
+        ivTotalTrend = findViewById(R.id.ivTotalTrend);
         txtMember1Meta = findViewById(R.id.txtMember1Meta);
         txtMember1Amount = findViewById(R.id.txtMember1Amount);
         txtMember2Meta = findViewById(R.id.txtMember2Meta);
@@ -75,15 +81,20 @@ public class SummaryCardView extends LinearLayout {
     }
 
     public void render(ExpenseSummary expenseSummary) {
-        render(expenseSummary, null);
+        render(expenseSummary, null, null);
     }
 
     public void render(ExpenseSummary expenseSummary, @Nullable Tracker tracker) {
-        int trackerDay = TrackerDateUtils.getTrackerDay(tracker);
+        render(expenseSummary, tracker, null);
+    }
+
+    public void render(ExpenseSummary expenseSummary, @Nullable Tracker tracker, @Nullable TotalTrend totalTrend) {
+        boolean closedTracker = tracker != null && tracker.isClosed();
+        int trackerDay = closedTracker ? 0 : TrackerDateUtils.getTrackerDay(tracker);
         if (trackerDay > 0) {
-            txtTotalLabel.setText("Gastos totales: Día " + trackerDay);
+            txtTotalLabel.setText("Gastos totales: D\u00eda " + trackerDay);
         } else {
-            txtTotalLabel.setText("Gastos totales");
+            txtTotalLabel.setText("Gastos totales:");
         }
 
         if (expenseSummary == null) {
@@ -91,7 +102,7 @@ public class SummaryCardView extends LinearLayout {
             memberSummary1 = null;
             memberSummary2 = null;
             txtTotalAmount.setText("-");
-            txtTotalTrend.setText("0%");
+            renderTotalTrend(null);
             txtMember1Meta.setText("-  |  0%");
             txtMember1Amount.setText("");
             txtMember2Meta.setText("-  |  0%");
@@ -102,7 +113,7 @@ public class SummaryCardView extends LinearLayout {
         this.expenseSummary = expenseSummary;
         double total = expenseSummary.getTotalAmount();
         txtTotalAmount.setText(formatCurrency(total));
-        txtTotalTrend.setText("3%");
+        renderTotalTrend(totalTrend);
 
         if (expenseSummary.getMemberSummaries() == null || expenseSummary.getMemberSummaries().isEmpty()) {
             memberSummary1 = null;
@@ -253,6 +264,21 @@ public class SummaryCardView extends LinearLayout {
                 .setDuration(180L)
                 .setInterpolator(new DecelerateInterpolator())
                 .start();
+    }
+
+    private void renderTotalTrend(@Nullable TotalTrend totalTrend) {
+        if (totalTrend == null || totalTrendBadge == null || ivTotalTrend == null) {
+            if (totalTrendBadge != null) {
+                totalTrendBadge.setVisibility(View.GONE);
+            }
+            return;
+        }
+
+        boolean up = totalTrend.getDirection() == TotalTrend.Direction.UP;
+        totalTrendBadge.setVisibility(View.VISIBLE);
+        totalTrendBadge.setBackgroundResource(up ? R.drawable.bg_total_trend_up : R.drawable.bg_total_trend_down);
+        ivTotalTrend.setImageResource(up ? R.drawable.trendingup : R.drawable.trendingdown);
+        txtTotalTrend.setText(totalTrend.getPercentage() + "%");
     }
 
     private String formatCurrency(double amount) {

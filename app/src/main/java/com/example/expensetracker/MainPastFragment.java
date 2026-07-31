@@ -10,24 +10,19 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
-import com.example.expensetracker.ui.common.AppDialog;
 import com.google.android.material.progressindicator.LinearProgressIndicator;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
+import com.example.expensetracker.ui.common.AppSnackbar;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
 public class MainPastFragment extends Fragment implements CallBackItemTouch, SwipeRefreshLayout.OnRefreshListener {
 
@@ -84,9 +79,6 @@ public class MainPastFragment extends Fragment implements CallBackItemTouch, Swi
         } else {
             loadReportsFromArrayList();
         }
-        ItemTouchHelper.Callback callback = new MainItemDragSwipeCallback(this);
-        ItemTouchHelper touchHelper = new ItemTouchHelper(callback);
-        touchHelper.attachToRecyclerView(actualRecycler);
     }
 
     @Override
@@ -95,41 +87,6 @@ public class MainPastFragment extends Fragment implements CallBackItemTouch, Swi
 
     @Override
     public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
-        int position = viewHolder.getAdapterPosition();
-
-        AppDialog.showConfirmation(
-                context,
-                "Eliminar reporte",
-                "Est\u00e1s seguro que quer\u00e9s eliminar el reporte " + hCards.get(position).getName() + "?",
-                "Eliminar",
-                AppDialog.ActionStyle.DESTRUCTIVE,
-                () -> deleteTrackerAt(position),
-                () -> adapter.notifyDataSetChanged()
-        );
-    }
-
-    private void deleteTrackerAt(int position) {
-        String trackerId = hCards.get(position).getTableID();
-
-        DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference();
-        HashMap<String, Object> updates = new HashMap<>();
-        updates.put("home_index/" + trackerId, null);
-        updates.put("trackers_v2/" + trackerId, null);
-
-        rootRef.updateChildren(updates)
-                .addOnSuccessListener(unused -> {
-                    HCardDB.removeReportFromArrayList(trackerId);
-                    SettingsDB.removeReportFromArrayList(trackerId);
-                    hCards.remove(position);
-                    adapter.notifyItemRemoved(position);
-                    adapter.notifyItemRangeChanged(position, hCards.size());
-                    Toast.makeText(context, "El reporte se ha eliminado", Toast.LENGTH_SHORT).show();
-                })
-                .addOnFailureListener(e -> {
-                    adapter.notifyDataSetChanged();
-                    Toast.makeText(context, "No se pudo eliminar el reporte", Toast.LENGTH_SHORT).show();
-                    Log.e("firebase", "Error deleting tracker", e);
-                });
     }
 
     private void loadVariables(View view) {
@@ -156,7 +113,7 @@ public class MainPastFragment extends Fragment implements CallBackItemTouch, Swi
                 getActivity().runOnUiThread(() -> {
                     progressBar.hide();
                     progressBar.setVisibility(View.INVISIBLE);
-                    Toast.makeText(context, "Error cargando trackers_v2", Toast.LENGTH_SHORT).show();
+                    AppSnackbar.show(context, "Error cargando trackers_v2");
                     Log.e("firebase", "Error getting trackers_v2", e);
                 });
             }

@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    xmlns:android="http://schemas.android.com/apk/res/android">
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
 
     <com.google.android.material.card.MaterialCardView
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:app="http://schemas.android.com/apk/res-auto"
         android:id="@+id/trackerCard"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -14,73 +13,74 @@
         android:layout_marginEnd="20dp"
         android:layout_marginBottom="12dp"
         android:elevation="0dp"
-        app:cardElevation="0dp"
-        app:cardUseCompatPadding="false"
-        app:cardPreventCornerOverlap="false"
-        app:cardCornerRadius="20dp"
         app:cardBackgroundColor="@android:color/transparent"
+        app:cardCornerRadius="20dp"
+        app:cardElevation="0dp"
+        app:cardPreventCornerOverlap="false"
+        app:cardUseCompatPadding="false"
         app:strokeWidth="0dp">
 
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:background="@drawable/bg_tracker_card_shadow"
-            android:paddingTop="24dp"
             android:paddingStart="24dp"
-            android:paddingEnd="24dp"
-            android:paddingBottom="32dp">
+            android:paddingTop="16dp"
+            android:paddingEnd="16dp"
+            android:paddingBottom="16dp">
 
             <RelativeLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
                 android:paddingRight="40dp">
 
                 <TextView
                     android:id="@+id/txtName"
-                    style="@style/HomeCardTitleText"
+                    style="@style/HomeCardCompactTitleText"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Título" />
+                    android:text="Titulo" />
 
                 <TextView
                     android:id="@+id/txtOpenBadge"
                     android:layout_width="wrap_content"
                     android:layout_height="21dp"
+                    android:layout_marginStart="12dp"
+                    android:layout_alignTop="@id/txtName"
+                    android:layout_alignBottom="@id/txtName"
                     android:layout_toEndOf="@id/txtName"
-                    android:layout_marginStart="8dp"
-                    android:layout_marginTop="4dp"
                     android:background="@drawable/bg_home_open_badge"
-                    android:fontFamily="@font/rajdhani_bold"
+                    android:fontFamily="@font/rajdhani_semibold"
                     android:textStyle="bold"
-                    android:includeFontPadding="false"
                     android:gravity="center"
+                    android:includeFontPadding="false"
                     android:minWidth="31dp"
                     android:paddingStart="6dp"
                     android:paddingEnd="6dp"
-                    android:text="SIN CERRAR"
+                    android:text="Sin cerrar"
                     android:textColor="?attr/contentCategoryPercentageText"
-                    android:textSize="11sp"
+                    android:textSize="13sp"
                     android:visibility="gone" />
 
                 <ImageView
                     android:id="@+id/icn_cerrado"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_toEndOf="@id/txtOpenBadge"
                     android:layout_marginLeft="8dp"
-                    android:layout_marginTop="4dp"
+                    android:layout_alignTop="@id/txtName"
+                    android:layout_alignBottom="@id/txtName"
+                    android:layout_toEndOf="@id/txtOpenBadge"
+                    android:contentDescription="icn_cerrado"
                     android:src="@drawable/baseline_verified_24"
-                    app:tint="?attr/whiteBlack"
-                    android:contentDescription="icn_cerrado" />
+                    app:tint="?attr/whiteBlack" />
 
                 <TextView
                     android:id="@+id/txtDate"
                     style="@style/HomeCardDateText"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_below="@id/txtName"
-                    android:layout_marginTop="4dp"
-                    android:text="Creado el 23 de Mayo del 2021" />
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:visibility="gone" />
 
             </RelativeLayout>
 
@@ -89,9 +89,9 @@
                 android:layout_height="wrap_content"
                 android:layout_alignParentRight="true"
                 android:layout_centerVertical="true"
-                android:src="@drawable/ic_arrow"
-                app:tint="?attr/whiteBlack"
-                android:contentDescription="Right Arrow" />
+                android:contentDescription="Right Arrow"
+                android:src="@drawable/chevronright"
+                app:tint="?attr/whiteBlack" />
         </RelativeLayout>
 
     </com.google.android.material.card.MaterialCardView>

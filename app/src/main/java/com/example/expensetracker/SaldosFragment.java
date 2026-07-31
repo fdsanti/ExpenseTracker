@@ -9,12 +9,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 import java.util.HashMap;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
+import com.example.expensetracker.ui.common.AppSnackbar;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -99,7 +99,7 @@ public class SaldosFragment extends Fragment {
                         @Override
                         public void onComplete(@NonNull Task<DataSnapshot> task) {
                             if (!task.isSuccessful()) {
-                                Toast.makeText(context, "Error de conexión", Toast.LENGTH_SHORT).show();
+                                AppSnackbar.show(context, "Error de conexión");
                                 Log.e("firebase", "Error getting data", task.getException());
                             }
                             else {
@@ -112,14 +112,14 @@ public class SaldosFragment extends Fragment {
 
                                     myRef.updateChildren(updates).addOnCompleteListener(updateTask -> {
                                         if (!updateTask.isSuccessful()) {
-                                            Toast.makeText(context, "Error actualizando el estado", Toast.LENGTH_SHORT).show();
+                                            AppSnackbar.show(context, "Error actualizando el estado");
                                             Log.e("firebase", "Error updating tracker state", updateTask.getException());
                                             return;
                                         }
 
                                         HCardDB.setCerrado(true);
                                         btn_cerrarExpense.setText("Abrir Expense");
-                                        Toast.makeText(context, "Expense Cerrado", Toast.LENGTH_SHORT).show();
+                                        AppSnackbar.show(context, "Expense cerrado");
                                         expenseActivity.updateCerrado();
                                     });
                                 }
@@ -129,14 +129,14 @@ public class SaldosFragment extends Fragment {
 
                                     myRef.updateChildren(updates).addOnCompleteListener(updateTask -> {
                                         if (!updateTask.isSuccessful()) {
-                                            Toast.makeText(context, "Error actualizando el estado", Toast.LENGTH_SHORT).show();
+                                            AppSnackbar.show(context, "Error actualizando el estado");
                                             Log.e("firebase", "Error updating tracker state", updateTask.getException());
                                             return;
                                         }
 
                                         HCardDB.setCerrado(false);
                                         btn_cerrarExpense.setText("Cerrar Expense");
-                                        Toast.makeText(context, "Expense Abierto", Toast.LENGTH_SHORT).show();
+                                        AppSnackbar.show(context, "Expense abierto");
                                         expenseActivity.updateCerrado();
                                     });
                                 }

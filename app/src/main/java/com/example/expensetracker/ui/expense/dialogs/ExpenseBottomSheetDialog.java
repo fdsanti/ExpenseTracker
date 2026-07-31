@@ -20,7 +20,6 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -397,11 +396,7 @@ public class ExpenseBottomSheetDialog extends BottomSheetDialogFragment {
                                 dropdownCategoria,
                                 checkIndividualExpense
                         );
-                        Toast.makeText(
-                                requireContext(),
-                                "No se pudo guardar el gasto",
-                                Toast.LENGTH_SHORT
-                        ).show();
+                        showSnackbar("No se pudo guardar el gasto");
                     }
                 };
 
@@ -722,8 +717,8 @@ public class ExpenseBottomSheetDialog extends BottomSheetDialogFragment {
             snackbarView.setLayoutParams(rawParams);
         }
 
-        if (snackbarView instanceof Snackbar.SnackbarLayout) {
-            Snackbar.SnackbarLayout snackbarLayout = (Snackbar.SnackbarLayout) snackbarView;
+        if (snackbarView instanceof ViewGroup) {
+            ViewGroup snackbarLayout = (ViewGroup) snackbarView;
             snackbarLayout.removeAllViews();
             snackbarLayout.addView(createSnackbarContent(message));
         }

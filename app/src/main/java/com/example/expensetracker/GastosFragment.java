@@ -24,7 +24,6 @@ import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -33,6 +32,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.view.menu.MenuBuilder;
 import androidx.appcompat.view.menu.MenuPopupHelper;
 import androidx.fragment.app.Fragment;
+import com.example.expensetracker.ui.common.AppSnackbar;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -340,7 +340,7 @@ public class GastosFragment extends Fragment implements CallBackItemTouch, Swipe
                             @Override
                             public void onComplete(@NonNull Task<DataSnapshot> task) {
                                 if (!task.isSuccessful()) {
-                                    Toast.makeText(context, "Error de conectividad", Toast.LENGTH_SHORT).show();
+                                    AppSnackbar.show(context, "Error de conectividad");
                                     Log.e("firebase", "Error getting data", task.getException());
                                 }
                                 else {
@@ -448,7 +448,7 @@ public class GastosFragment extends Fragment implements CallBackItemTouch, Swipe
                                     loadTotals();
                                     saldosFragment.calculate();
 
-                                    Toast.makeText(context, "¡El expense ha sido creado con éxito!", Toast.LENGTH_SHORT).show();
+                                    AppSnackbar.show(context, "Expense creado");
                                     Log.d("firebase", String.valueOf(task.getResult().getValue()));
                                 }
                             }
@@ -733,7 +733,7 @@ public class GastosFragment extends Fragment implements CallBackItemTouch, Swipe
                     @Override
                     public void onComplete(@NonNull Task<DataSnapshot> task) {
                         if (!task.isSuccessful()) {
-                            Toast.makeText(context, "Error de conexión", Toast.LENGTH_SHORT).show();
+                            AppSnackbar.show(context, "Error de conexión");
                             Log.e("firebase", "Error getting data", task.getException());
                         }
                         else {
@@ -780,7 +780,7 @@ public class GastosFragment extends Fragment implements CallBackItemTouch, Swipe
                             //adapter.notifyDataSetChanged();
                             loadTotals();
                             saldosFragment.calculate();
-                            Toast.makeText(context, "¡El expense ha sido eliminado con éxito!", Toast.LENGTH_SHORT).show();
+                            AppSnackbar.show(context, "Expense eliminado");
                             Log.d("firebase", String.valueOf(task.getResult().getValue()));
                         }
                     }

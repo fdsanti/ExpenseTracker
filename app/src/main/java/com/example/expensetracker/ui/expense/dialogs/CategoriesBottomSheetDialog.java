@@ -1,6 +1,7 @@
 package com.example.expensetracker.ui.expense.dialogs;
 
 import android.app.Dialog;
+import android.content.Context;
 import android.os.Bundle;
 import android.util.TypedValue;
 import android.view.Gravity;
@@ -13,7 +14,6 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -27,6 +27,7 @@ import com.example.expensetracker.data.DefaultCategories;
 import com.example.expensetracker.data.TrackerRepository.RepositoryCallback;
 import com.example.expensetracker.model.Category;
 import com.example.expensetracker.ui.common.AppDialog;
+import com.example.expensetracker.ui.common.AppSnackbar;
 import com.example.expensetracker.ui.expense.ExpenseScreenController;
 import com.example.expensetracker.ui.expense.ExpenseScreenState;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
@@ -43,6 +44,7 @@ public class CategoriesBottomSheetDialog extends BottomSheetDialogFragment {
     private CategoryEditorAdapter adapter;
     private ItemTouchHelper itemTouchHelper;
     private View activeSnackbarView;
+    private Runnable activeSnackbarDismissRunnable;
 
     public static CategoriesBottomSheetDialog newInstance(
             ExpenseScreenState state,
@@ -143,6 +145,12 @@ public class CategoriesBottomSheetDialog extends BottomSheetDialogFragment {
         configureBottomSheet();
     }
 
+    @Override
+    public void onDestroyView() {
+        clearActiveSnackbar();
+        super.onDestroyView();
+    }
+
     private List<Category> getInitialCategories() {
         if (state.categories == null || state.categories.isEmpty()) {
             return DefaultCategories.asList();
@@ -180,7 +188,7 @@ public class CategoriesBottomSheetDialog extends BottomSheetDialogFragment {
 
             @Override
             public void onError(Exception exception) {
-                Toast.makeText(requireContext(), "No se pudo agregar la categor\u00eda", Toast.LENGTH_SHORT).show();
+                showToast("No se pudo agregar la categor\u00eda");
             }
         });
     }
@@ -195,14 +203,14 @@ public class CategoriesBottomSheetDialog extends BottomSheetDialogFragment {
 
             @Override
             public void onError(Exception exception) {
-                Toast.makeText(requireContext(), "No se pudo editar la categor\u00eda", Toast.LENGTH_SHORT).show();
+                showToast("No se pudo editar la categor\u00eda");
             }
         });
     }
 
     private void confirmDeleteCategory(Category category) {
         if (DefaultCategories.OTHERS_ID.equals(category.getId())) {
-            Toast.makeText(requireContext(), "Otros no se puede eliminar", Toast.LENGTH_SHORT).show();
+            showToast("Otros no se puede eliminar");
             return;
         }
 
@@ -229,7 +237,7 @@ public class CategoriesBottomSheetDialog extends BottomSheetDialogFragment {
 
             @Override
             public void onError(Exception exception) {
-                Toast.makeText(requireContext(), "No se pudo eliminar la categor\u00eda", Toast.LENGTH_SHORT).show();
+                showToast("No se pudo eliminar la categor\u00eda");
             }
         });
     }
@@ -242,7 +250,7 @@ public class CategoriesBottomSheetDialog extends BottomSheetDialogFragment {
 
             @Override
             public void onError(Exception exception) {
-                Toast.makeText(requireContext(), "No se pudo guardar el orden", Toast.LENGTH_SHORT).show();
+                showToast("No se pudo guardar el orden");
             }
         });
     }
@@ -278,90 +286,100 @@ public class CategoriesBottomSheetDialog extends BottomSheetDialogFragment {
     }
 
     private void showSnackbar(String message) {
+        Context context = getContext();
         FrameLayout bottomSheet = getBottomSheetContainer();
-        if (bottomSheet == null) {
+        if (context == null || bottomSheet == null) {
             return;
         }
 
-        if (activeSnackbarView != null) {
-            bottomSheet.removeView(activeSnackbarView);
-            activeSnackbarView = null;
-        }
+        clearActiveSnackbar();
 
-        FrameLayout snackbarView = new FrameLayout(requireContext());
+        int elevation = dpToPx(context, 6);
+        int bottomMargin = dpToPx(context, 24);
+        int verticalOffset = dpToPx(context, 18);
+
+        FrameLayout snackbarView = new FrameLayout(context);
         snackbarView.setBackgroundResource(R.drawable.bg_expense_snackbar);
         snackbarView.setPadding(0, 0, 0, 0);
-        snackbarView.setElevation(dpToPx(6));
+        snackbarView.setElevation(elevation);
 
-        snackbarView.addView(createSnackbarContent(message));
+        snackbarView.addView(createSnackbarContent(context, message));
 
         FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT
         );
         params.gravity = Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL;
-        params.setMargins(0, 0, 0, dpToPx(24));
+        params.setMargins(0, 0, 0, bottomMargin);
 
         activeSnackbarView = snackbarView;
         bottomSheet.addView(snackbarView, params);
         snackbarView.bringToFront();
         snackbarView.setAlpha(0f);
-        snackbarView.setTranslationY(dpToPx(18));
+        snackbarView.setTranslationY(verticalOffset);
         snackbarView.animate()
                 .alpha(1f)
                 .translationY(0f)
                 .setDuration(180)
                 .start();
-        snackbarView.postDelayed(() -> {
+
+        activeSnackbarDismissRunnable = () -> {
             if (activeSnackbarView == snackbarView && snackbarView.getParent() == bottomSheet) {
                 snackbarView.animate()
                         .alpha(0f)
-                        .translationY(dpToPx(18))
+                        .translationY(verticalOffset)
                         .setDuration(160)
                         .withEndAction(() -> {
                             if (activeSnackbarView == snackbarView && snackbarView.getParent() == bottomSheet) {
                                 bottomSheet.removeView(snackbarView);
                                 activeSnackbarView = null;
+                                activeSnackbarDismissRunnable = null;
                             }
                         })
                         .start();
             }
-        }, 2200);
+        };
+        snackbarView.postDelayed(activeSnackbarDismissRunnable, 2200);
     }
 
-    private View createSnackbarContent(String message) {
-        LinearLayout content = new LinearLayout(requireContext());
+    private View createSnackbarContent(Context context, String message) {
+        LinearLayout content = new LinearLayout(context);
         content.setOrientation(LinearLayout.HORIZONTAL);
         content.setGravity(Gravity.CENTER_VERTICAL);
-        content.setPadding(dpToPx(18), dpToPx(14), dpToPx(20), dpToPx(14));
+        content.setPadding(dpToPx(context, 18), dpToPx(context, 14), dpToPx(context, 20), dpToPx(context, 14));
 
-        ImageView icon = new ImageView(requireContext());
-        LinearLayout.LayoutParams iconParams = new LinearLayout.LayoutParams(dpToPx(20), dpToPx(20));
+        ImageView icon = new ImageView(context);
+        LinearLayout.LayoutParams iconParams = new LinearLayout.LayoutParams(dpToPx(context, 20), dpToPx(context, 20));
         icon.setLayoutParams(iconParams);
         icon.setImageResource(R.drawable.checkcircle);
-        icon.setColorFilter(getAttrColor(R.attr.expenseSnackbarContentColor));
+        icon.setColorFilter(getAttrColor(context, R.attr.expenseSnackbarContentColor));
         content.addView(icon);
 
-        TextView text = new TextView(requireContext());
+        TextView text = new TextView(context);
         LinearLayout.LayoutParams textParams = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT
         );
-        textParams.setMarginStart(dpToPx(12));
+        textParams.setMarginStart(dpToPx(context, 12));
         text.setLayoutParams(textParams);
         text.setIncludeFontPadding(false);
         text.setText(message);
-        text.setTextColor(getAttrColor(R.attr.expenseSnackbarContentColor));
+        text.setTextColor(getAttrColor(context, R.attr.expenseSnackbarContentColor));
         text.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
-        text.setTypeface(ResourcesCompat.getFont(requireContext(), R.font.rajdhani_semibold));
+        text.setTypeface(ResourcesCompat.getFont(context, R.font.rajdhani_semibold));
         content.addView(text);
 
         return content;
     }
 
     private int getAttrColor(int attr) {
+        Context context = requireContext();
+        return getAttrColor(context, attr);
+    }
+
+    private int getAttrColor(Context context, int attr) {
         TypedValue typedValue = new TypedValue();
-        requireContext().getTheme().resolveAttribute(attr, typedValue, true);
+        context.getTheme().resolveAttribute(attr, typedValue, true);
         return typedValue.data;
     }
 
@@ -377,7 +395,34 @@ public class CategoriesBottomSheetDialog extends BottomSheetDialogFragment {
                 .findViewById(com.google.android.material.R.id.design_bottom_sheet);
     }
 
-    private int dpToPx(int dp) {
-        return Math.round(dp * getResources().getDisplayMetrics().density);
+    private int dpToPx(Context context, int dp) {
+        return Math.round(dp * context.getResources().getDisplayMetrics().density);
+    }
+
+    private void clearActiveSnackbar() {
+        if (activeSnackbarView == null) {
+            activeSnackbarDismissRunnable = null;
+            return;
+        }
+
+        activeSnackbarView.animate().cancel();
+        if (activeSnackbarDismissRunnable != null) {
+            activeSnackbarView.removeCallbacks(activeSnackbarDismissRunnable);
+        }
+
+        ViewGroup parent = (ViewGroup) activeSnackbarView.getParent();
+        if (parent != null) {
+            parent.removeView(activeSnackbarView);
+        }
+
+        activeSnackbarView = null;
+        activeSnackbarDismissRunnable = null;
+    }
+
+    private void showToast(String message) {
+        Context context = getContext();
+        if (context != null) {
+            AppSnackbar.show(context, message);
+        }
     }
 }

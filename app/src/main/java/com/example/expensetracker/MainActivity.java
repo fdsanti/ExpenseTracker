@@ -2,7 +2,6 @@ package com.example.expensetracker;
 
 import com.google.firebase.auth.FirebaseAuth;
 import android.util.Log;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
@@ -30,7 +29,9 @@ import com.google.android.material.progressindicator.LinearProgressIndicator;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
+import com.example.expensetracker.data.DefaultCategories;
 import com.example.expensetracker.ui.common.AppDialog;
+import com.example.expensetracker.ui.common.AppSnackbar;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
@@ -49,6 +50,8 @@ import androidx.core.graphics.drawable.DrawableCompat;
 
 public class MainActivity extends AppCompatActivity implements CallBackItemTouch, SwipeRefreshLayout.OnRefreshListener {
 
+    public static final String EXTRA_HOME_MESSAGE = "com.example.expensetracker.EXTRA_HOME_MESSAGE";
+
     private Toolbar toolbar;
     private TabLayout tabLayout;
     private LockableViewPager viewPager;
@@ -66,6 +69,7 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
     private Drawable mIcon;
     private MaterialButton btnSync;
     private static final String TAG = "MainActivity";
+    private static final int SUMMARY_VERSION = 1;
     private FirebaseAuth mAuth;
 
     @RequiresApi(api = Build.VERSION_CODES.O)
@@ -79,21 +83,38 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
             /*FirebaseMigrationHelper.migrateLegacyToTrackersV2(new FirebaseMigrationHelper.MigrationCallback() {
                 @Override
                 public void onSuccess(int migratedTrackers) {
-                    Toast.makeText(MainActivity.this,
-                            "Migración OK. Trackers migrados: " + migratedTrackers,
-                            Toast.LENGTH_LONG).show();
+                    AppSnackbar.show(MainActivity.this, "Migración OK. Trackers migrados: " + migratedTrackers);
                 }
 
                 @Override
                 public void onError(@NonNull Exception e) {
-                    Toast.makeText(MainActivity.this,
-                            "Error migrando: " + e.getMessage(),
-                            Toast.LENGTH_LONG).show();
+                    AppSnackbar.show(MainActivity.this, "Error migrando: " + e.getMessage());
                     Log.e("Migration", "Migration failed", e);
                 }
             });*/
             initializePage();
+            showHomeMessageIfNeeded(getIntent());
         });
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        showHomeMessageIfNeeded(intent);
+    }
+
+    private void showHomeMessageIfNeeded(Intent intent) {
+        if (intent == null || !intent.hasExtra(EXTRA_HOME_MESSAGE)) {
+            return;
+        }
+
+        String message = intent.getStringExtra(EXTRA_HOME_MESSAGE);
+        intent.removeExtra(EXTRA_HOME_MESSAGE);
+
+        if (message != null && !message.trim().isEmpty()) {
+            AppSnackbar.show(this, message);
+        }
     }
 
     public void redirectToLogin() {
@@ -214,11 +235,22 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             today = LocalDate.now();
         }
-        HomeCard hc = HomeCard.fromTrackerId(trackerId, today, trackerName, false, false);
+        HomeCard hc = HomeCard.fromTrackerId(
+                trackerId,
+                today,
+                trackerName,
+                false,
+                false,
+                HomeCard.TYPE_MANUAL,
+                null,
+                0d,
+                SUMMARY_VERSION
+        );
 
         DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference();
 
         HashMap<String, Object> updates = new HashMap<>();
+        HashMap<String, Object> defaultCategories = new HashMap<>(DefaultCategories.asFirebaseMap());
 
         // trackers_v2
         updates.put("trackers_v2/" + trackerId + "/meta/legacyId", trackerId);
@@ -226,16 +258,18 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
         updates.put("trackers_v2/" + trackerId + "/meta/createdAt", today.toString());
         updates.put("trackers_v2/" + trackerId + "/meta/updatedAt", today.toString());
         updates.put("trackers_v2/" + trackerId + "/meta/closed", false);
+        updates.put("trackers_v2/" + trackerId + "/meta/type", HomeCard.TYPE_MANUAL);
         updates.put("trackers_v2/" + trackerId + "/meta/version", 2);
         updates.put("trackers_v2/" + trackerId + "/meta/migratedFrom", "created-directly-in-v2");
 
         updates.put("trackers_v2/" + trackerId + "/participants", new HashMap<>());
-        updates.put("trackers_v2/" + trackerId + "/categories", new HashMap<>());
+        updates.put("trackers_v2/" + trackerId + "/categories", defaultCategories);
         updates.put("trackers_v2/" + trackerId + "/expenses", new HashMap<>());
         updates.put("trackers_v2/" + trackerId + "/summary/expenseCount", 0);
         updates.put("trackers_v2/" + trackerId + "/summary/totalAmount", 0);
         updates.put("trackers_v2/" + trackerId + "/summary/participantCount", 0);
-        updates.put("trackers_v2/" + trackerId + "/summary/categoryCount", 0);
+        updates.put("trackers_v2/" + trackerId + "/summary/categoryCount", defaultCategories.size());
+        updates.put("trackers_v2/" + trackerId + "/summary/version", SUMMARY_VERSION);
 
         // home_index
         updates.put("home_index/" + trackerId + "/trackerId", trackerId);
@@ -243,16 +277,19 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
         updates.put("home_index/" + trackerId + "/createdAt", today.toString());
         updates.put("home_index/" + trackerId + "/closed", false);
         updates.put("home_index/" + trackerId + "/isSetupComplete", false);
+        updates.put("home_index/" + trackerId + "/type", HomeCard.TYPE_MANUAL);
+        updates.put("home_index/" + trackerId + "/totalAmount", 0);
+        updates.put("home_index/" + trackerId + "/summaryVersion", SUMMARY_VERSION);
 
         rootRef.updateChildren(updates)
                 .addOnSuccessListener(unused -> {
                     HCardDB.addExpense(hc.getTableID(), hc);
                     actualFragment.addHCards(0, hc);
-                    Toast.makeText(MainActivity.this, "¡El expense ha sido creado con éxito!", Toast.LENGTH_SHORT).show();
+                    AppSnackbar.show(MainActivity.this, "Tracker creado");
                 })
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Error creando tracker", e);
-                    Toast.makeText(MainActivity.this, "No se pudo crear el expense", Toast.LENGTH_SHORT).show();
+                    AppSnackbar.show(MainActivity.this, "No se pudo crear el tracker");
                 });
     }
 

@@ -94,6 +94,30 @@ public class HCardDB {
         return answer;
     }
 
+    public static ArrayList<HomeCard> getMonthlyReportsActuals() {
+        ArrayList<HomeCard> answer = new ArrayList<>();
+        if (expensesMap == null) initialize();
+        for (String s : expensesMap.keySet()) {
+            HomeCard card = expensesMap.get(s);
+            if (card != null && !card.isCerrado() && card.isMonthly()) {
+                answer.add(0, card);
+            }
+        }
+        return answer;
+    }
+
+    public static ArrayList<HomeCard> getManualReportsActuals() {
+        ArrayList<HomeCard> answer = new ArrayList<>();
+        if (expensesMap == null) initialize();
+        for (String s : expensesMap.keySet()) {
+            HomeCard card = expensesMap.get(s);
+            if (card != null && !card.isCerrado() && !card.isMonthly()) {
+                answer.add(0, card);
+            }
+        }
+        return answer;
+    }
+
     public static ArrayList<HomeCard> getReportsPast() {
         ArrayList<HomeCard> answer = new ArrayList<>();
         if (expensesMap == null) initialize();
