@@ -69,19 +69,37 @@
             android:textSize="16sp"
             app:fontFamily="@font/rajdhani_semibold" />
 
-        <TextView
-            android:id="@+id/btnCategoryDialogPrimary"
+        <FrameLayout
+            android:id="@+id/btnCategoryDialogPrimaryContainer"
             android:layout_width="0dp"
             android:layout_height="52dp"
             android:layout_marginStart="12dp"
             android:layout_weight="1"
             android:background="@drawable/bg_debt_closing_button_shadow"
-            android:fontFamily="@font/rajdhani_semibold"
-            android:gravity="center"
-            android:includeFontPadding="false"
-            android:text="Guardar"
-            android:textColor="?attr/debtClosingButtonTextColor"
-            android:textSize="16sp"
-            app:fontFamily="@font/rajdhani_semibold" />
+            android:clickable="true"
+            android:focusable="true">
+
+            <TextView
+                android:id="@+id/btnCategoryDialogPrimary"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:fontFamily="@font/rajdhani_semibold"
+                android:gravity="center"
+                android:includeFontPadding="false"
+                android:text="Guardar"
+                android:textColor="?attr/debtClosingButtonTextColor"
+                android:textSize="16sp"
+                app:fontFamily="@font/rajdhani_semibold" />
+
+            <ProgressBar
+                android:id="@+id/progressCategoryDialogPrimary"
+                style="?android:attr/progressBarStyleSmall"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_gravity="center"
+                android:indeterminate="true"
+                android:indeterminateTint="?attr/debtClosingButtonTextColor"
+                android:visibility="gone" />
+        </FrameLayout>
     </LinearLayout>
 </LinearLayout>

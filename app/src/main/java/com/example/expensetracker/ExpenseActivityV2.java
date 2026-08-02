@@ -569,7 +569,9 @@ public class ExpenseActivityV2 extends AppCompatActivity implements ExpenseScree
             closeOptionLabel = "Cerrar tracker";
         }
 
-        addMoreOptionItem(container, "Editar nombre", popupWindow, this::showEditTrackerNameDialog);
+        if (canEditTrackerName()) {
+            addMoreOptionItem(container, "Editar nombre", popupWindow, this::showEditTrackerNameAppDialog);
+        }
         addMoreOptionItem(container, "Editar categor\u00edas", popupWindow, this::showEditCategoriesDialog);
         addMoreOptionItem(container, "Configuración", popupWindow, this::openSettings);
         addMoreOptionItem(container, closeOptionLabel, popupWindow, this::confirmCloseTracker);
@@ -629,8 +631,30 @@ public class ExpenseActivityV2 extends AppCompatActivity implements ExpenseScree
         container.addView(itemView);
     }
 
+    private void showEditTrackerNameAppDialog() {
+        if (!canEditTrackerName()) {
+            return;
+        }
+
+        String currentName = currentState.tracker.getName();
+
+        AppDialog.showTextInput(
+                this,
+                "Editar nombre",
+                currentName,
+                "Nombre tracker",
+                "Guardar",
+                "El nombre no puede estar vacÃ­o",
+                null,
+                newName -> {
+                    controller.updateTrackerName(newName);
+                    HCardDB.setName(currentState.tracker.getId(), newName);
+                }
+        );
+    }
+
     private void showEditTrackerNameDialog() {
-        if (currentState == null || currentState.tracker == null) {
+        if (!canEditTrackerName()) {
             return;
         }
 
@@ -657,6 +681,12 @@ public class ExpenseActivityV2 extends AppCompatActivity implements ExpenseScree
                 })
                 .setNegativeButton("Cancelar", null)
                 .show();
+    }
+
+    private boolean canEditTrackerName() {
+        return currentState != null
+                && currentState.tracker != null
+                && !currentState.tracker.isMonthly();
     }
 
     private void showEditCategoriesDialog() {
