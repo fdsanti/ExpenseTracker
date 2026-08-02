@@ -153,17 +153,9 @@ public class HCardsViewAdapter extends RecyclerView.Adapter<HCardsViewAdapter.Vi
         //Cuando haces click en la card, ir al expense report
         holder.mCardView.setOnClickListener(v -> {
             HCardDB.setSelected(card);
-            if (!card.isSetupComplete()) {
-                Intent intent = new Intent(context, SettingsActivity.class);
-                context.startActivity(intent);
-            }
-            else {
-                //Intent intent = new Intent(context, ExpenseActivity.class);
-                //context.startActivity(intent);
-                Intent intent = new Intent(context, ExpenseActivityV2.class);
-                intent.putExtra("trackerId", card.getTableID());
-                context.startActivity(intent);
-            }
+            Intent intent = new Intent(context, ExpenseActivityV2.class);
+            intent.putExtra("trackerId", card.getTableID());
+            context.startActivity(intent);
         });
     }
 

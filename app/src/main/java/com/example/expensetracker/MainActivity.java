@@ -7,7 +7,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.PopupMenu;
 import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
@@ -21,6 +20,9 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.LinearLayout;
+import android.widget.PopupWindow;
 
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
@@ -30,6 +32,7 @@ import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 import com.example.expensetracker.data.DefaultCategories;
+import com.example.expensetracker.data.UserProfileRepository;
 import com.example.expensetracker.ui.common.AppDialog;
 import com.example.expensetracker.ui.common.AppSnackbar;
 import com.google.firebase.database.DatabaseReference;
@@ -71,6 +74,8 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
     private static final String TAG = "MainActivity";
     private static final int SUMMARY_VERSION = 1;
     private FirebaseAuth mAuth;
+    private UserProfileRepository userProfileRepository;
+    private String currentNickname = "";
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
@@ -92,9 +97,89 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
                     Log.e("Migration", "Migration failed", e);
                 }
             });*/
-            initializePage();
-            showHomeMessageIfNeeded(getIntent());
+            userProfileRepository = new UserProfileRepository();
+            ensureNicknameThenStart();
         });
+    }
+
+    private void ensureNicknameThenStart() {
+        userProfileRepository.loadCurrentNickname(new UserProfileRepository.Callback<String>() {
+            @Override
+            public void onSuccess(String nickname) {
+                runOnUiThread(() -> {
+                    currentNickname = nickname != null ? nickname.trim() : "";
+                    if (currentNickname.isEmpty()) {
+                        showNicknameDialog(true);
+                        return;
+                    }
+
+                    initializePage();
+                    showHomeMessageIfNeeded(getIntent());
+                });
+            }
+
+            @Override
+            public void onError(Exception exception) {
+                Log.e(TAG, "Error loading profile", exception);
+                runOnUiThread(() -> {
+                    AppSnackbar.show(MainActivity.this, "No se pudo cargar tu perfil");
+                    initializePage();
+                    showHomeMessageIfNeeded(getIntent());
+                });
+            }
+        });
+    }
+
+    private void showNicknameDialog(boolean requiredBeforeStart) {
+        AppDialog.TextInputCallback callback = value -> userProfileRepository.saveCurrentNickname(value, new UserProfileRepository.Callback<Void>() {
+            @Override
+            public void onSuccess(Void result) {
+                runOnUiThread(() -> {
+                    currentNickname = value;
+                    AppSnackbar.show(MainActivity.this, "Apodo guardado");
+                    if (requiredBeforeStart) {
+                        initializePage();
+                        showHomeMessageIfNeeded(getIntent());
+                    }
+                });
+            }
+
+            @Override
+            public void onError(Exception exception) {
+                Log.e(TAG, "Error saving nickname", exception);
+                runOnUiThread(() -> {
+                    AppSnackbar.show(MainActivity.this, "No se pudo guardar el apodo");
+                    if (requiredBeforeStart) {
+                        showNicknameDialog(true);
+                    }
+                });
+            }
+        });
+
+        if (requiredBeforeStart) {
+            AppDialog.showRequiredTextInput(
+                    this,
+                    "Elegí tu apodo",
+                    currentNickname,
+                    "Tu apodo",
+                    "Guardar",
+                    "Ingresá un apodo.",
+                    null,
+                    callback
+            );
+            return;
+        }
+
+        AppDialog.showTextInput(
+                this,
+                "Elegí tu apodo",
+                currentNickname,
+                "Tu apodo",
+                "Guardar",
+                "Ingresá un apodo.",
+                null,
+                callback
+        );
     }
 
     @Override
@@ -205,36 +290,95 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
             return true;
 
         } else if (id == R.id.btnMore) {
-            View anchorView = findViewById(R.id.btnMore);
-            if (anchorView != null) {
-                PopupMenu popup = new PopupMenu(this, anchorView);
-                popup.getMenu().add("Cerrar sesión");
-
-                popup.setOnMenuItemClickListener(menuItem -> {
-                    if ("Cerrar sesión".contentEquals(menuItem.getTitle())) {
-                        FirebaseAuth.getInstance().signOut();
-                        startActivity(new Intent(this, LoginActivity.class));
-                        finish();
-                        return true;
-                    }
-                    return false;
-                });
-
-                popup.show();
-            }
+            showMoreOptionsMenu();
             return true;
         }
 
         return super.onOptionsItemSelected(item);
     }
 
+    private void showMoreOptionsMenu() {
+        View anchorView = findViewById(R.id.btnMore);
+        if (anchorView == null) {
+            return;
+        }
+
+        LayoutInflater inflater = LayoutInflater.from(this);
+        View popupView = inflater.inflate(R.layout.view_sort_dropdown, null);
+        LinearLayout container = popupView.findViewById(R.id.sortDropdownContainer);
+
+        PopupWindow popupWindow = new PopupWindow(
+                popupView,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                true
+        );
+
+        addMoreOptionItem(container, "Editar apodo", popupWindow, () -> showNicknameDialog(false));
+        addMoreOptionItem(container, "Cerrar sesión", popupWindow, () -> {
+            FirebaseAuth.getInstance().signOut();
+            startActivity(new Intent(this, LoginActivity.class));
+            finish();
+        });
+
+        popupWindow.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        popupWindow.setOutsideTouchable(true);
+        popupWindow.setElevation(dpToPx(8));
+
+        popupView.measure(
+                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
+                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
+        );
+
+        int popupWidth = popupView.getMeasuredWidth();
+        int xOff = anchorView.getWidth() - popupWidth;
+
+        popupWindow.showAsDropDown(anchorView, xOff, dpToPx(8));
+    }
+
+    private void addMoreOptionItem(
+            LinearLayout container,
+            String label,
+            PopupWindow popupWindow,
+            Runnable action
+    ) {
+        android.widget.TextView itemView = new android.widget.TextView(this);
+
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+        );
+
+        if (container.getChildCount() > 0) {
+            params.topMargin = dpToPx(8);
+        }
+
+        itemView.setLayoutParams(params);
+        itemView.setText(label);
+        itemView.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 16);
+        itemView.setTypeface(itemView.getTypeface(), android.graphics.Typeface.BOLD);
+        itemView.setTextColor(resolveThemeColor(R.attr.sortDropdownText));
+        itemView.setPadding(dpToPx(16), dpToPx(14), dpToPx(16), dpToPx(14));
+        itemView.setBackgroundResource(R.drawable.bg_content_category_expense_click);
+        itemView.setClickable(true);
+        itemView.setFocusable(true);
+
+        itemView.setOnClickListener(v -> {
+            popupWindow.dismiss();
+            action.run();
+        });
+
+        container.addView(itemView);
+    }
+
+    private int dpToPx(int dp) {
+        return Math.round(dp * getResources().getDisplayMetrics().density);
+    }
+
     private void createTrackerV2(@NonNull String trackerName) {
         int newID = HCardDB.getBiggestID() + 1;
         String trackerId = "DATA" + newID;
-        LocalDate today = null;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            today = LocalDate.now();
-        }
+        final LocalDate today = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ? LocalDate.now() : null;
         HomeCard hc = HomeCard.fromTrackerId(
                 trackerId,
                 today,
@@ -247,6 +391,27 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
                 SUMMARY_VERSION
         );
 
+        userProfileRepository.loadDefaultParticipants(new UserProfileRepository.Callback<java.util.Map<String, Object>>() {
+            @Override
+            public void onSuccess(java.util.Map<String, Object> defaultParticipants) {
+                createTrackerV2WithParticipants(trackerId, today, trackerName, hc, defaultParticipants);
+            }
+
+            @Override
+            public void onError(Exception exception) {
+                Log.e(TAG, "Error loading default participants", exception);
+                runOnUiThread(() -> AppSnackbar.show(MainActivity.this, "No se pudo crear el tracker"));
+            }
+        });
+    }
+
+    private void createTrackerV2WithParticipants(
+            @NonNull String trackerId,
+            LocalDate today,
+            @NonNull String trackerName,
+            @NonNull HomeCard hc,
+            @NonNull java.util.Map<String, Object> defaultParticipants
+    ) {
         DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference();
 
         HashMap<String, Object> updates = new HashMap<>();
@@ -262,12 +427,12 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
         updates.put("trackers_v2/" + trackerId + "/meta/version", 2);
         updates.put("trackers_v2/" + trackerId + "/meta/migratedFrom", "created-directly-in-v2");
 
-        updates.put("trackers_v2/" + trackerId + "/participants", new HashMap<>());
+        updates.put("trackers_v2/" + trackerId + "/participants", defaultParticipants);
         updates.put("trackers_v2/" + trackerId + "/categories", defaultCategories);
         updates.put("trackers_v2/" + trackerId + "/expenses", new HashMap<>());
         updates.put("trackers_v2/" + trackerId + "/summary/expenseCount", 0);
         updates.put("trackers_v2/" + trackerId + "/summary/totalAmount", 0);
-        updates.put("trackers_v2/" + trackerId + "/summary/participantCount", 0);
+        updates.put("trackers_v2/" + trackerId + "/summary/participantCount", defaultParticipants.size());
         updates.put("trackers_v2/" + trackerId + "/summary/categoryCount", defaultCategories.size());
         updates.put("trackers_v2/" + trackerId + "/summary/version", SUMMARY_VERSION);
 
@@ -306,3 +471,5 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
     }
 
 }
+
+

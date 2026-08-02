@@ -5,6 +5,7 @@ import androidx.annotation.NonNull;
 import android.util.Log;
 
 import com.example.expensetracker.data.DefaultCategories;
+import com.example.expensetracker.data.UserProfileRepository;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DataSnapshot;
@@ -87,22 +88,38 @@ public class HomeFirebaseV2Repository {
                     ensureCurrentMonthlyTracker(databaseRef, tempHCArray, new LoadCallback() {
                         @Override
                         public void onSuccess() {
-                            hydrateHomeSummaries(databaseRef, tempHCArray, new LoadCallback() {
-                                @Override
-                                public void onSuccess() {
-                                    Collections.sort(tempHCArray, new HomeCardSortDate());
-                                    for (HomeCard hc : tempHCArray) {
-                                        HCardDB.addExpense(hc.getTableID(), hc);
-                                    }
+                            /*
+                             * Disabled lazy summary hydration on app open.
+                             *
+                             * This block scanned trackers with an old summaryVersion,
+                             * recalculated their summaries, and wrote updates back to
+                             * trackers_v2/{trackerId}/summary and home_index/{trackerId}.
+                             * It was useful as a one-time backfill, but it can make opening
+                             * the app slow and unexpectedly mutate a large part of the DB.
+                             */
+//                            hydrateHomeSummaries(databaseRef, tempHCArray, new LoadCallback() {
+//                                @Override
+//                                public void onSuccess() {
+//                                    Collections.sort(tempHCArray, new HomeCardSortDate());
+//                                    for (HomeCard hc : tempHCArray) {
+//                                        HCardDB.addExpense(hc.getTableID(), hc);
+//                                    }
+//
+//                                    callback.onSuccess();
+//                                }
+//
+//                                @Override
+//                                public void onError(@NonNull Exception e) {
+//                                    callback.onError(e);
+//                                }
+//                            });
 
-                                    callback.onSuccess();
-                                }
+                            Collections.sort(tempHCArray, new HomeCardSortDate());
+                            for (HomeCard hc : tempHCArray) {
+                                HCardDB.addExpense(hc.getTableID(), hc);
+                            }
 
-                                @Override
-                                public void onError(@NonNull Exception e) {
-                                    callback.onError(e);
-                                }
-                            });
+                            callback.onSuccess();
                         }
 
                         @Override
@@ -223,7 +240,7 @@ public class HomeFirebaseV2Repository {
             if (card != null
                     && card.isMonthly()
                     && currentMonthKey.equals(resolveMonthKey(card))) {
-                callback.onSuccess();
+                ensureCurrentMonthlyParticipants(rootRef, card.getTableID(), callback);
                 return;
             }
         }
@@ -233,6 +250,117 @@ public class HomeFirebaseV2Repository {
         String name = formatMonthlyName(currentMonth);
         Map<String, Object> defaultCategories = DefaultCategories.asFirebaseMap();
 
+        new UserProfileRepository().loadDefaultParticipants(new UserProfileRepository.Callback<Map<String, Object>>() {
+            @Override
+            public void onSuccess(Map<String, Object> defaultParticipants) {
+                createMonthlyTrackerWithParticipants(
+                        rootRef,
+                        cards,
+                        callback,
+                        trackerId,
+                        createdAt,
+                        name,
+                        currentMonthKey,
+                        defaultCategories,
+                        defaultParticipants
+                );
+            }
+
+            @Override
+            public void onError(Exception exception) {
+                callback.onError(exception);
+            }
+        });
+    }
+
+    private void ensureCurrentMonthlyParticipants(
+            @NonNull DatabaseReference rootRef,
+            @NonNull String trackerId,
+            @NonNull LoadCallback callback
+    ) {
+        new UserProfileRepository().loadDefaultParticipants(new UserProfileRepository.Callback<Map<String, Object>>() {
+            @Override
+            public void onSuccess(Map<String, Object> defaultParticipants) {
+                if (defaultParticipants.isEmpty()) {
+                    callback.onSuccess();
+                    return;
+                }
+
+                rootRef.child("trackers_v2").child(trackerId).child("participants").get()
+                        .addOnSuccessListener(snapshot -> {
+                            Map<String, Object> updates = new HashMap<>();
+
+                            for (Map.Entry<String, Object> entry : defaultParticipants.entrySet()) {
+                                String participantId = entry.getKey();
+                                if (!(entry.getValue() instanceof Map)) {
+                                    continue;
+                                }
+
+                                Map<?, ?> defaultParticipant = (Map<?, ?>) entry.getValue();
+                                DataSnapshot existing = snapshot.child(participantId);
+                                String existingUserId = existing.child("userId").getValue(String.class);
+                                boolean needsIdentity = !existing.exists()
+                                        || existingUserId == null
+                                        || existingUserId.trim().isEmpty();
+
+                                if (needsIdentity) {
+                                    putParticipantField(updates, trackerId, participantId, "active", defaultParticipant.get("active"));
+                                    putParticipantField(updates, trackerId, participantId, "order", defaultParticipant.get("order"));
+                                    putParticipantField(updates, trackerId, participantId, "userId", defaultParticipant.get("userId"));
+                                }
+
+                                if (!existing.child("income").exists()) {
+                                    putParticipantField(updates, trackerId, participantId, "income", defaultParticipant.get("income"));
+                                }
+
+                                if (!existing.child("incomePending").exists()) {
+                                    putParticipantField(updates, trackerId, participantId, "incomePending", defaultParticipant.get("incomePending"));
+                                }
+                            }
+
+                            if (updates.isEmpty()) {
+                                callback.onSuccess();
+                                return;
+                            }
+
+                            updates.put("trackers_v2/" + trackerId + "/summary/participantCount", defaultParticipants.size());
+                            rootRef.updateChildren(updates)
+                                    .addOnSuccessListener(unused -> callback.onSuccess())
+                                    .addOnFailureListener(callback::onError);
+                        })
+                        .addOnFailureListener(callback::onError);
+            }
+
+            @Override
+            public void onError(Exception exception) {
+                callback.onError(exception);
+            }
+        });
+    }
+
+    private void putParticipantField(
+            @NonNull Map<String, Object> updates,
+            @NonNull String trackerId,
+            @NonNull String participantId,
+            @NonNull String field,
+            Object value
+    ) {
+        if (value != null) {
+            updates.put("trackers_v2/" + trackerId + "/participants/" + participantId + "/" + field, value);
+        }
+    }
+
+    private void createMonthlyTrackerWithParticipants(
+            @NonNull DatabaseReference rootRef,
+            @NonNull ArrayList<HomeCard> cards,
+            @NonNull LoadCallback callback,
+            @NonNull String trackerId,
+            @NonNull LocalDate createdAt,
+            @NonNull String name,
+            @NonNull String currentMonthKey,
+            @NonNull Map<String, Object> defaultCategories,
+            @NonNull Map<String, Object> defaultParticipants
+    ) {
         Map<String, Object> updates = new HashMap<>();
         updates.put("trackers_v2/" + trackerId + "/meta/legacyId", trackerId);
         updates.put("trackers_v2/" + trackerId + "/meta/name", name);
@@ -244,11 +372,12 @@ public class HomeFirebaseV2Repository {
         updates.put("trackers_v2/" + trackerId + "/meta/autoCreated", true);
         updates.put("trackers_v2/" + trackerId + "/meta/version", 2);
         updates.put("trackers_v2/" + trackerId + "/meta/migratedFrom", "auto-monthly");
+        updates.put("trackers_v2/" + trackerId + "/participants", defaultParticipants);
         updates.put("trackers_v2/" + trackerId + "/categories", defaultCategories);
         updates.put("trackers_v2/" + trackerId + "/expenses", new HashMap<>());
         updates.put("trackers_v2/" + trackerId + "/summary/expenseCount", 0);
         updates.put("trackers_v2/" + trackerId + "/summary/totalAmount", 0);
-        updates.put("trackers_v2/" + trackerId + "/summary/participantCount", 0);
+        updates.put("trackers_v2/" + trackerId + "/summary/participantCount", defaultParticipants.size());
         updates.put("trackers_v2/" + trackerId + "/summary/categoryCount", defaultCategories.size());
         updates.put("trackers_v2/" + trackerId + "/summary/version", SUMMARY_VERSION);
 
