@@ -105,7 +105,117 @@ public final class AppDialog {
             @Nullable TextInputValidator validator,
             TextInputCallback onConfirm
     ) {
+        showTextInput(context, title, initialValue, placeholder, primaryText, emptyErrorMessage, validator, onConfirm, null);
+    }
+
+    public static void showTextInput(
+            Context context,
+            String title,
+            String initialValue,
+            String placeholder,
+            String primaryText,
+            String emptyErrorMessage,
+            @Nullable TextInputValidator validator,
+            TextInputCallback onConfirm,
+            @Nullable Runnable onCancel
+    ) {
+        showInput(context, title, initialValue, placeholder, primaryText, emptyErrorMessage, validator, InputType.TYPE_CLASS_TEXT, onConfirm, onCancel);
+    }
+
+    public static void showNumberInput(
+            Context context,
+            String title,
+            String initialValue,
+            String placeholder,
+            String primaryText,
+            String emptyErrorMessage,
+            @Nullable TextInputValidator validator,
+            TextInputCallback onConfirm,
+            @Nullable Runnable onCancel
+    ) {
+        showInput(
+                context,
+                title,
+                initialValue,
+                placeholder,
+                primaryText,
+                emptyErrorMessage,
+                validator,
+                InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL,
+                onConfirm,
+                onCancel
+        );
+    }
+
+    private static void showInput(
+            Context context,
+            String title,
+            String initialValue,
+            String placeholder,
+            String primaryText,
+            String emptyErrorMessage,
+            @Nullable TextInputValidator validator,
+            int inputType,
+            TextInputCallback onConfirm,
+            @Nullable Runnable onCancel
+    ) {
+        showTextInput(
+                context,
+                title,
+                initialValue,
+                placeholder,
+                primaryText,
+                emptyErrorMessage,
+                validator,
+                true,
+                inputType,
+                onConfirm,
+                onCancel
+        );
+    }
+
+    public static void showRequiredTextInput(
+            Context context,
+            String title,
+            String initialValue,
+            String placeholder,
+            String primaryText,
+            String emptyErrorMessage,
+            @Nullable TextInputValidator validator,
+            TextInputCallback onConfirm
+    ) {
+        showTextInput(
+                context,
+                title,
+                initialValue,
+                placeholder,
+                primaryText,
+                emptyErrorMessage,
+                validator,
+                false,
+                InputType.TYPE_CLASS_TEXT,
+                onConfirm,
+                null
+        );
+    }
+
+    private static void showTextInput(
+            Context context,
+            String title,
+            String initialValue,
+            String placeholder,
+            String primaryText,
+            String emptyErrorMessage,
+            @Nullable TextInputValidator validator,
+            boolean cancelable,
+            int inputType,
+            TextInputCallback onConfirm,
+            @Nullable Runnable onCancel
+    ) {
         Dialog dialog = createDialog(context);
+        dialog.setCancelable(cancelable);
+        dialog.setCanceledOnTouchOutside(cancelable);
+        final boolean[] confirmed = {false};
         View content = inflateContent(context);
 
         TextView titleView = content.findViewById(R.id.txtCategoryDialogTitle);
@@ -116,7 +226,7 @@ public final class AppDialog {
 
         titleView.setText(title);
         messageView.setVisibility(View.GONE);
-        input.setInputType(InputType.TYPE_CLASS_TEXT);
+        input.setInputType(inputType);
         input.setSingleLine(true);
         input.setHint(placeholder);
         input.setText(initialValue);
@@ -124,7 +234,18 @@ public final class AppDialog {
         primaryButton.setText(primaryText);
         applyActionStyle(context, primaryButton, ActionStyle.PRIMARY);
 
-        secondaryButton.setOnClickListener(v -> dialog.dismiss());
+        secondaryButton.setVisibility(cancelable ? View.VISIBLE : View.GONE);
+        secondaryButton.setOnClickListener(v -> {
+            dialog.dismiss();
+            if (onCancel != null) {
+                onCancel.run();
+            }
+        });
+        dialog.setOnCancelListener(dialogInterface -> {
+            if (!confirmed[0] && onCancel != null) {
+                onCancel.run();
+            }
+        });
         primaryButton.setOnClickListener(v -> {
             String value = input.getText() != null ? input.getText().toString().trim() : "";
             if (value.isEmpty()) {
@@ -140,6 +261,7 @@ public final class AppDialog {
                 }
             }
 
+            confirmed[0] = true;
             dialog.dismiss();
             onConfirm.onConfirm(value);
         });

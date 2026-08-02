@@ -213,33 +213,51 @@ public class TrackerRepository {
         getParticipantsRef(trackerId).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                try {
-                    List<Member> result = new ArrayList<>();
+                database.child("users").addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot usersSnapshot) {
+                        try {
+                            List<Member> result = new ArrayList<>();
 
-                    for (DataSnapshot child : snapshot.getChildren()) {
-                        String id = child.getKey();
-                        String name = child.child("name").getValue(String.class);
-                        Object incomeValue = child.child("income").getValue();
+                            for (DataSnapshot child : snapshot.getChildren()) {
+                                String id = child.getKey();
+                                String userId = child.child("userId").getValue(String.class);
+                                String legacyName = child.child("name").getValue(String.class);
+                                String profileName = userId != null
+                                        ? usersSnapshot.child(userId).child("nickname").getValue(String.class)
+                                        : null;
+                                String name = profileName != null && !profileName.trim().isEmpty()
+                                        ? profileName.trim()
+                                        : legacyName;
+                                Object incomeValue = child.child("income").getValue();
+                                Boolean incomePendingValue = child.child("incomePending").getValue(Boolean.class);
 
-                        double salary = 0;
+                                double salary = 0;
 
-                        if (incomeValue instanceof Long) {
-                            salary = ((Long) incomeValue).doubleValue();
-                        } else if (incomeValue instanceof Integer) {
-                            salary = ((Integer) incomeValue).doubleValue();
-                        } else if (incomeValue instanceof Double) {
-                            salary = (Double) incomeValue;
+                                if (incomeValue instanceof Long) {
+                                    salary = ((Long) incomeValue).doubleValue();
+                                } else if (incomeValue instanceof Integer) {
+                                    salary = ((Integer) incomeValue).doubleValue();
+                                } else if (incomeValue instanceof Double) {
+                                    salary = (Double) incomeValue;
+                                }
+
+                                result.add(new Member(id, name, userId, salary, incomePendingValue != null && incomePendingValue));
+
+                            }
+
+                            callback.onSuccess(result);
+
+                        } catch (Exception e) {
+                            callback.onError(e);
                         }
-
-                        result.add(new Member(id, name, salary));
-
                     }
 
-                    callback.onSuccess(result);
-
-                } catch (Exception e) {
-                    callback.onError(e);
-                }
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                        callback.onError(error.toException());
+                    }
+                });
             }
 
             @Override

@@ -8,6 +8,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.expensetracker.calculator.ExpenseListQuery;
 import com.example.expensetracker.data.TrackerRepository;
+import com.example.expensetracker.data.UserProfileRepository;
 import com.example.expensetracker.model.Expense;
 import com.example.expensetracker.ui.common.AppDialog;
 import com.example.expensetracker.ui.common.AppSnackbar;
@@ -27,6 +28,9 @@ import com.example.expensetracker.ui.expense.components.MembersCardView;
 import com.example.expensetracker.ui.expense.components.ContentCardView;
 import com.example.expensetracker.ui.expense.dialogs.ExpenseBottomSheetDialog;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
@@ -40,6 +44,7 @@ import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 
 import java.util.HashMap;
+import java.util.Map;
 
 
 public class ExpenseActivityV2 extends AppCompatActivity implements ExpenseScreenListener {
@@ -56,6 +61,9 @@ public class ExpenseActivityV2 extends AppCompatActivity implements ExpenseScree
     private View btnMoreOptions;
     private ExpenseScreenState currentState;
     private ExpenseScreenState previousRenderedState;
+    private boolean salarySetupCheckStarted;
+    private boolean salarySetupSaving;
+    private String currentNickname = "";
 
 
     @Override
@@ -78,10 +86,7 @@ public class ExpenseActivityV2 extends AppCompatActivity implements ExpenseScree
                 return;
             }
 
-            Intent intent = new Intent(this, SettingsActivity.class);
-            intent.putExtra("trackerId", currentState.tracker.getId());
-            intent.putExtra("fromExpenseV2", true);
-            startActivity(intent);
+            showEditSalaryDialog();
         });
 
         contentCard.setOnCategoriesClickListener(v ->
@@ -172,6 +177,7 @@ public class ExpenseActivityV2 extends AppCompatActivity implements ExpenseScree
     public void onStateChanged(ExpenseScreenState state) {
         currentState = state;
         render(state);
+        promptCurrentUserSalaryIfNeeded(state);
     }
     private void render(ExpenseScreenState state) {
         renderHeader(state);
@@ -241,6 +247,302 @@ public class ExpenseActivityV2 extends AppCompatActivity implements ExpenseScree
 
     private void renderLoading(ExpenseScreenState state) {
         txtLoading.setVisibility(state.loading ? View.VISIBLE : View.GONE);
+    }
+
+    private void promptCurrentUserSalaryIfNeeded(ExpenseScreenState state) {
+        if (salarySetupCheckStarted
+                || salarySetupSaving
+                || state == null
+                || state.loading
+                || state.tracker == null
+                || state.tracker.getId() == null) {
+            return;
+        }
+
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user == null) {
+            return;
+        }
+
+        salarySetupCheckStarted = true;
+        UserProfileRepository userProfileRepository = new UserProfileRepository();
+        userProfileRepository.loadCurrentNickname(new UserProfileRepository.Callback<String>() {
+            @Override
+            public void onSuccess(String nickname) {
+                currentNickname = nickname != null ? nickname.trim() : "";
+                if (currentNickname.isEmpty()) {
+                    salarySetupCheckStarted = false;
+                    return;
+                }
+
+                DatabaseReference participantsRef = FirebaseDatabase.getInstance()
+                        .getReference()
+                        .child("trackers_v2")
+                        .child(state.tracker.getId())
+                        .child("participants");
+
+                participantsRef.get()
+                        .addOnSuccessListener(snapshot -> {
+                            DataSnapshot currentParticipantSnapshot = findCurrentUserParticipant(snapshot, user);
+                            if (currentParticipantSnapshot != null) {
+                                Boolean incomePending = currentParticipantSnapshot
+                                        .child("incomePending")
+                                        .getValue(Boolean.class);
+                                if (Boolean.TRUE.equals(incomePending)) {
+                                    runOnUiThread(() -> showSalaryDialog(
+                                            state.tracker.getId(),
+                                            snapshot,
+                                            user,
+                                            "",
+                                            () -> saveCurrentUserSalary(state.tracker.getId(), snapshot, user, 1)
+                                    ));
+                                }
+                                return;
+                            }
+
+                            if (attachCurrentUserToMatchingParticipant(state.tracker.getId(), snapshot, user)) {
+                                return;
+                            }
+
+                            runOnUiThread(() -> showSalaryDialog(
+                                    state.tracker.getId(),
+                                    snapshot,
+                                    user,
+                                    "",
+                                    () -> saveCurrentUserSalary(state.tracker.getId(), snapshot, user, 1)
+                            ));
+                        })
+                        .addOnFailureListener(error -> {
+                            Log.e("ExpenseV2", "Error checking participant setup", error);
+                            salarySetupCheckStarted = false;
+                        });
+            }
+
+            @Override
+            public void onError(Exception exception) {
+                Log.e("ExpenseV2", "Error loading profile", exception);
+                salarySetupCheckStarted = false;
+            }
+        });
+    }
+
+    private DataSnapshot findCurrentUserParticipant(DataSnapshot snapshot, FirebaseUser user) {
+        for (DataSnapshot child : snapshot.getChildren()) {
+            String userId = child.child("userId").getValue(String.class);
+            if (user.getUid().equals(userId)) {
+                return child;
+            }
+        }
+        return null;
+    }
+
+    private boolean attachCurrentUserToMatchingParticipant(String trackerId, DataSnapshot snapshot, FirebaseUser user) {
+        for (DataSnapshot child : snapshot.getChildren()) {
+            String participantId = child.getKey();
+            String name = child.child("name").getValue(String.class);
+            String userId = child.child("userId").getValue(String.class);
+            if (participantId != null
+                    && userId == null
+                    && name != null
+                    && name.trim().equalsIgnoreCase(currentNickname)) {
+                FirebaseDatabase.getInstance()
+                        .getReference()
+                        .child("trackers_v2")
+                        .child(trackerId)
+                        .child("participants")
+                        .child(participantId)
+                        .child("userId")
+                        .setValue(user.getUid());
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void showEditSalaryDialog() {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user == null || currentState == null || currentState.tracker == null || currentState.tracker.getId() == null) {
+            AppSnackbar.show(this, "No se pudo editar el sueldo");
+            return;
+        }
+
+        String trackerId = currentState.tracker.getId();
+        FirebaseDatabase.getInstance()
+                .getReference()
+                .child("trackers_v2")
+                .child(trackerId)
+                .child("participants")
+                .get()
+                .addOnSuccessListener(snapshot -> {
+                    DataSnapshot participantSnapshot = findCurrentUserParticipant(snapshot, user);
+                    if (participantSnapshot == null) {
+                        participantSnapshot = findCurrentUserParticipantByNickname(snapshot);
+                    }
+
+                    String initialSalary = "";
+                    if (participantSnapshot != null) {
+                        initialSalary = formatSalaryInput(readDouble(participantSnapshot.child("income").getValue()));
+                    }
+
+                    String initialSalaryValue = initialSalary;
+                    runOnUiThread(() -> showSalaryDialog(trackerId, snapshot, user, initialSalaryValue, null));
+                })
+                .addOnFailureListener(error -> {
+                    Log.e("ExpenseV2", "Error loading salary for edit", error);
+                    AppSnackbar.show(this, "No se pudo editar el sueldo");
+                });
+    }
+
+    private DataSnapshot findCurrentUserParticipantByNickname(DataSnapshot snapshot) {
+        for (DataSnapshot child : snapshot.getChildren()) {
+            String name = child.child("name").getValue(String.class);
+            if (name != null && name.trim().equalsIgnoreCase(currentNickname)) {
+                return child;
+            }
+        }
+        return null;
+    }
+
+    private void showSalaryDialog(
+            String trackerId,
+            DataSnapshot participantsSnapshot,
+            FirebaseUser user,
+            String initialSalary,
+            Runnable onCancel
+    ) {
+        AppDialog.showNumberInput(
+                this,
+                "Tu sueldo",
+                initialSalary,
+                "Sueldo",
+                "Guardar",
+                "Ingresá tu sueldo.",
+                value -> {
+                    try {
+                        Double.parseDouble(value);
+                        return null;
+                    } catch (NumberFormatException e) {
+                        return "El sueldo debe ser numérico.";
+                    }
+                },
+                value -> saveCurrentUserSalary(trackerId, participantsSnapshot, user, Double.parseDouble(value)),
+                onCancel
+        );
+    }
+
+    private double readDouble(Object value) {
+        if (value instanceof Long) {
+            return ((Long) value).doubleValue();
+        }
+        if (value instanceof Integer) {
+            return ((Integer) value).doubleValue();
+        }
+        if (value instanceof Double) {
+            return (Double) value;
+        }
+        try {
+            return Double.parseDouble(String.valueOf(value));
+        } catch (Exception e) {
+            return 0;
+        }
+    }
+
+    private String formatSalaryInput(double salary) {
+        if (salary <= 0) {
+            return "";
+        }
+        if (salary == (long) salary) {
+            return String.valueOf((long) salary);
+        }
+        return String.valueOf(salary);
+    }
+
+    private void saveCurrentUserSalary(
+            String trackerId,
+            DataSnapshot participantsSnapshot,
+            FirebaseUser user,
+            double salary
+    ) {
+        if (salarySetupSaving) {
+            return;
+        }
+
+        salarySetupSaving = true;
+        String participantId = resolveCurrentParticipantId(participantsSnapshot, user);
+        String otherParticipantId = "p1".equals(participantId) ? "p2" : "p1";
+
+        Map<String, Object> currentParticipant = new HashMap<>();
+        currentParticipant.put("active", true);
+        currentParticipant.put("income", salary);
+        currentParticipant.put("order", "p2".equals(participantId) ? 2 : 1);
+        currentParticipant.put("userId", user.getUid());
+        currentParticipant.put("incomePending", false);
+
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("trackers_v2/" + trackerId + "/participants/" + participantId, currentParticipant);
+        updates.put("trackers_v2/" + trackerId + "/summary/participantCount", 2);
+        updates.put("home_index/" + trackerId + "/isSetupComplete", true);
+
+        if (!participantsSnapshot.child(otherParticipantId).exists()) {
+            Map<String, Object> otherParticipant = new HashMap<>();
+            otherParticipant.put("active", true);
+            otherParticipant.put("income", 1);
+            otherParticipant.put("order", "p2".equals(otherParticipantId) ? 2 : 1);
+            updates.put("trackers_v2/" + trackerId + "/participants/" + otherParticipantId, otherParticipant);
+        }
+
+        FirebaseDatabase.getInstance()
+                .getReference()
+                .updateChildren(updates)
+                .addOnSuccessListener(unused -> {
+                    HCardDB.setSetupComplete(trackerId, true);
+                    salarySetupSaving = false;
+                    if (controller != null) {
+                        controller.refresh();
+                    }
+                })
+                .addOnFailureListener(error -> {
+                    Log.e("ExpenseV2", "Error saving salary setup", error);
+                    salarySetupSaving = false;
+                    salarySetupCheckStarted = false;
+                    AppSnackbar.show(this, "No se pudo guardar tu sueldo");
+                });
+    }
+
+    private String resolveCurrentParticipantId(DataSnapshot snapshot, FirebaseUser user) {
+        for (DataSnapshot child : snapshot.getChildren()) {
+            String userId = child.child("userId").getValue(String.class);
+            if (user.getUid().equals(userId)) {
+                return child.getKey();
+            }
+        }
+
+        for (DataSnapshot child : snapshot.getChildren()) {
+            String participantId = child.getKey();
+            String name = child.child("name").getValue(String.class);
+            if (participantId != null && name != null && name.trim().equalsIgnoreCase(currentNickname)) {
+                return participantId;
+            }
+        }
+
+        if (!snapshot.child("p1").exists() || isAvailableParticipant(snapshot.child("p1"))) {
+            return "p1";
+        }
+
+        if (!snapshot.child("p2").exists() || isAvailableParticipant(snapshot.child("p2"))) {
+            return "p2";
+        }
+
+        return "p1";
+    }
+
+    private boolean isAvailableParticipant(DataSnapshot participantSnapshot) {
+        String userId = participantSnapshot.child("userId").getValue(String.class);
+        String name = participantSnapshot.child("name").getValue(String.class);
+        return userId == null
+                && (name == null
+                || name.trim().isEmpty()
+                || UserProfileRepository.TBD_NAME.equalsIgnoreCase(name.trim()));
     }
 
     private void showMoreOptionsMenu() {
