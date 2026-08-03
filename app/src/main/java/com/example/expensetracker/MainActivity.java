@@ -131,7 +131,7 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
     }
 
     private void showNicknameDialog(boolean requiredBeforeStart) {
-        AppDialog.TextInputCallback callback = value -> userProfileRepository.saveCurrentNickname(value, new UserProfileRepository.Callback<Void>() {
+        AppDialog.TextInputAsyncCallback callback = (value, completion) -> userProfileRepository.saveCurrentNickname(value, new UserProfileRepository.Callback<Void>() {
             @Override
             public void onSuccess(Void result) {
                 runOnUiThread(() -> {
@@ -141,6 +141,7 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
                         initializePage();
                         showHomeMessageIfNeeded(getIntent());
                     }
+                    completion.onSuccess();
                 });
             }
 
@@ -149,15 +150,13 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
                 Log.e(TAG, "Error saving nickname", exception);
                 runOnUiThread(() -> {
                     AppSnackbar.show(MainActivity.this, "No se pudo guardar el apodo");
-                    if (requiredBeforeStart) {
-                        showNicknameDialog(true);
-                    }
+                    completion.onError();
                 });
             }
         });
 
         if (requiredBeforeStart) {
-            AppDialog.showRequiredTextInput(
+            AppDialog.showRequiredTextInputAsync(
                     this,
                     "Elegí tu apodo",
                     currentNickname,
@@ -170,7 +169,7 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
             return;
         }
 
-        AppDialog.showTextInput(
+        AppDialog.showTextInputAsync(
                 this,
                 "Elegí tu apodo",
                 currentNickname,
@@ -274,7 +273,7 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
         int id = item.getItemId();
 
         if (id == R.id.btnRefresh) {
-            AppDialog.showTextInput(
+            AppDialog.showTextInputAsync(
                     this,
                     "Agregar reporte",
                     "",
@@ -375,7 +374,7 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
         return Math.round(dp * getResources().getDisplayMetrics().density);
     }
 
-    private void createTrackerV2(@NonNull String trackerName) {
+    private void createTrackerV2(@NonNull String trackerName, @NonNull AppDialog.LoadingCompletion completion) {
         int newID = HCardDB.getBiggestID() + 1;
         String trackerId = "DATA" + newID;
         final LocalDate today = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ? LocalDate.now() : null;
@@ -394,13 +393,16 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
         userProfileRepository.loadDefaultParticipants(new UserProfileRepository.Callback<java.util.Map<String, Object>>() {
             @Override
             public void onSuccess(java.util.Map<String, Object> defaultParticipants) {
-                createTrackerV2WithParticipants(trackerId, today, trackerName, hc, defaultParticipants);
+                createTrackerV2WithParticipants(trackerId, today, trackerName, hc, defaultParticipants, completion);
             }
 
             @Override
             public void onError(Exception exception) {
                 Log.e(TAG, "Error loading default participants", exception);
-                runOnUiThread(() -> AppSnackbar.show(MainActivity.this, "No se pudo crear el tracker"));
+                runOnUiThread(() -> {
+                    AppSnackbar.show(MainActivity.this, "No se pudo crear el tracker");
+                    completion.onError();
+                });
             }
         });
     }
@@ -410,7 +412,8 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
             LocalDate today,
             @NonNull String trackerName,
             @NonNull HomeCard hc,
-            @NonNull java.util.Map<String, Object> defaultParticipants
+            @NonNull java.util.Map<String, Object> defaultParticipants,
+            @NonNull AppDialog.LoadingCompletion completion
     ) {
         DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference();
 
@@ -451,10 +454,12 @@ public class MainActivity extends AppCompatActivity implements CallBackItemTouch
                     HCardDB.addExpense(hc.getTableID(), hc);
                     actualFragment.addHCards(0, hc);
                     AppSnackbar.show(MainActivity.this, "Tracker creado");
+                    completion.onSuccess();
                 })
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Error creando tracker", e);
                     AppSnackbar.show(MainActivity.this, "No se pudo crear el tracker");
+                    completion.onError();
                 });
     }
 

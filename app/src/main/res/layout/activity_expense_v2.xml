@@ -79,32 +79,48 @@
 
             </LinearLayout>
 
-            <com.example.expensetracker.ui.expense.components.SummaryCardView
-                android:id="@+id/summaryCard"
+            <FrameLayout
+                android:id="@+id/expenseBodyContainer"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content">
 
-            <com.example.expensetracker.ui.expense.components.ContentCardView
-                android:id="@+id/contentCard"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                <LinearLayout
+                    android:id="@+id/expenseContentContainer"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="invisible">
 
-            <com.example.expensetracker.ui.expense.components.BalanceCardView
-                android:id="@+id/balanceCard"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                    <com.example.expensetracker.ui.expense.components.SummaryCardView
+                        android:id="@+id/summaryCard"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
 
-            <com.example.expensetracker.ui.expense.components.MembersCardView
-                android:id="@+id/membersCard"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                    <com.example.expensetracker.ui.expense.components.ContentCardView
+                        android:id="@+id/contentCard"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
 
-            <TextView
-                android:id="@+id/txtLoading"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Cargando..."
-                android:textSize="16sp" />
+                    <com.example.expensetracker.ui.expense.components.BalanceCardView
+                        android:id="@+id/balanceCard"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
+
+                    <com.example.expensetracker.ui.expense.components.MembersCardView
+                        android:id="@+id/membersCard"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
+
+                    <TextView
+                        android:id="@+id/txtLoading"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Cargando..."
+                        android:textSize="16sp" />
+                </LinearLayout>
+
+                <include layout="@layout/view_expense_skeleton" />
+            </FrameLayout>
 
         </LinearLayout>
 

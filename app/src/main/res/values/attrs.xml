@@ -99,4 +99,5 @@
     <attr name="categoryDialogDestructiveBorderColor" format="color" />
     <attr name="categoryDialogDestructiveShadowColor" format="color" />
     <attr name="categoryDialogDestructiveText" format="color" />
+    <attr name="skeletonBlockColor" format="color" />
 </resources>

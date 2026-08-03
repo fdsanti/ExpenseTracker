@@ -27,7 +27,6 @@ import java.text.NumberFormat;
 import java.util.Locale;
 
 public class SummaryCardView extends LinearLayout {
-
     private TextView txtTotalLabel;
     private TextView txtTotalAmount;
     private TextView txtTotalTrend;

@@ -124,6 +124,7 @@
         <item name="categoryDialogDestructiveBorderColor">#913A3A</item>
         <item name="categoryDialogDestructiveShadowColor">#913A3A</item>
         <item name="categoryDialogDestructiveText">#3F0E0E</item>
+        <item name="skeletonBlockColor">#343B43</item>
         <item name="materialAlertDialogTheme">@style/ThemeOverlay.ExpenseTracker.MaterialAlertDialog</item>
     </style>
     <style name="ThemeOverlay.ExpenseTracker.MaterialAlertDialog" parent="ThemeOverlay.MaterialComponents.MaterialAlertDialog">
