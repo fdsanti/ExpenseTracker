@@ -45,6 +45,7 @@ public class ExpenseScreenController {
     private String errorMessage;
     private ContentTab selectedTab;
     private ExpenseScreenState lastEmittedState;
+    private int loadGeneration;
     private final List<String> expandedCategoryIds = new ArrayList<>();
 
 
@@ -83,58 +84,77 @@ public class ExpenseScreenController {
             return;
         }
 
+        int generation = ++loadGeneration;
         startLoading();
 
         trackerRepository.loadTracker(trackerId, new RepositoryCallback<Tracker>() {
             @Override
             public void onSuccess(Tracker tracker) {
+                if (!isCurrentLoad(generation)) {
+                    return;
+                }
+
                 ExpenseScreenController.this.tracker = tracker;
-                loadPreviousMonthlyTrend();
-                onLoadFinished();
+                if (shouldLoadPreviousMonthlyTrend(tracker)) {
+                    loadPreviousMonthlyTrend(generation);
+                }
+                onLoadFinished(generation);
             }
 
             @Override
             public void onError(Exception exception) {
-                onLoadError("Error loading tracker", exception);
+                onLoadError(generation, "Error loading tracker", exception);
             }
         });
 
         trackerRepository.loadParticipants(trackerId, new RepositoryCallback<List<Member>>() {
             @Override
             public void onSuccess(List<Member> members) {
+                if (!isCurrentLoad(generation)) {
+                    return;
+                }
+
                 ExpenseScreenController.this.members = members;
-                onLoadFinished();
+                onLoadFinished(generation);
             }
 
             @Override
             public void onError(Exception exception) {
-                onLoadError("Error loading participants", exception);
+                onLoadError(generation, "Error loading participants", exception);
             }
         });
 
         trackerRepository.loadExpenses(trackerId, new RepositoryCallback<List<Expense>>() {
             @Override
             public void onSuccess(List<Expense> expenses) {
+                if (!isCurrentLoad(generation)) {
+                    return;
+                }
+
                 ExpenseScreenController.this.expenses = expenses;
-                onLoadFinished();
+                onLoadFinished(generation);
             }
 
             @Override
             public void onError(Exception exception) {
-                onLoadError("Error loading expenses", exception);
+                onLoadError(generation, "Error loading expenses", exception);
             }
         });
 
         trackerRepository.loadCategories(trackerId, new RepositoryCallback<List<Category>>() {
             @Override
             public void onSuccess(List<Category> categories) {
+                if (!isCurrentLoad(generation)) {
+                    return;
+                }
+
                 ExpenseScreenController.this.categories = categories;
-                onLoadFinished();
+                onLoadFinished(generation);
             }
 
             @Override
             public void onError(Exception exception) {
-                onLoadError("Error loading categories", exception);
+                onLoadError(generation, "Error loading categories", exception);
             }
         });
     }
@@ -214,7 +234,11 @@ public class ExpenseScreenController {
     }
 
 
-    private void onLoadFinished() {
+    private void onLoadFinished(int generation) {
+        if (!isCurrentLoad(generation)) {
+            return;
+        }
+
         pendingLoads--;
 
         boolean stillLoading = pendingLoads > 0;
@@ -223,11 +247,15 @@ public class ExpenseScreenController {
     }
 
 
-    private void onLoadError(String message, Exception exception) {
+    private void onLoadError(int generation, String message, Exception exception) {
+        if (!isCurrentLoad(generation)) {
+            return;
+        }
+
         hasLoadError = true;
         errorMessage = message;
         Log.e("ExpenseScreenController", message, exception);
-        onLoadFinished();
+        onLoadFinished(generation);
     }
 
     public void setSelectedTab(ContentTab selectedTab) {
@@ -312,12 +340,16 @@ public class ExpenseScreenController {
         emitState(buildState(loading));
     }
 
-    private void loadPreviousMonthlyTrend() {
+    private void loadPreviousMonthlyTrend(int generation) {
         trackerRepository.loadPreviousMonthlyTrackerExpenses(
                 tracker,
                 new RepositoryCallback<TrackerRepository.PreviousTrackerExpenses>() {
                     @Override
                     public void onSuccess(TrackerRepository.PreviousTrackerExpenses result) {
+                        if (!isCurrentLoad(generation)) {
+                            return;
+                        }
+
                         if (result == null) {
                             previousMonthlyTracker = null;
                             previousMonthlyExpenses = null;
@@ -331,6 +363,10 @@ public class ExpenseScreenController {
 
                     @Override
                     public void onError(Exception exception) {
+                        if (!isCurrentLoad(generation)) {
+                            return;
+                        }
+
                         Log.e("ExpenseScreenController", "Error loading previous monthly tracker", exception);
                         previousMonthlyTracker = null;
                         previousMonthlyExpenses = null;
@@ -338,6 +374,17 @@ public class ExpenseScreenController {
                     }
                 }
         );
+    }
+
+    private boolean isCurrentLoad(int generation) {
+        return generation == loadGeneration;
+    }
+
+    private boolean shouldLoadPreviousMonthlyTrend(Tracker tracker) {
+        return tracker != null
+                && tracker.getId() != null
+                && tracker.getCreatedAt() > 0L
+                && tracker.isMonthly();
     }
 
     private TotalTrend calculateTotalTrend(

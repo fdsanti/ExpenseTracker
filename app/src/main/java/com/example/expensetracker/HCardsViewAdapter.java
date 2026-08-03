@@ -155,6 +155,7 @@ public class HCardsViewAdapter extends RecyclerView.Adapter<HCardsViewAdapter.Vi
             HCardDB.setSelected(card);
             Intent intent = new Intent(context, ExpenseActivityV2.class);
             intent.putExtra("trackerId", card.getTableID());
+            intent.putExtra("trackerName", card.getName());
             context.startActivity(intent);
         });
     }
